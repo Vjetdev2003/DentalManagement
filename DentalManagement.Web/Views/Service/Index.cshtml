@@ -1,0 +1,78 @@
+﻿@model DentalManagement.Web.Models.PaginationSearchInput
+
+@{
+    ViewBag.Title = "Quản lý dịch vụ";
+}
+
+<div class="box box-primary">
+    <div class="box-body">
+        <!-- Form nhập đầu vào tìm kiếm -->
+        <form id="formSearch" action="~/Service/Search" method="get" data-container="#searchResult">
+            <div class="input-group">
+                <input type="hidden" name="@nameof(Model.PageSize)" value="@Model.PageSize" />
+                <input name="@nameof(Model.SearchValue)" type="text" class="form-control"
+                       placeholder="Nhập tên dịch vụ cần tìm" autofocus value="@Model.SearchValue">
+                <div class="input-group-btn">
+                    <button class="btn btn-info" type="submit">
+                        <i class="glyphicon glyphicon-search"></i>
+                    </button>
+                    <a href="~/Service/Create" class="btn btn-primary" style="margin-left:5px">
+                        <i class="fa fa-plus"></i> Bổ sung
+                    </a>
+                </div>
+            </div>
+        </form>
+
+        <!-- Hiển thị kết quả tìm kiếm -->
+        <div id="searchResult">
+            <!-- Kết quả tìm kiếm sẽ được tải vào đây -->
+        </div>
+    </div>
+</div>
+
+
+
+@section scripts {
+    <script>
+        $(document).ready(function () {
+            $("#formSearch").submit(function (e) {
+                e.preventDefault(); // Ngăn chặn hành động gửi form mặc định
+                doSearch(this, 1); // Gọi hàm doSearch với trang 1
+                return;
+            });
+            doSearch("#formSearch", @Model.Page); // Tìm kiếm ngay khi tải trang
+        });
+
+        function doSearch(formSearchInput, page) {
+            var url = $(formSearchInput).prop("action"); // Lấy URL từ thuộc tính action của form
+            var container = $(formSearchInput).data("container"); // Lấy container từ data attribute
+            var postData = $(formSearchInput).serializeArray(); // Chuyển đổi form thành dữ liệu
+
+            // Thêm thông tin phân trang vào dữ liệu
+            postData.push({ "name": "page", "value": page });
+
+            // Thực hiện AJAX
+            $.ajax({
+                url: url,
+                type: "POST",
+                data: postData,
+                success: function (data) {
+                    $(container).html(data); // Cập nhật nội dung của container
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    // Ghi log chi tiết lỗi vào console
+                    console.error("AJAX Error:", {
+                        status: jqXHR.status,
+                        statusText: jqXHR.statusText,
+                        responseText: jqXHR.responseText,
+                        textStatus: textStatus,
+                        errorThrown: errorThrown
+                    });
+
+                    // Thông báo lỗi cho người dùng
+                    alert("Your request is not valid! " + errorThrown);
+                }
+            });
+        }
+    </script>
+}

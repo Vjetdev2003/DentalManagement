@@ -1,0 +1,111 @@
+﻿@model DentalManagement.DomainModels.Patient
+
+<div class="box box-primary">
+    <div class="box-body">
+        <form class="form-horizontal" method="post" enctype="multipart/form-data" action="~/Patient/Save">
+            <input type="hidden" name="PatientId" value="@Model.PatientId" />
+
+            <div class="form-group">
+                <label class="control-label col-sm-2">Họ và tên:</label>
+                <div class="col-sm-10">
+                    <input type="text" class="form-control" name="@nameof(Model.PatientName)" autofocus value="@Model.PatientName" />
+                    @Html.ValidationMessageFor(m => m.PatientName)
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="control-label col-sm-2">Ngày sinh:</label>
+                <div class="col-sm-10">
+                    <input type="hidden" name="@nameof(Model.PatientDOB)" value="@Model.PatientDOB" />
+                    <input type="text" class="form-control date-picker"
+                           name="BirthDateInput"
+                           value="@Model.PatientDOB.ToString("dd/MM/yyyy", new System.Globalization.CultureInfo("en-GB"))" />
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="control-label col-sm-2">Giới tính:</label>
+                <div class="col-sm-10">
+                    <div class="radio">
+                        <label>
+                            <input type="radio" name="@nameof(Model.Gender)" value="true" @(Model.Gender ? "checked" : "") /> Nam
+                        </label>
+                    </div>
+                    <div class="radio">
+                        <label>
+                            <input type="radio" name="@nameof(Model.Gender)" value="false" @(!Model.Gender ? "checked" : "") /> Nữ
+                        </label>
+                    </div>
+                    @Html.ValidationMessageFor(m => m.Gender)
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="control-label col-sm-2">Chiều cao:</label>
+                <div class="col-sm-10">
+                    <input type="text" class="form-control" name="@nameof(Model.Height)" value="@Model.Height" />
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="control-label col-sm-2">Cân nặng:</label>
+                <div class="col-sm-10">
+                    <input type="text" class="form-control" name="@nameof(Model.Weight)" value="@Model.Weight" />
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="control-label col-sm-2">Địa chỉ:</label>
+                <div class="col-sm-10">
+                    <input type="text" class="form-control" name="@nameof(Model.Address)" value="@Model.Address" />
+                    @Html.ValidationMessageFor(m => m.Address)
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="control-label col-sm-2">Điện thoại:</label>
+                <div class="col-sm-10">
+                    <input type="text" class="form-control" name="@nameof(Model.Phone)" value="@Model.Phone" />
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="control-label col-sm-2">Email:</label>
+                <div class="col-sm-10">
+                    <input type="email" class="form-control" name="@nameof(Model.Email)" value="@Model.Email" />
+                    @Html.ValidationMessageFor(m => m.Email)
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="col-lg-offset-2 col-sm-10">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fa fa-floppy-o"></i>
+                        Lưu dữ liệu
+                    </button>
+                    <a href="~/Patient" class="btn btn-default" id="backButton">Quay lại</a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section scripts {
+    <script>
+        document.getElementById('backButton').addEventListener('click', function (e) {
+            e.preventDefault(); // Ngăn chặn hành động mặc định
+
+            // Kiểm tra vai trò người dùng
+            var userRoles = '@HttpContextAccessor.HttpContext.Session.GetString("UserRoles")';
+            var isPatient = userRoles.includes('patient'); // Kiểm tra nếu có vai trò Patient
+
+            // Chuyển hướng đến trang phù hợp
+            if (isPatient) {
+                window.location.href = '@Url.Action("Detail", "Patient", new { id = Model.PatientId })';
+            } else {
+                window.location.href = '@Url.Action("Index", "Patient")';
+            }
+        });
+    </script>
+}
+

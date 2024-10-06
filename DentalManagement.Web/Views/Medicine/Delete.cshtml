@@ -1,0 +1,63 @@
+﻿@model DentalManagement.DomainModels.Medicine
+
+@{
+    ViewBag.Title = "Xoá thuốc";
+}
+<div class="box box-danger">
+    <div class="box-body">
+        <form class="form-horizontal" method="post" action="@Url.Action("Delete", "Medicine", new { id = Model.MedicineId })">
+            <div class="form-group">
+                <label class="control-label col-sm-2">Ảnh thuốc:</label>
+                <div class="col-sm-10">
+                    <img id="Photo" src="~/images/medicines/@(string.IsNullOrWhiteSpace(Model.Photo) ? "default.png" : Model.Photo)" class="img img-bordered" style="width:200px" />
+                    <input type="hidden" name="Avatar" value="@Model.Photo" />
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="control-label col-sm-2">Tên thuốc:</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@Model.MedicineName</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="control-label col-sm-2">Đơn vị tính:</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@Model.Unit</p>
+                </div>
+            </div> <div class="form-group">
+                <label class="control-label col-sm-2">Liều dùng/ Hướng dẫn:</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@Model.DosageInstructions</p>
+                </div>
+            </div> <div class="form-group">
+                <label class="control-label col-sm-2">Số lượng:</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@Model.StockQuantity</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="control-label col-sm-2">Giá:</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@Model.Price</p>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="control-label col-sm-2">Cách sử dụng:</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@Model.Usage</p>
+                </div>
+            </div>
+
+
+
+            <form method="post" asp-action="DeleteConfirmed" asp-route-id="@Model.MedicineId">
+                <button type="submit" class="btn btn-danger fa fa-trash "> Xác nhận xóa</button>
+                <a href="@Url.Action("Index")" class="btn btn-default fa fa-default">Quay lại</a>
+            </form>
+        </form>
+    </div>
+</div>
+
+

@@ -1,0 +1,73 @@
+﻿@model DentistSearchResult
+@{
+    Layout = null;
+}
+<p style="margin:10px 0 10px 0">
+    Có <strong>@Model.RowCount</strong> nha sĩ trong tổng số <strong>@Model.PageCount</strong> trang
+</p>
+
+<div class="row">
+    @foreach (var item in Model.Dentists)
+    {
+        <div class="col-lg-4 col-md-4 col-xs-6">
+            <div class="box box-info">
+
+                <div class="box-header with-border">
+                    <h3 class="box-title">@item.DentistName</h3>
+                    <div class="box-tools pull-right">
+                        <a class="btn btn-box-tool" href="~/Dentist/Edit/@item.DentistId">
+                            <i class="fa fa-edit text-primary"></i>
+                        </a>
+                        <a class="btn btn-box-tool" href="~/Dentist/Delete/@item.DentistId">
+                            <i class="fa fa-trash text-danger"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="box-body">
+                    <div class="row">
+                        <div class="col-sm-4">
+                            <img class="profile-user-img img-responsive img-bordered"
+                                 alt="no-photo"
+                                 src="~/images/dentists/@(string.IsNullOrWhiteSpace(item.Avatar) ? "employee.png" : item.Avatar)">
+                        </div>
+                        <div class="col-sm-8">
+                            <ul class="list-group list-group-unbordered">
+                                
+                                <li class="list-group-item">
+                                    <i class="fa fa-briefcase"></i> @item.Specialization
+                                </li>
+                                <li class="list-group-item">
+                                    <i class="fa fa-envelope"></i> @item.Email
+                                </li>
+                                <li class="list-group-item">
+                                    <i class="fa fa-address-card-o"></i> @item.Address
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <!-- /.box-body -->
+            </div>
+        </div>
+    }
+</div>
+
+@if (Model.PageCount > 1)
+{
+    <div class="text-center">
+        <ul class="pagination">
+            @for (int p = 1; p <= Model.PageCount; p++)
+            {
+                if (p == Model.Page)
+                {
+                    <li class="active"><a href="#">@p</a></li>
+                }
+                else
+                {
+                    <li><a href="javascript:;" onclick="paginationSearch('#formSearch',@p)">@p</a></li>
+                }
+            }
+        </ul>
+    </div>
+}

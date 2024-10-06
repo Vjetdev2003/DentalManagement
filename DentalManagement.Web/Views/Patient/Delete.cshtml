@@ -1,0 +1,69 @@
+﻿@model DentalManagement.DomainModels.Patient
+
+
+@{
+    ViewBag.Title = "Xóa bệnh nhân";
+}
+
+<div class="box box-danger">
+    <div class="box-body">
+        <form class="form-horizontal" method="post" action="@Url.Action("Delete", "Patient", new { id = Model.PatientId })">
+            <div class="form-group">
+                <label class="control-label col-sm-2">Họ và tên bệnh nhân:</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@Model.PatientName</p>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="control-label col-sm-2">Ngày sinh:</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@Model.PatientDOB.ToString("dd/MM/yyyy")</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="control-label col-sm-2">Giới tính:</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@Model.Gender</p>
+                </div>
+            </div> <div class="form-group">
+                <label class="control-label col-sm-2">Chiều cao:</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@Model.Height</p>
+                </div>
+            </div> <div class="form-group">
+                <label class="control-label col-sm-2">Cân nặng:</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@Model.Weight</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="control-label col-sm-2">Địa chỉ:</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@Model.Address</p>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="control-label col-sm-2">Điện thoại:</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@Model.Phone</p>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="control-label col-sm-2">Email:</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@Model.Email</p>
+                </div>
+            </div>
+
+            
+
+            <form method="post" asp-action="DeleteConfirmed" asp-route-id="@Model.PatientId">
+                <button type="submit" class="btn btn-danger fa fa-trash "> Xác nhận xóa</button>
+                <a href="@Url.Action("Index")" class="btn btn-default fa fa-default">Quay lại</a>
+            </form>
+        </form>
+    </div>
+</div>

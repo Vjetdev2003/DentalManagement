@@ -1,0 +1,62 @@
+﻿@model DentalManagement.DomainModels.Dentist
+
+
+<div class="box box-primary">
+<div class="box-body">
+    <form class="form-horizontal" method="post" enctype="multipart/form-data" action="~/Dentist/Save">
+        <input type="hidden" name="DentistID" value="@Model.DentistId" />
+
+        <div class="form-group">
+            <label class="control-label col-sm-2">Họ và tên:</label>
+            <div class="col-sm-10">
+                <input type="text" class="form-control" name="@nameof(Model.DentistName)" autofocus value="@Model.DentistName" />
+                @Html.ValidationMessageFor(m => m.DentistName)
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="control-label col-sm-2">Chuyên môn:</label>
+            <div class="col-sm-10">
+                <input type="text" class="form-control" name="@nameof(Model.Specialization)" value="@Model.Specialization" />
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="control-label col-sm-2">Địa chỉ:</label>
+            <div class="col-sm-10">
+                <input type="text" class="form-control" name="@nameof(Model.Address)" value="@Model.Address" />
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="control-label col-sm-2">Email:</label>
+            <div class="col-sm-10">
+                <input type="email" class="form-control" name="@nameof(Model.Email)" value="@Model.Email" />
+                @Html.ValidationMessageFor(m => m.Email)
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="control-label col-sm-2">Ảnh cá nhân:</label>
+            <div class="col-sm-10">
+                <input type="hidden" name="@nameof(Model.Avatar)" value="@Model.Avatar" />
+                <input type="file" class="form-control" name="uploadPhoto" accept="image/*"
+                       onchange="document.getElementById('Photo').src = window.URL.createObjectURL(this.files[0])" />
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-lg-offset-2 col-sm-10">
+                <img id="Photo" src="~/images/dentists/@Model.Avatar" class="img img-bordered" style="width:200px" alt="NoPhoto" />
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-lg-offset-2 col-sm-10">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fa fa-floppy-o"></i>
+                    Lưu dữ liệu
+                </button>
+                <a href="~/Dentist" class="btn btn-default">Quay lại</a>
+            </div>
+        </div>
+    </form>
+</div>
+</div>
