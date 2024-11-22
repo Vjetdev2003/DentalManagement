@@ -1,4 +1,5 @@
 ﻿@model DentalManagement.Web.Models.PatientSearchResult
+
 @{
     Layout = null;
 }
@@ -29,7 +30,7 @@
                         <td>@item.PatientDOB</td>
                         <td>@item.Height</td>
                         <td>@item.Weight</td>
-                        <td class="text-center">@(item.Gender ? "Nam" : "Nữ")</td>
+                           <td>  @(item.Gender == true ? "Nam" : item.Gender == false ? "Nữ" : "Chưa xác định") <!-- Xử lý khi Gender có thể là null -->
                         <td>@item.Phone</td>
                         <td>@item.Email</td>
                         <td>@item.Address</td>
@@ -58,13 +59,12 @@
                     }
                     else
                     {
-                        <li><a href="javascript:;" onclick="doSearch('#formSearch',@p)">@p</a></li>
+                        <li><a onclick="paginationSearch('#formSearch',@p)">@p</a></li>
                     }
                 }
             </ul>
         </div>
     }
 
-</div>
 
 

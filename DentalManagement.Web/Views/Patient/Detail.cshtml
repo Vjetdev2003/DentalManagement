@@ -1,5 +1,7 @@
 ﻿@model DentalManagement.DomainModels.Patient
-
+@{
+    ViewBag.Title = "Chỉnh sửa thông tin cá nhân";
+}
 
 <div class="container mt-5">
     <div class="row justify-content-center">
@@ -25,20 +27,9 @@
         </tr>
         <tr>
             <th>Giới Tính:</th>
-            <td>
-                @if (Model.Gender.Equals("Male"))
-                {
-                    <span>Nam</span>
-                }
-                else if (Model.Gender.Equals("Female"))
-                {
-                    <span>Nữ</span>
-                }
-                else
-                {
-                    <span>Khác</span>
-                }
-            </td>
+                    <td class="text-center">
+                        @(Model.Gender == true ? "Nam" : Model.Gender == false ? "Nữ" : "Chưa xác định") <!-- Xử lý khi Gender có thể là null -->
+                    </td>
         </tr>
         <tr>
             <th>Email:</th>

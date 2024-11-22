@@ -1,0 +1,89 @@
+﻿@* @using DentalManagement.DomainModels
+@model InvoiceViewModel
+
+@{
+    ViewBag.Title = Model.InvoiceId == 0 ? "Tạo hóa đơn mới" : "Chỉnh sửa hóa đơn";
+    ViewBag.PaymentMethods = new List<SelectListItem>
+{
+    new SelectListItem { Value = Paymethod.CASH, Text = "Tiền mặt" },
+    new SelectListItem { Value = Paymethod.CARD, Text = "Thẻ" },
+    new SelectListItem { Value = Paymethod.BANKING, Text = "Chuyển khoản" }
+};
+}
+
+
+<form asp-action="Save" method="post">
+    <div class="form-group">
+        <label for="PatientId">Chọn bệnh nhân</label>
+        <select asp-for="PatientId" asp-items="Model.PatientList" class="form-control">
+            <option value="">-- Chọn bệnh nhân --</option>
+        </select>
+        <span asp-validation-for="PatientId" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label for="ServiceId">Chọn dịch vụ</label>
+        <select asp-for="ServiceId" asp-items="Model.ServiceList" class="form-control" id="ServiceId" onchange="updateServicePrice()">
+            <option value="">-- Chọn dịch vụ --</option>
+        </select>
+        <span asp-validation-for="ServiceId" class="text-danger"></span>
+    </div> 
+    <div class="form-group">
+        <label for="DentistId">Nha sĩ phụ trách</label>
+        <select asp-for="DentistId" asp-items="Model.DentistList" class="form-control" id="DentistId">
+            <option value="">-- Chọn nha sĩ --</option>
+        </select>
+        <span asp-validation-for="DentistId" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label for="Discount">Giảm giá (%)</label>
+        <input asp-for="Discount" class="form-control" />
+        <span asp-validation-for="Discount" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label for="PaymentMethod">Phương thức thanh toán</label>
+        <select asp-for="PaymentMethod" class="form-control" asp-items="ViewBag.PaymentMethods">
+            <option value="">-- Chọn phương thức thanh toán --</option>
+        </select>
+        <span asp-validation-for="PaymentMethod" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label for="Amount">Số tiền (sau giảm giá)</label>
+        <input asp-for="TotalPrice" class="form-control" readonly />
+        <span asp-validation-for="TotalPrice" class="text-danger"></span>
+    </div>
+
+    <input type="hidden" asp-for="InvoiceId" />
+
+    <button type="submit" class="btn btn-primary">Lưu</button>
+    <a asp-action="Index" class="btn btn-secondary">Quay lại</a>
+</form>
+
+@section Scripts {
+    <script src="https://ajax.aspnetcdn.com/ajax/jquery/jquery-3.5.1.min.js"></script>
+    <script>
+        function updateServicePrice() {
+            var serviceId = $("#ServiceId").val();
+            var discount = $("#Discount").val() || 0;
+
+            if (serviceId) {
+                $.getJSON('@Url.Action("GetServicePrice")', { serviceId: serviceId }, function (data) {
+                    if (data && data.price) {
+                        var price = data.price;
+                        var discountAmount = price * (discount / 100);
+                        var finalAmount = price - discountAmount;
+                        $("#Amount").val(finalAmount.toFixed(2));
+                    }
+                });
+            }
+        }
+
+        // Update amount when discount changes
+        $("#Discount").on("input", function () {
+            updateServicePrice();
+        });
+    </script>
+} *@

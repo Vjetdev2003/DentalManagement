@@ -24,7 +24,6 @@ namespace DentalManagement.DomainModels
         public string Avatar { get; set; } = string.Empty;
         public string Password { get; set; } = string.Empty;
         public string RoleName {  get; set; } = string.Empty;  
-        public virtual ICollection<DentistPatient> DentistPatients { get; set; }
         public virtual ICollection<Prescription> Prescriptions { get; set; }
         public virtual ICollection<Appointment> Appointments { get; set; } 
         public virtual ICollection<MedicalRecord> MedicalRecords { get; set; } // Một bệnh nhân có thể có nhiều hồ sơ y tế

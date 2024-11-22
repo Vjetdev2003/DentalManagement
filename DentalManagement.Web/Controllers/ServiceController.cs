@@ -75,11 +75,11 @@ namespace DentalManagement.Web.Controllers
         }
 
 
-    public async Task<IActionResult> Create()
+         public async Task<IActionResult> Create()
         {
             ViewBag.Title = "Bổ sung dịch vụ";
-            var medicine = new Service();
-            return View("Edit", medicine);
+            var service = new Service();
+            return View("Edit", service);
         }
         [HttpPost]
         public async Task<IActionResult> Create(Service model)
@@ -97,7 +97,7 @@ namespace DentalManagement.Web.Controllers
         }
         public async Task<IActionResult> Edit(int id, Service model)
         {
-            ViewBag.Title = "Chỉnh sửa thông tin thuốc";
+            ViewBag.Title = "Chỉnh sửa thông tin";
             var service = await _serviceRepository.GetByIdAsync(id);
             if (service == null)
             {
@@ -106,7 +106,7 @@ namespace DentalManagement.Web.Controllers
             return View(service);
         }
         [HttpPost]
-        public async Task<IActionResult> Save(Service data)
+        public async Task<IActionResult> Save(Service data,IFormFile? uploadPhoto)
         {
             ViewBag.Title = data.ServiceId == 0 ? "Bổ sung dịch vụ" : "Cập nhật thông tin dịch vụ";
             if (string.IsNullOrEmpty(data.ServiceName))
@@ -125,7 +125,18 @@ namespace DentalManagement.Web.Controllers
             }
             data.DateUpdated = DateTime.Now; // Cập nhật thời gian
             data.UserIdUpdated = User.Identity?.Name; // Người cập nhật
+            if (uploadPhoto != null)
+            {
+                string fileName = $"{DateTime.Now.Ticks}_{uploadPhoto.FileName}"; // Tên file sẽ lưu
+                string folder = Path.Combine(ApplicationContext.WebRootPath, @"images\accounts"); // Đường dẫn đến thư mục lưu file
+                string filePath = Path.Combine(folder, fileName); // Đường dẫn đến file cần lưu
 
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await uploadPhoto.CopyToAsync(stream);
+                }
+                data.Photo = fileName; // Lưu tên file ảnh vào thuộc tính Avatar
+            }
             if (!ModelState.IsValid)
             {
                 return View("Edit", data);
@@ -143,7 +154,7 @@ namespace DentalManagement.Web.Controllers
         }
         public async Task<IActionResult> Delete(int id = 0)
         {//Nếu lời gọi là POST Thì ta thực hiện xoá 
-            ViewBag.Title = "Xoá thông tin bệnh nhân";
+            ViewBag.Title = "Xoá thông dịch vụ";
             if (Request.Method == "POST")
             {
                 await _serviceRepository.DeleteAsync(id);
@@ -153,7 +164,6 @@ namespace DentalManagement.Web.Controllers
             var service = await _serviceRepository.GetByIdAsync(id);
             if (service == null)
                 return RedirectToAction("Index");
-            ViewBag.AllowDelete = !_serviceRepository.InUse(id);
             return View(service);
         }
     }

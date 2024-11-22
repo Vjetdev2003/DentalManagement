@@ -157,7 +157,6 @@ namespace DentalManagement.Web.Controllers
             var employee = await _medicineRepository.GetByIdAsync(id);
             if (employee == null)
                 return RedirectToAction("Index");
-            ViewBag.AllowDelete = !_medicineRepository.InUse(id);
             return View(employee);
         }
     }

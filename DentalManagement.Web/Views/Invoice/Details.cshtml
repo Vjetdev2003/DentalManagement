@@ -1,0 +1,290 @@
+﻿@using DentalManagement.DomainModels
+@model InvoiceDetailModel
+
+@{
+    ViewBag.Title = "Chi tiết hóa đơn";
+
+    var isDelete = ViewBag.IsDelete ?? false;
+    var isUnPaid = ViewBag.IsUnPaid ?? false;
+    var isEmployee = ViewBag.IsEmployee ?? false;
+    var isFinish = ViewBag.IsFinish ?? false;
+    var i = 0;
+    decimal TotalPrice = Model.Invoices.TotalPrice - Model.Invoices.Discount;  // Total price after discount
+    decimal discount;
+    if(TotalPrice >=1000000 && TotalPrice <= 5000000)
+    {
+        discount = TotalPrice * 0.1m;
+    }
+    else
+    {
+        discount = TotalPrice * 0.2m;
+    }
+    decimal TotalAmount = TotalPrice - discount;
+}
+
+<div class="box box-primary">
+    <div class="box-header text-right">
+        <div class="btn-group">
+            @if (isEmployee)
+            {
+                <div class="btn-group">
+                    @if (!isFinish)
+                    {
+                        <button type="button" class="btn btn-sm btn-primary dropdown-toggle" data-toggle="dropdown">
+                            Xử lý hoá đơn <span class="caret"></span>
+                        </button>
+                        <ul class="dropdown-menu" role="menu">
+                            @switch (Model.Invoices.Status)
+                            {
+                                case Constants_Invoice.INVOICE_UNPAID:
+                                    <li>
+                                        <a href="~/Invoice/ConfirmPayment/@Model.Invoices.InvoiceId" onclick="return confirm('Xác nhận thanh toán hóa đơn này?')">Xác nhận thanh toán</a>
+                                    </li>
+                                    <li class="divider"></li>
+                                    <li>
+                                        <a href="~/Invoice/Cancel/@Model.Invoices.InvoiceId" onclick="return confirm('Huỷ hoá đơn này')">Huỷ hoá đơn</a>
+                                    </li>
+                                    break;
+                                case Constants_Invoice.INVOICE_PROCESSING:
+                                    <li>
+                                        <a href="~/Invoice/Cancel/@Model.Invoices.InvoiceId" onclick="return confirm('Huỷ hoá đơn này')">Huỷ hoá đơn</a>
+                                    </li>
+                                    <li>
+                                        <a href="~/Invoice/Finish/@Model.Invoices.InvoiceId" onclick="return confirm('Bạn có muốn hoàn tất hoá đơn')">Xác nhận hoàn tất</a>
+                                    </li>
+                                    break;
+                                case Constants_Invoice.INVOICE_PAID:
+                                    <li>
+                                        <a href="~/Invoice/Print/@Model.Invoices.InvoiceId" class="btn btn-modal">In hóa đơn</a>
+                                    </li>
+                                    <li>
+                                        <a href="~/Invoice/Finish/@Model.Invoices.InvoiceId" onclick="return confirm('Xác nhận hoàn tất hóa đơn này?')">Hoàn tất hóa đơn</a>
+                                    </li>
+                                    break;
+                            }
+                        </ul>
+                    }
+                    @if (isDelete)
+                    {
+                        <a href="~/Invoice/Delete/@Model.Invoices.InvoiceId" class="btn btn-sm btn-danger" onclick="return confirm('Có chắc chắn muốn xóa hóa đơn này không?')">
+                            <i class="fa fa-trash"></i> Xóa hóa đơn
+                        </a>
+                    }
+                </div>
+            }
+            <a href="~/Invoice" class="btn btn-sm btn-info">Quay lại</a>
+        </div>
+    </div>
+
+    <div class=" box-body form-horizontal">
+        <div class="form-group">
+            <label class="custom-control-label col-sm-2">Mã hoá đơn</label>
+            <div class="col-sm-4">
+                <p class="form-control">@Model.Invoices.InvoiceId</p>
+            </div>
+            <label class="custom-control-label col-sm-2">Ngày tạo hoá đơn</label>
+            <div class="col-sm-4">
+                <p class="form-control">@Model.Invoices.DateCreated</p>
+            </div>
+            <label class="custom-control-label col-sm-2">Nhân viên phụ trách</label>
+            <div class="col-sm-4">
+                <p class="form-control">@Model.Invoices.EmployeeName</p>
+            </div>
+            <label class="custom-control-label col-sm-2">Bệnh nhân</label>
+            <div class="col-sm-4">
+                <p class="form-control">@Model.Invoices.PatientName</p>
+            </div>
+            <label class="custom-control-label col-sm-2">Địa chỉ</label>
+            <div class="col-sm-4">
+                <p class="form-control">@Model.Invoices.PatientAddress</p>
+            </div>
+            <label class="custom-control-label col-sm-2">Phương thức thanh toán</label>
+            <div class="col-sm-4">
+                <p class="form-control">@Model.Invoices.PaymentMethod</p>
+            </div>
+            <label class="custom-control-label col-sm-2">Thời điểm hoàn tất:</label>
+            <div class="col-sm-4">
+                <p class="form-control">@Model.Invoices.FinishTime</p>
+            </div>
+        </div>
+    </div>
+
+
+    <section class="invoice">
+        <div class="box-body">
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped table-hover">
+                    <caption><h4>Danh sách dịch vụ của hoá đơn</h4></caption>
+                    <thead>
+                        <tr class="bg-primary">
+                            <th class="text-center">STT</th>
+                            <th class="text-center">Tên dịch vụ</th>
+                            <th class="text-center">Giá</th>
+                            <th class="text-center">Số lượng</th>
+                            <th class="text-center">Thành tiền</th>
+                            <th class="text-center">Trạng thái</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                        @foreach (var item in Model.Details)
+                        {
+                            <tr>
+                                <td class="text-center">@(++i)</td> <!-- Increment counter properly -->
+                                <td>@item.ServiceName</td>
+                                <td class="text-right">@item.SalePrice.ToString("N0")</td>
+                                <td class="text-right">@item.Quantity.ToString("N0")</td>
+                                <td class="text-right">@item.TotalPrice.ToString("N0")</td>
+
+                                <!-- Check ServiceStatus for each item and apply different styling based on the status -->
+                                @if (item.ServiceStatus == "Đã thanh toán")
+                                {
+                                    <td class="text-center text-success">@item.ServiceStatus</td>
+                                }
+                                else if (item.ServiceStatus == "Chưa thanh toán")
+                                {
+                                    <td class="text-center text-danger">@item.ServiceStatus</td>
+                                }
+                                else
+                                {
+                                    <td class="text-center text-warning">Chờ xử lý</td> <!-- Default status if not paid or unpaid -->
+                                }
+                            </tr>
+                        }
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <th class="text-right" colspan="6">
+                                <div>
+                                    @if (Model.Invoices.Status == 1 || Model.Invoices.Status == 2)
+                                    {
+                                        @if (TotalPrice >= 1000000 && TotalPrice < 5000000)
+                                        {
+                                            <div><strong>Tổng:</strong> @TotalPrice.ToString("N0")</div>
+                                            <div><strong>Giảm giá:</strong> @discount.ToString("N0")</div>
+                                            <div><strong>Tổng tiền cần thanh toán  (Đã bao gồm Discount 10%):</strong> @TotalAmount.ToString("N0")</div>
+                                        }
+                                        else if (TotalPrice >= 5000000)
+                                        {
+                                            <div><strong>Tổng:</strong> @TotalPrice.ToString("N0")</div>
+                                            <div><strong>Giảm giá:</strong> @discount.ToString("N0")</div>
+                                            <div><strong>Tổng tiền cần thanh toán (Đã bao gồm Discount 20%):</strong> @TotalAmount.ToString("N0")</div>
+                                        }
+                                        else
+                                        {
+                                            <div><strong>Tổng:</strong> @TotalPrice.ToString("N0")</div>
+                                            <div><strong>Giảm giá:</strong> @discount.ToString("N0")</div>
+                                            <div><strong>Tổng tiền cần thanh toán :</strong> @TotalAmount.ToString("N0")</div>
+                                        }
+                                    }
+                                    else if(Model.Invoices.Status == 3)
+                                    {
+                                        @if (TotalPrice >= 1000000 && TotalPrice < 5000000)
+                                        {
+                                            <div><strong>Tổng:</strong> @TotalPrice.ToString("N0")</div>
+                                            <div><strong>Giảm giá:</strong> @discount.ToString("N0")</div>
+                                            <div><strong>Tổng tiền đã thanh toán  (Đã bao gồm Discount 10%):</strong> @TotalAmount.ToString("N0")</div>
+                                        }
+                                        else if (TotalPrice >= 5000000)
+                                        {
+                                            <div><strong>Tổng:</strong> @TotalPrice.ToString("N0")</div>
+                                            <div><strong>Giảm giá:</strong> @discount.ToString("N0")</div>
+                                            <div><strong>Tổng tiền đã thanh toán (Đã bao gồm Discount 20%):</strong> @TotalAmount.ToString("N0")</div>
+                                        }
+                                        else
+                                        {
+                                            <div><strong>Tổng:</strong> @TotalPrice.ToString("N0")</div>
+                                            <div><strong>Giảm giá:</strong> @discount.ToString("N0")</div>
+                                            <div><strong>Tổng tiền đã thanh toán :</strong> @TotalAmount.ToString("N0")</div>
+                                        }
+                                    }else
+
+                                    {
+                                        <div>Hoá đơn không còn nữa</div>
+                                    }
+
+                                </div>
+                            </th>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </section>
+    <!-- Danh sách thanh toán -->
+    @if(!isUnPaid){
+        <section class="payments">
+            <div class="box-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped table-hover">
+                        <caption><h4>Các khoản thanh toán</h4></caption>
+                        <thead>
+                            <tr>
+                                <th>Phương thức</th>
+                                <th>Số tiền</th>
+                                <th>Ngày thanh toán</th>
+                                <th>Ghi chú</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var payment in Model.Payments)
+                            {
+                                <tr>
+                                    <td>@payment.PaymentMethod</td>
+                                    <td>@payment.AmountPaid.ToString("C")</td>
+                                    <td>@payment.DateCreated.ToString("dd/MM/yyyy")</td>
+                                    <td>@payment.Notes</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    }
+    else
+    {
+        <section class="payments">
+            <div class="box-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped table-hover">
+                        <caption><h4>Các khoản thanh toán</h4></caption>
+                        <thead>
+                            <tr>
+                                <th>Phương thức</th>
+                                <th>Số tiền</th>
+                                <th>Ngày thanh toán</th>
+                                <th>Ghi chú</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var payment in Model.Payments)
+                            {
+                                <tr>
+                                    <td>@payment.PaymentMethod</td>
+                                    <td>@payment.AmountPaid.ToString("C")</td>
+                                    <td>@payment.DateCreated.ToString("dd/MM/yyyy")</td>
+                                    <td>@payment.Notes</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+        <span class="text-right">Chưa có khoản thanh toán nào</span>
+    }
+
+
+@if (ViewBag.Message != null)
+{
+    <div class="alert alert-info">  
+        @ViewBag.Message
+    </div>
+}
+
+@section scripts {
+    <script>
+        // Custom scripts for handling actions can go here
+    </script>
+}

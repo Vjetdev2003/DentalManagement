@@ -10,7 +10,7 @@ namespace DentalManagement.DomainModels
     {
         public DateTime DateCreated { get; set; }
         public DateTime DateUpdated { get; set; }
-        public string? UserIdCreate { get; set; } 
+        public string? UserIdCreate { get; set; }
         public string? UserIdUpdated { get; set; }
     }
 }

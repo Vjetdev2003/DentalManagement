@@ -17,14 +17,13 @@ namespace DentalManagement.DomainModels
         public string Address { get; set; } = string.Empty;
         public string Avatar { get; set; } = string.Empty;
         public string Password { get; set; } = string.Empty;
-        public virtual ICollection<DentistPatient> DentistPatients { get; set; }
         public virtual ICollection<Prescription> Prescriptions { get; set; }
         public virtual ICollection<Appointment> Appointments { get; set; } = new List<Appointment>();
         public virtual ICollection<MedicalRecord> MedicalRecords { get; set; } // Một bác sĩ có thể có nhiều hồ sơ y tế
         public DateTime DateCreated { get; set; }
         public DateTime DateUpdated { get; set; }
-        public string? UserIdCreate { get; set; } = string.Empty;
-        public string? UserIdUpdated { get; set; } = string.Empty;
+        public string? UserIdCreate { get; set; }
+        public string? UserIdUpdated { get; set; }
 
     }
 }

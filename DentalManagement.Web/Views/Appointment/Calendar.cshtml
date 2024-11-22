@@ -1,0 +1,93 @@
+﻿@model IEnumerable<DentalManagement.Web.Models.CalendarEvent>
+
+@{
+    ViewData["Title"] = "Lịch Hẹn";
+}
+<div class="text-right">
+    <a asp-controller="Appointment" asp-action="Create" class="btn btn-primary">Tạo lịch hẹn mới</a>
+</div>
+<div id="calendar"></div>
+
+@section Scripts {
+    <!-- FullCalendar -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/fullcalendar.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/fullcalendar.min.js"></script>
+
+   <script>
+    $(document).ready(function () {
+        /* initialize the calendar */
+        $('#calendar').fullCalendar({
+            header: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'month,agendaWeek,agendaDay'
+            },
+            buttonText: {
+                today: 'Hôm nay',
+                month: 'Tháng',
+                week: 'Tuần',
+                day: 'Ngày'
+            },
+                events: @Html.Raw(Json.Serialize(Model)),
+            editable: true,
+            droppable: true,
+            eventRender: function (event, element) {
+                console.log(event); 
+                    
+                // Kiểm tra trạng thái và thiết lập màu
+                    let statusText = "";
+                   
+                    switch (event.status) {
+                        case 1: // APPOINTMENT_INIT
+                            element.css('background-color', '#ffcc00'); // Màu vàng
+                            statusText = " Lịch hẹn đã đặt. Đang chờ xác nhận ";
+                            break;
+                        case 2: // APPOINTMENT_CONFIRMED
+                            element.css('background-color', '#33cc33'); // Màu xanh lá
+                            statusText = "Lịch hẹn đã xác nhận. Đang chờ đến ngày hẹn";
+                            break;
+                        case 3: // APPOINTMENT_IN_PROGRESS
+                            element.css('background-color', '#0066ff'); // Màu xanh dương
+                            statusText = "Lịch hẹn đang diễn ra";
+                            break;
+                        case 4: // APPOINTMENT_FINISHED
+                            element.css('background-color', '#cccccc'); // Màu xám
+                            statusText = "Lịch hẹn đã hoàn tất";
+                            break;
+                        case -1: // APPOINTMENT_CANCELLED
+                            element.css('background-color', '#ff3300'); // Màu đỏ
+                            statusText = "Lịch hẹn đã hủy";
+                            break;
+                        case -2: // APPOINTMENT_NO_SHOW
+                            element.css('background-color', '#ff6600'); // Màu cam
+                            statusText = "Bệnh nhân không đến khám";
+                            break;
+                        default:
+                            element.css('background-color', '#000000'); // Màu đen
+                            statusText = "Không xác định";
+                            break;
+                    }
+                    let startTime = event.start ? moment(event.start).format('HH:mm') : "Không xác định";
+                    // Hiển thị trạng thái và giờ bắt đầu bên trong ô sự kiện
+                    element.html(`
+                    <strong>${event.title}</strong><br>
+                    <span>Trạng thái: ${statusText}</span><br>
+                    <span>Thời gian: ${startTime}</span>
+            `);
+
+            },
+            eventClick: function (event) {
+                    var appointmentId = parseInt(event.appointmentId);
+                if (!isNaN(appointmentId)) {
+                    window.location.href = '@Url.Action("Details", "Appointment")/' + appointmentId;
+                } else {
+                    console.error("appointmentId is not a valid number: ", event.appointmentId);
+                }
+            }
+        });
+    });
+</script>
+
+}

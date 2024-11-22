@@ -28,7 +28,7 @@ namespace DentalManagement.DomainModels
         public virtual ICollection<Prescription> Prescriptions { get; set; } // Một hồ sơ có thể có nhiều đơn thuốc
         public DateTime DateCreated { get; set; }
         public DateTime DateUpdated { get; set; }
-        public string? UserIdCreate { get; set; } = string.Empty;
-        public string? UserIdUpdated { get; set; } = string.Empty;
+        public string? UserIdCreate { get; set; }
+        public string? UserIdUpdated { get; set; }
     }
 }

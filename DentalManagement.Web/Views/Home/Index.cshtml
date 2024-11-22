@@ -1,8 +1,38 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+﻿
+@{
+    ViewData["Title"] = "Trang chủ";
+    Layout = "_Home";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="hero-section">
+    <div class="row">
+        <div class="col-md-6 d-flex flex-column justify-content-center">
+            <h1><strong>Chăm Sóc Nụ Cười Của Bạn</strong></h1>
+            <p>Đội ngũ nha sĩ chuyên nghiệp, trang thiết bị hiện đại,<br> mang đến cho trải nghiệm nha khoa tốt nhất tại VietClinic.</p>
+            <a href="/Appointment/Create" class="btn btn-primary btn-lg justify-content-center">Đặt Lịch Ngay</a>
+        </div>
+        <div class="col-md-6">
+            <img src="images/accounts/clinnic.png" alt="VietClinic" / width="598px" height="400px">
+        </div>
+    </div>
 </div>
+
+
+<footer class="bg-dark text-white mt-4 py-4">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6">
+                <h5><img src="~/Themes/favicon1.ico" alt="VietClinic Icon" width="30" height="30" /> VietClinic</h5>
+                <p> Chăm sóc sức khỏe răng miệng chuyên nghiệp.</p>
+            </div>
+            <div class="col-md-6">
+                <h5>Liên Hệ</h5>
+                <ul class="list-unstyled">
+                    <li><i class="fa fa-phone"></i> Số điện thoại: <a href="tel:+84879345957">+84 879345947</a></li>
+                    <li><i class="fa fa-envelope"></i> Email: <a href="mailto:21t1020171@husc.edu.vn">21t1020171@husc.edu.vn</a></li>
+                    <li><i class="fa fa-map-marker"></i> Địa chỉ: 26 Lương Văn Can, Huế, Việt Nam</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</footer>

@@ -1,0 +1,26 @@
+﻿@model PaymentViewModel
+
+<form asp-action="AddPayment" method="post">
+    <input type="hidden" asp-for="InvoiceId" />
+    <div>
+        <label>Total Amount</label>
+        <input type="text" asp-for="TotalAmount" readonly />
+    </div>
+    <div>
+        <label>Amount Paid</label>
+        <input type="number" asp-for="AmountPaid" required />
+    </div>
+    <div>
+        <label>Payment Method</label>
+        <select asp-for="PaymentMethod">
+            <option value="CASH">Cash</option>
+            <option value="CARD">Card</option>
+            <option value="BANKING">Bank Transfer</option>
+        </select>
+    </div>
+    <div>
+        <label>Notes</label>
+        <textarea asp-for="Notes"></textarea>
+    </div>
+    <button type="submit">Submit Payment</button>
+</form>

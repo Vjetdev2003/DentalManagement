@@ -18,6 +18,11 @@ namespace DentalManagement.Web.Repository
             await _context.SaveChangesAsync();
         }
 
+        public int CountAsync()
+        {
+            throw new NotImplementedException();
+        }
+
         public async Task DeleteAsync(int id)
         {
             var dentist = await _context.Dentists.FindAsync(id);
@@ -51,14 +56,24 @@ namespace DentalManagement.Web.Repository
             return dentists;
         }
 
-        public Task<Patient?> GetByEmailAsync(string email)
-        {
-            throw new NotImplementedException();
-        }
+       
 
         public async Task<Dentist> GetByIdAsync(int id)
         {
             return await _context.Dentists.FindAsync(id);
+        }
+
+        public async Task<IEnumerable<Dentist>> GetDetailAsyncById(int id)
+        {
+            return await Task.Run(() =>
+            {
+                return _context.Dentists.Where(a => a.DentistId == id);
+            });
+        }
+
+        public Task<List<Dentist>> GetElementById(List<int> ids)
+        {
+            throw new NotImplementedException();
         }
 
         public bool InUse(int id)

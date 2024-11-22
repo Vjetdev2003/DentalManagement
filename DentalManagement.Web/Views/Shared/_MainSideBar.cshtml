@@ -1,45 +1,102 @@
 ﻿<aside class="main-sidebar">
-    <!-- sidebar: style can be found in sidebar.less -->
     <section class="sidebar">
-        <!-- sidebar menu: : style can be found in sidebar.less -->
         <ul class="sidebar-menu" data-widget="tree">
             <li class="treeview">
-                <a href="~/">
-                    <i href="~/Home" class="fa fa-home"></i> <span>Trang chủ</span>
+                <a href="~/Home">
+                    <i class="fa fa-home"></i> <span>Trang chủ</span>
                 </a>
             </li>
 
-            <!--Quản lý dữ liệu-->
-            <li class="treeview active">
-                <a href="#">
-                    <i class="fa fa-folder"></i> <span>Quản lý dữ liệu</span>
-                    <span class="pull-right-container">
-                        <i class="fa fa-angle-left pull-right"></i>
-                    </span>
-                </a>
-                <ul class="treeview-menu">
-                    <li><a href="~/Dentist"><i class="fa fa-user-md"></i> Nha Sĩ</a></li>
-                    <li><a href="~/Medicine"><i class="fa fa-plus-square"></i> Thuốc</a></li>
-                    <li><a href="~/Patient"><i class="fa fa-wheelchair"></i> Bệnh nhân</a></li>
-                    <li><a href="~/Employee"><i class="fa fa-users"></i> Nhân viên</a></li>
-                    <li><a href="~/Service"><i class="fa fa-hotel"></i> Dịch vụ</a></li>
-                    <li><a href="~/MedicalRecord "><i class="fa fa-user-circle"></i> Hồ sơ y tế </a></li>
-                </ul>
-            </li>
-            <!--Quản lý nha khoa-->
-          
-            <li class="treeview active">
-                <a href="#">
-                    <i class="fa fa-folder"></i> <span>Quản lý nha khoa</span>
-                    <span class="pull-right-container">
-                        <i class="fa fa-angle-left pull-right"></i>
-                    </span>
-                </a>
-                <ul class="treeview-menu">
-                    <li><a href="~/Appointment"><i class="fa fa-calendar"></i> Lịch hẹn</a></li>
-                </ul>
-            </li>
-            <!--Menu-->
+            @* Lấy thông tin người dùng *@
+            @{
+                var userData = User.GetUserData();
+            }
+
+            @if (userData != null)
+            {
+                // Nếu là Admin
+                if (userData.Roles.Contains(WebUserRoles.Administrator))
+                {
+                    <li class="treeview active">
+                        <a href="#">
+                            <i class="fa fa-folder"></i> <span>Quản lý dữ liệu</span>
+                            <span class="pull-right-container">
+                                <i class="fa fa-angle-left pull-right"></i>
+                            </span>
+                        </a>
+                        <ul class="treeview-menu">
+                            <li><a href="~/Dentist"><i class="fa fa-user-md"></i> Nha Sĩ</a></li>
+                            <li><a href="~/Medicine"><i class="fa fa-plus-square"></i> Thuốc</a></li>
+                            <li><a href="~/Patient"><i class="fa fa-wheelchair"></i> Bệnh nhân</a></li>
+                            <li><a href="~/Employee"><i class="fa fa-users"></i> Nhân viên</a></li>
+                            <li><a href="~/Service"><i class="fa fa-hotel"></i> Dịch vụ</a></li>
+                            <li><a href="~/Invoice "><i class="fa fa-user-circle"></i>Danh sách Hoá đơn </a></li>
+                            <li><a href="~/Invoice/Create "><i class="fa fa-user-circle"></i>Lập Hoá đơn </a></li>
+                            <li><a href="~/Appointment/Calendar"><i class="fa fa-calendar"></i> Lịch hẹn</a></li>
+                            <li><a href="~/Payment"><i class="fa fa-credit-card"></i> Thanh toán</a></li>
+                        </ul>
+                    </li>
+                }
+
+                // Nếu là Nha sĩ
+                if (userData.Roles.Contains(WebUserRoles.Dentist))
+                {
+                    <li class="treeview active">
+                        <a href="#">
+                            <i class="fa fa-folder"></i> <span>Quản lý nha khoa</span>
+                            <span class="pull-right-container">
+                                <i class="fa fa-angle-left pull-right"></i>
+                            </span>
+                        </a>
+                        <ul class="treeview-menu">
+                            <li><a href="~/Patient"><i class="fa fa-wheelchair"></i> Bệnh nhân</a></li>
+                            <li><a href="~/Service"><i class="fa fa-hotel"></i> Dịch vụ</a></li>
+                            <li>
+                                <a href="~/Appointment">
+                                    <i class="glyphicon glyphicon-list-alt
+        "></i> Danh sách lịch hẹn
+                                </a>
+                            </li>
+                            <li><a href="~/Appointment/Calendar"><i class="fa fa-calendar"></i> Lịch hẹn</a></li>
+                        </ul>
+                    </li>
+                }
+                if (userData.Roles.Contains(WebUserRoles.Employee))
+                {
+                    <li class="treeview active">
+                        <a href="#">
+                            <i class="fa fa-folder"></i> <span>Quản lý nha khoa</span>
+                            <span class="pull-right-container">
+                                <i class="fa fa-angle-left pull-right"></i>
+                            </span>
+                        </a>
+                        <ul class="treeview-menu">
+                            <li><a href="~/Patient"><i class="fa fa-wheelchair"></i> Bệnh nhân</a></li>
+                            <li><a href="~/Service"><i class="fa fa-hotel"></i> Dịch vụ</a></li>
+                            <li><a href="~/Appointment"><i class="fa fa-calendar"></i> Lịch hẹn</a></li>
+                        </ul>
+                    </li>
+                }
+
+                // Nếu là Bệnh nhân
+                if (userData.Roles.Contains(WebUserRoles.Patient))
+                {
+                    <li class="treeview active">
+                        <a href="#">
+                            <i class="fa fa-folder"></i> <span>Quản lý bệnh nhân</span>
+                            <span class="pull-right-container">
+                                <i class="fa fa-angle-left pull-right"></i>
+                            </span>
+                        </a>
+                        <ul class="treeview-menu">
+                            <li><a href="~/Patient/Detail/@userData.UserId"><i class="fa fa-wheelchair"></i> Cập nhật thông tin cá nhân</a></li>
+                            <li><a href="~/Appointment"><i class="glyphicon glyphicon-calendar"></i> Đặt lịch hẹn</a></li>
+                             <li><a href="~/Invoice"><i class="fa-solid fa-file-invoice "></i> Hoá đơn</a></li>
+                            <li><a href="~/Payment"><i class="fa fa-credit-card"></i> Thanh toán</a></li>
+                        </ul>
+                    </li>
+                }
+            }
+        </ul>
     </section>
-    <!-- /.sidebar -->
 </aside>

@@ -42,7 +42,13 @@ namespace DentalManagement.Web.Models
     }
     public class AppointmentSearchResult : PaginationSearchResult
     {
-        public required List<Appointment> Appointments { get; set; }
+        public  List<Appointment> Appointments = new List<Appointment>();
+        public decimal Price { get; set; }
+        public int Unit {  get; set; }
+        public IEnumerable<Appointment> Data { get; set; }
+        public IEnumerable<InvoiceDetails> Details { get; set; }
+        public int Status { get; set; }
+        public string TimeRange { get; set; } = "";
     }
     public class MedicalRecordSearchResult : PaginationSearchResult
     {
@@ -50,11 +56,15 @@ namespace DentalManagement.Web.Models
     }
     public class InvoiceSearchResult : PaginationSearchResult
     {
-        public required List<Invoice> Invoices { get; set; }
+        public List<Invoice> Invoices = new List<Invoice>();
+        public int Status { get; set; }
+        public string TimeRange { get; set; } = "";
+        
     }
     public class ServiceSearchResult : PaginationSearchResult
     {
-        public required List<Service> Services { get; set; }
+        public  List<Service> Services { get; set; } = new List<Service>();
+        public IEnumerable<Service> Data { get; set; }
     }
 }
 

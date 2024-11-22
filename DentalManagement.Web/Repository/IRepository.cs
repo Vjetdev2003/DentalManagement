@@ -10,6 +10,8 @@ namespace DentalManagement.Web.Repository
         Task UpdateAsync(T entity);
         Task DeleteAsync(int id);
         bool InUse(int id);
-
+        int CountAsync();
+        Task<IEnumerable<T>> GetDetailAsyncById(int id);
+        Task<List<T>> GetElementById(List<int> ids);
     }
 }

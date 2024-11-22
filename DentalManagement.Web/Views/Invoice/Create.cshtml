@@ -1,0 +1,125 @@
+﻿@model ServiceSearchInput
+@using DentalManagement.DomainModels
+@using DentalManagement.Web.Data
+@using DentalManagement.Web.Repository
+
+@{
+    ViewBag.Title = "Lập hóa đơn cho bệnh nhân";
+}
+
+<div class="box">
+    <div class="box-body">
+
+        <!-- Service Search Form -->
+        <div class="col-md-4">
+            <h4>Chọn dịch vụ để tạo hóa đơn</h4>
+            <form id="formSearch" action="~/Invoice/SearchService" method="get" data-container="#searchResult">
+                <input type="hidden" name="@nameof(Model.PageSize)" value="@Model.PageSize" />
+                <div class="input-group">
+                    <input type="text" name="@nameof(Model.SearchValue)" class="form-control" placeholder="Tìm kiếm tên dịch vụ" value="@Model.SearchValue" />
+                    <span class="input-group-btn">
+                        <button type="submit" class="btn btn-info">
+                            <i class="fa fa-search"></i> Tìm kiếm
+                        </button>
+                    </span>
+                </div>
+            </form>
+            <div id="searchResult"></div>
+        </div>
+
+        <!-- Current Treatment Voucher Items Display -->
+        <div class="col-md-8">
+            <h4>Phiếu điều trị hiện tại</h4>
+            <div id="treatmentVoucher"></div>
+            <form id="formInvoiceInit" action="~/Invoice/Init" method="post" class="form-horizontal">
+                <div class="form-group">
+                    <label class="control-label col-sm-2 ">Bệnh nhân:</label>
+                    <div class="col-sm-6">
+                        <select id="patientSelect" name="PatientId" class="form-control" required>
+                            @foreach (var patient in ViewBag.PatientList as List<SelectListItem>)
+                            {
+                                <option value="@patient.Value">@patient.Text</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="col-sm-offset-2 col-sm-10">
+                        <span id="invoiceInitMessage" style="color:#f00"></span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="col-md-12 text-right">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fa fa-plus-circle"></i> Lập hoá đơn
+                        </button>
+                    </div>
+                </div>
+                </form>
+    </div>
+</div>
+
+@section scripts {
+    <script>
+        $(document).ready(function () {
+            // Load treatment voucher items on page load
+            showTreatmentVoucher();
+
+            // AJAX form submission for searching services
+            $("#formSearch").submit(function (e) {
+                e.preventDefault();
+                var action = $(this).attr("action");
+                var data = $(this).serialize();
+
+                $.get(action, data, function (result) {
+                    $("#searchResult").html(result);
+                }).fail(function () {
+                    alert("Không thể tìm kiếm dịch vụ. Vui lòng thử lại!");
+                });
+            });
+
+            // AJAX form submission for initializing invoice
+            $('#formInvoiceInit').submit(function (e) {
+                e.preventDefault();
+                var action = $(this).attr("action");
+                var method = $(this).attr("method");
+                var data = $(this).serialize();
+
+                $.ajax({
+                    url: action,
+                    type: method,
+                    data: data,
+                    error: function () {
+                        alert("Yêu cầu của bạn không hợp lệ!");
+                    },
+                    success: function (data) {
+                        console.log(data); // Log the data for debugging
+                        if (isNaN(data)) {
+                            $("#invoiceInitMessage").html(data);
+                        } else {
+                            // Redirect to the invoice list page after successful creation
+                            window.location.href = "/Invoice/Details";
+                        }
+                    }
+                });
+            });
+        });
+
+        // Load current treatment voucher asynchronously
+        function showTreatmentVoucher() {
+            $.ajax({
+                url: "/Invoice/ShowTreatmentVoucher",
+                type: "GET",
+                async: true,
+                error: function () {
+                    alert("Your request is not valid!");
+                },
+                success: function (data) {
+                    $("#treatmentVoucher").html(data);
+                }
+            });
+        }
+    </script>
+}

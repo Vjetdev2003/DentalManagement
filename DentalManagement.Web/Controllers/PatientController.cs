@@ -23,7 +23,7 @@ namespace DentalManagement.Web.Controllers
         }
         public async Task<IActionResult> Index()
         {
-            var a = 0;
+            
             // Kiểm tra nếu cookie có chứa UserRoles
             var userData = User.GetUserData();
             if (userData == null)
@@ -138,12 +138,13 @@ namespace DentalManagement.Web.Controllers
             DateTime? birthDate = birthDateInput.ToDateTime();
             if (birthDate.HasValue)
                 data.PatientDOB = birthDate.Value;
-
+            var userData = User.GetUserData();
+          
             // Lưu thông tin ngày tạo, ngày cập nhật và người tạo/cập nhật
             if (data.PatientId == 0) // Nếu là nhân viên mới
             {
                 data.DateCreated = DateTime.Now; // Thời gian tạo
-                data.UserIdCreate = User.Identity?.Name; // Người tạo
+                data.UserIdCreate = userData.UserId; // Người tạo
             }
             data.DateUpdated = DateTime.Now; // Cập nhật thời gian
             data.UserIdUpdated = User.Identity?.Name; // Người cập nhật

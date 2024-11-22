@@ -20,11 +20,9 @@ namespace DentalManagement.DomainModels
         public string RoleName { get; set; } = string.Empty;
         public string Password { get; set; } = string.Empty;
 
-        // Mối quan hệ với các bảng khác, nếu có
-        public ICollection<Appointment> Appointments { get; set; }
         public DateTime DateCreated { get; set; }
         public DateTime DateUpdated { get; set; }
-        public string? UserIdCreate { get; set; } = string.Empty;
-        public string? UserIdUpdated { get; set; } = string.Empty;
+        public string? UserIdCreate { get; set; }
+        public string? UserIdUpdated { get; set; }
     }
 }

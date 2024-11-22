@@ -1,0 +1,87 @@
+﻿@model InvoiceSearchInput
+@{
+    ViewBag.Title = "Danh sách hoá đơn";
+}
+<div class="box box-primary">
+    <div class="box-body">
+        <!--Form đầu vào tìm kiếm-->
+        <form id="formSearch" action="~/Invoice/Search" method="get" data-container="#searchResult">
+            <input type="hidden" name="@nameof(Model.PageSize)" value="@Model.PageSize" />
+            <div class="row container-fluid">
+                <div class="col-sm-2">
+                    @Html.DropDownList("Status", SelectListHelper.GetStatusInvoice(), new { @class = "form-control", @id = "statusDropdown" })
+                </div>
+                <div class="col-sm-4">
+                    <div class="input-group d-flex" style="display:flex">
+                        <input type="text" style="margin-right:4px" id="dateRangeInput" name="@nameof(Model.DateRange)" class="form-control daterange-picker" placeholder="" value="@(Model.DateRange ?? "")" />
+                        <button type="button" class="btn btn-outline-secondary" id="clearDateRange">Clear</button>
+                    </div>
+
+                    
+                </div>
+                <div class="col-sm-6 input-group">
+                    <input type="text" name="@nameof(Model.SearchValue)"
+                           class="form-control"
+                           placeholder="Tìm kiếm theo tên bệnh nhân hoặc tên nhân viên"
+                           value="@Model.SearchValue">
+                    <span class="input-group-btn">
+                        <button type="submit" id="search-btn" class="btn btn-flat btn-info">
+                            <i class="fa fa-search"></i> Tìm kiếm
+                        </button>
+                        <a href="~/Invoice/Create" class="btn btn-primary" style="margin-left:5px">
+                            <i class="fa fa-plus"></i> Bổ sung
+                        </a>
+                    </span>
+                </div>
+            </div>
+        </form>
+
+        <!-- Kết quả tìm kiếm -->
+        <div id="searchResult"></div>
+    </div>
+</div>
+
+
+@section scripts {
+    <script>
+        $(document).ready(function () {
+            // Gửi form tìm kiếm
+            $("#formSearch").submit(function (e) {
+                e.preventDefault();
+                paginationSearch(this, @Model.Page);
+                return false; // Ngăn chặn form gửi đi mặc định
+            });
+
+            // Gọi hàm phân trang
+            paginationSearch("#formSearch", @Model.Page);
+        });
+
+        function paginationSearch(formSearch, page) {
+            var action = $(formSearch).prop("action");
+            var method = $(formSearch).prop("method");
+            var container = $(formSearch).data("container");
+
+            var searchData = $(formSearch).serializeArray();
+            searchData.push({ "name": "Page", "value": page });
+
+            $.ajax({
+                url: action,
+                type: method,
+                data: searchData,
+                async: false,
+                error: function () {
+                    alert("Yêu cầu của bạn không hợp lệ!");
+                },
+                success: function (data) {
+                    $(container).html(data);
+                }
+            });
+        };
+        document.getElementById('clearDateRange').addEventListener('click', function () {
+            // Làm trống giá trị của input
+            var dateRangeInput = document.getElementById('dateRangeInput');
+            dateRangeInput.value = '';
+        });
+
+    </script>
+}

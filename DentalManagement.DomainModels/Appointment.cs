@@ -5,6 +5,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.VisualBasic;
 
 namespace DentalManagement.DomainModels
 {
@@ -14,26 +15,56 @@ namespace DentalManagement.DomainModels
         [Required]
         [ForeignKey("PatientId")]
         public int PatientId { get; set; }
+        public string PatientName { get; set; } = string.Empty;
 
         [Required]
         [ForeignKey("DentistId")]
         public int DentistId { get; set; }
+        public string DentistName {  get; set; } = string.Empty;
         [Required]
         [ForeignKey("ServiceID")]
         public int ServiceID { get; set; }
-        public DateTime AppointmentDate { get; set; }
-        public string Status { get; set; } = string.Empty;
-        [Required]
-        [ForeignKey("EmployeeId")]
-        public int EmployeeId { get; set; } // Khóa ngoại đến Employee
-        public virtual Employee Employee { get; set; }
-
+        public string ServiceName { get; set; } = string.Empty;
+        public string Phone { get; set; }
+        public string Email { get; set; }
+        public DateTime? AppointmentDate { get; set; }
+        public string Notes {  get; set; } = string.Empty;
         public virtual Service Service { get; set; }
         public virtual Dentist Dentist { get; set; }
         public virtual Patient Patient { get; set; }
         public DateTime DateCreated { get ; set ; }
         public DateTime DateUpdated { get  ; set  ; }
-        public string? UserIdCreate { get; set; } = string.Empty;
-        public string? UserIdUpdated { get; set; } = string.Empty;
+        public string? UserIdCreate { get; set; }
+        public string? UserIdUpdated { get; set; } 
+        public DateTime? FinishedTime { get; set; }
+        public int Status {  get; set; } 
+        public string StatusDescription
+        {
+            get
+            {
+                switch (Status)
+                {
+                    case Constants.APPOINTMENT_INIT:
+                        return "Lịch hẹn đã đặt. Đang chờ xác nhận.";
+                    case Constants.APPOINTMENT_CONFIRMED:
+                        return "Lịch hẹn đã xác nhận. Đang chờ đến ngày hẹn.";
+                    case Constants.APPOINTMENT_IN_PROGRESS:
+                        return "Lịch hẹn đang diễn ra.";
+                    case Constants.APPOINTMENT_FINISHED:
+                        return "Lịch hẹn đã hoàn tất.";
+                    case Constants.APPOINTMENT_CANCELLED:
+                        return "Lịch hẹn đã hủy.";
+                    case Constants.APPOINTMENT_NO_SHOW:
+                        return "Bệnh nhân không đến khám.";
+                    default:
+                        return "Trạng thái không xác định.";
+                }
+            }
+        }
+    }
+    public class AppointmentStatus
+    {
+        public int Status { get; set; }
+        public string Description { get; set; }
     }
 }

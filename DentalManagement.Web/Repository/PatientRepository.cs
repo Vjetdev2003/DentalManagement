@@ -19,6 +19,11 @@ namespace DentalManagement.Web.Repository
             await _context.SaveChangesAsync();
         }
 
+        public int CountAsync()
+        {
+            return _context.Patients.Count();
+        }
+
         public async Task DeleteAsync(int id)
         {
             var patient = await _context.Patients.FindAsync(id);
@@ -53,12 +58,26 @@ namespace DentalManagement.Web.Repository
 
             return patients;
         }
+      
 
 
         public async Task<Patient> GetByIdAsync(int id)
         {
             return await _context.Patients.FindAsync(id);
             
+        }
+
+        public async Task<IEnumerable<Patient>> GetDetailAsyncById(int id)
+        {
+            return await Task.Run(() =>
+            {
+                return _context.Patients.Where(a => a.PatientId == id);
+            });
+        }
+
+        public Task<List<Patient>> GetElementById(List<int> ids)
+        {
+            throw new NotImplementedException();
         }
 
         public bool  InUse(int id)

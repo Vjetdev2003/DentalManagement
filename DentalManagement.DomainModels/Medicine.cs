@@ -20,7 +20,7 @@ namespace DentalManagement.DomainModels
         public virtual ICollection<Prescription> Prescriptions { get; set; } = new List<Prescription>();
         public DateTime DateCreated { get; set; } = DateTime.Now;
         public DateTime DateUpdated { get; set; } = DateTime.Now;
-        public string? UserIdCreate { get; set; } = string.Empty;
-        public string? UserIdUpdated { get; set; } = string.Empty;
+        public string? UserIdCreate { get; set; }
+        public string? UserIdUpdated { get; set; }
     }
 }

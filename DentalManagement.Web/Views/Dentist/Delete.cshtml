@@ -38,7 +38,7 @@
             <div class="form-group">
                 <label class="control-label col-sm-2">Ảnh:</label>
                 <div class="col-sm-10">
-                    <img id="Avatar" src="~/images/dentists/@(string.IsNullOrWhiteSpace(Model.Avatar) ? "default.png" : Model.Avatar)" class="img img-bordered" style="width:200px" />
+                    <img id="Avatar" src="~/images/accounts/@(string.IsNullOrWhiteSpace(Model.Avatar) ? "default.png" : Model.Avatar)" class="img img-bordered" style="width:200px" />
                     <input type="hidden" name="Avatar" value="@Model.Avatar" />
                 </div>
             </div>

@@ -9,7 +9,7 @@
     <table class="table table-bordered table-hover table-striped ">
         <thead>
             <tr class="bg-primary">
-
+                <th>Ảnh dịch vụ</th>
                 <th>
                     Tên dịch vụ
                 </th>
@@ -19,14 +19,18 @@
                 <th>
                    Giá
                 </th>
-
-                <th></th>
+                <th> </th>
             </tr>
         </thead>
         <tbody>
             @foreach (var item in Model.Services)
             {
                 <tr>
+                    <td>
+                        <img class="profile-user-img img-responsive img-bordered"
+                             alt="no-photo"
+                             src="~/images/accounts/@(string.IsNullOrWhiteSpace(item.Photo) ? "default.png" : item.Photo)">
+                    </td>
                     <td>@item.ServiceName</td>
                     <td>@item.Description</td>
                     <td>@item.Price</td>

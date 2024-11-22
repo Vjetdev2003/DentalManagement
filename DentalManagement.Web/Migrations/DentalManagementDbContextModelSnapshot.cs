@@ -30,7 +30,7 @@ namespace DentalManagement.Web.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("AppointmentId"));
 
-                    b.Property<DateTime>("AppointmentDate")
+                    b.Property<DateTime?>("AppointmentDate")
                         .HasColumnType("datetime2");
 
                     b.Property<DateTime>("DateCreated")
@@ -42,18 +42,33 @@ namespace DentalManagement.Web.Migrations
                     b.Property<int>("DentistId")
                         .HasColumnType("int");
 
-                    b.Property<int>("EmployeeId")
-                        .HasColumnType("int");
+                    b.Property<string>("DentistName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("FinishedTime")
+                        .HasColumnType("datetime2");
 
                     b.Property<int>("PatientId")
                         .HasColumnType("int");
 
+                    b.Property<string>("PatientName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("ServiceID")
                         .HasColumnType("int");
 
-                    b.Property<string>("Status")
+                    b.Property<string>("ServiceName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
 
                     b.Property<string>("UserIdCreate")
                         .HasColumnType("nvarchar(max)");
@@ -65,13 +80,23 @@ namespace DentalManagement.Web.Migrations
 
                     b.HasIndex("DentistId");
 
-                    b.HasIndex("EmployeeId");
-
                     b.HasIndex("PatientId");
 
                     b.HasIndex("ServiceID");
 
                     b.ToTable("Appointments", (string)null);
+                });
+
+            modelBuilder.Entity("DentalManagement.DomainModels.AppointmentStatus", b =>
+                {
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.ToTable("AppointmentStatuses");
                 });
 
             modelBuilder.Entity("DentalManagement.DomainModels.Dentist", b =>
@@ -124,33 +149,6 @@ namespace DentalManagement.Web.Migrations
                     b.HasKey("DentistId");
 
                     b.ToTable("Dentists", (string)null);
-                });
-
-            modelBuilder.Entity("DentalManagement.DomainModels.DentistPatient", b =>
-                {
-                    b.Property<int>("DentistID")
-                        .HasColumnType("int");
-
-                    b.Property<int>("PatientID")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("DateCreated")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("DateUpdated")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("UserIdCreate")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("UserIdUpdated")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("DentistID", "PatientID");
-
-                    b.HasIndex("PatientID");
-
-                    b.ToTable("DentistPatients", (string)null);
                 });
 
             modelBuilder.Entity("DentalManagement.DomainModels.Employee", b =>
@@ -223,28 +221,46 @@ namespace DentalManagement.Web.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("InvoiceId"));
 
-                    b.Property<decimal>("Amount")
-                        .HasColumnType("decimal(18,2)");
-
                     b.Property<DateTime>("DateCreated")
                         .HasColumnType("datetime2");
 
                     b.Property<DateTime>("DateUpdated")
                         .HasColumnType("datetime2");
 
-                    b.Property<DateTime>("InvoiceDate")
+                    b.Property<decimal>("Discount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("EmployeeId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("EmployeeName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("FinishTime")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("PatientAddress")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("PatientId")
                         .HasColumnType("int");
+
+                    b.Property<string>("PatientName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PaymentMethod")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("TotalPrice")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("UserIdCreate")
                         .HasColumnType("nvarchar(max)");
@@ -254,9 +270,40 @@ namespace DentalManagement.Web.Migrations
 
                     b.HasKey("InvoiceId");
 
+                    b.HasIndex("EmployeeId");
+
                     b.HasIndex("PatientId");
 
+
                     b.ToTable("Invoices", (string)null);
+                });
+
+            modelBuilder.Entity("DentalManagement.DomainModels.InvoiceDetails", b =>
+                {
+                    b.Property<int>("InvoiceId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ServiceId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("Discount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("SalePrice")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("ServiceName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("InvoiceId", "ServiceId");
+
+                    b.HasIndex("ServiceId");
+
+                    b.ToTable("InvoiceDetails");
                 });
 
             modelBuilder.Entity("DentalManagement.DomainModels.MedicalRecord", b =>
@@ -582,12 +629,6 @@ namespace DentalManagement.Web.Migrations
                         .HasForeignKey("DentistId")
                         .IsRequired();
 
-                    b.HasOne("DentalManagement.DomainModels.Employee", "Employee")
-                        .WithMany("Appointments")
-                        .HasForeignKey("EmployeeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("DentalManagement.DomainModels.Patient", "Patient")
                         .WithMany("Appointments")
                         .HasForeignKey("PatientId")
@@ -601,6 +642,39 @@ namespace DentalManagement.Web.Migrations
 
                     b.Navigation("Dentist");
 
+                    b.Navigation("Patient");
+
+                    b.Navigation("Service");
+                });
+
+            modelBuilder.Entity("DentalManagement.DomainModels.Invoice", b =>
+                {
+                    b.HasOne("DentalManagement.DomainModels.Dentist", "Dentist")
+                        .WithMany()
+                        .HasForeignKey("DentistId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("DentalManagement.DomainModels.Employee", "Employee")
+                        .WithMany()
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("DentalManagement.DomainModels.Patient", "Patient")
+                        .WithMany("Invoices")
+                        .HasForeignKey("PatientId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("DentalManagement.DomainModels.Service", "Service")
+                        .WithMany("Invoices")
+                        .HasForeignKey("ServiceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Dentist");
+
                     b.Navigation("Employee");
 
                     b.Navigation("Patient");
@@ -608,33 +682,23 @@ namespace DentalManagement.Web.Migrations
                     b.Navigation("Service");
                 });
 
-            modelBuilder.Entity("DentalManagement.DomainModels.DentistPatient", b =>
+            modelBuilder.Entity("DentalManagement.DomainModels.InvoiceDetails", b =>
                 {
-                    b.HasOne("DentalManagement.DomainModels.Dentist", "Dentist")
-                        .WithMany("DentistPatients")
-                        .HasForeignKey("DentistID")
+                    b.HasOne("DentalManagement.DomainModels.Invoice", "Invoice")
+                        .WithMany("InvoiceDetails")
+                        .HasForeignKey("InvoiceId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("DentalManagement.DomainModels.Patient", "Patient")
-                        .WithMany("DentistPatients")
-                        .HasForeignKey("PatientID")
+                    b.HasOne("DentalManagement.DomainModels.Service", "Service")
+                        .WithMany("InvoiceDetails")
+                        .HasForeignKey("ServiceId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Dentist");
+                    b.Navigation("Invoice");
 
-                    b.Navigation("Patient");
-                });
-
-            modelBuilder.Entity("DentalManagement.DomainModels.Invoice", b =>
-                {
-                    b.HasOne("DentalManagement.DomainModels.Patient", "Patient")
-                        .WithMany("Invoices")
-                        .HasForeignKey("PatientId")
-                        .IsRequired();
-
-                    b.Navigation("Patient");
+                    b.Navigation("Service");
                 });
 
             modelBuilder.Entity("DentalManagement.DomainModels.MedicalRecord", b =>
@@ -652,9 +716,9 @@ namespace DentalManagement.Web.Migrations
                         .IsRequired();
 
                     b.HasOne("DentalManagement.DomainModels.Service", "Service")
-                        .WithMany()
+                        .WithMany("MedicalRecords")
                         .HasForeignKey("ServiceId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Dentist");
@@ -700,16 +764,14 @@ namespace DentalManagement.Web.Migrations
                 {
                     b.Navigation("Appointments");
 
-                    b.Navigation("DentistPatients");
-
                     b.Navigation("MedicalRecords");
 
                     b.Navigation("Prescriptions");
                 });
 
-            modelBuilder.Entity("DentalManagement.DomainModels.Employee", b =>
+            modelBuilder.Entity("DentalManagement.DomainModels.Invoice", b =>
                 {
-                    b.Navigation("Appointments");
+                    b.Navigation("InvoiceDetails");
                 });
 
             modelBuilder.Entity("DentalManagement.DomainModels.MedicalRecord", b =>
@@ -728,13 +790,20 @@ namespace DentalManagement.Web.Migrations
                 {
                     b.Navigation("Appointments");
 
-                    b.Navigation("DentistPatients");
-
                     b.Navigation("Invoices");
 
                     b.Navigation("MedicalRecords");
 
                     b.Navigation("Prescriptions");
+                });
+
+            modelBuilder.Entity("DentalManagement.DomainModels.Service", b =>
+                {
+                    b.Navigation("InvoiceDetails");
+
+                    b.Navigation("Invoices");
+
+                    b.Navigation("MedicalRecords");
                 });
 #pragma warning restore 612, 618
         }

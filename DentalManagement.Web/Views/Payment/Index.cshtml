@@ -1,0 +1,62 @@
+﻿@model List<ServicePaymentViewModel>
+@{
+    ViewBag.Title = " Danh sách dịch vụ cần thanh toán";
+}
+
+
+@if (ViewBag.Message != null)
+{
+    <div class="alert alert-info">@ViewBag.Message</div>
+}
+else
+{
+     <div class="box box-primary">
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Tên dịch vụ</th>
+                <th>Giá</th>
+                <th>Trạng thái thanh toán</th>
+                <th>Thao tác</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var service in Model)
+            {
+                <tr>
+                    <td>@service.ServiceName</td>
+                    <td>@service.Price.ToString("C")</td>
+                    <td>
+                        @if (service.PaymentStatus == "Đã thanh toán")
+                        {
+                            <span class="text-success">Đã thanh toán</span>
+                        }
+                        else
+                        {
+                            <span class="text-danger">Chưa thanh toán</span>
+                        }
+                    </td>
+                    <td>
+                        @if (service.PaymentStatus != "Đã thanh toán")
+                        {
+                            <a href="@Url.Action("AddPayment", "Payment", new { invoiceId = service.InvoiceId, serviceId = service.ServiceId })" class="btn btn-sm btn-primary">
+                                <i class="fa fa-credit-card"></i> Thanh toán
+                            </a>
+                        }
+                        else
+                        {
+                            <span class="text-muted">Đã thanh toán</span>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    </div>
+}
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["SuccessMessage"]
+    </div>
+}

@@ -1,0 +1,79 @@
+﻿@model DentalManagement.Web.Models.AppointmentViewModel
+
+@{
+    ViewBag.Title = Model.AppointmentId == 0 ? "Tạo mới lịch hẹn" : "Chỉnh sửa lịch hẹn";
+}
+
+<div class="box box-primary">
+    <div class="box box-body">
+        <form action="~/Appointment/Save" method="post">
+            <input type="hidden" name="@nameof(Model.AppointmentId)" value="@Model.AppointmentId" />
+            <div class="form-group">
+                <label> Tên bệnh nhân</label>
+                <select asp-for="PatientId" class="form-control " asp-items="Model.PatientList"></select>
+            </div>
+            <div class="form-group">
+                <label> Tên nha sĩ</label>
+                <select asp-for="DentistId" class="form-control " asp-items="Model.DentistList"></select>
+            </div>
+            <div class="form-group">
+                <label> Chọn dịch vụ</label>
+                <select asp-for="ServiceId" class="form-control " asp-items="Model.ServiceList"></select>
+            </div>
+            <div class="form-group">
+                <label> Điện thoại</label>
+                <input type="text" class="form-control" name="@nameof(Model.Phone)" value="@Model.Phone" />
+            </div>
+            <div class="form-group">
+                <label> Email</label>
+                <input type="text" class="form-control" name="@nameof(Model.Email)" value="@Model.Email" />
+            </div>
+            <div class="form-group">
+                <label>Thời gian hẹn</label>
+                <input type="datetime-local" class="form-control"
+                       name="@nameof(Model.AppointmentDate)"
+                       value="@Model.AppointmentDate.ToString("yyyy-MM-ddTHH:mm")" />
+            </div>
+                <div class="form-group">
+                    <label>Ghi chú</label>
+                    <input type="text" class="form-control" name="@nameof(Model.Notes)" value="@Model.Notes" />
+                </div>
+                @if (Model.AppointmentId != 0) // Kiểm tra nếu không phải là tạo mới
+                {
+                    <div class="form-group">
+                        <label asp-for="Status">Trạng thái </label>
+                        <select class="form-control" name="@nameof(Model.Status)">
+                            @foreach (var item in SelectListHelper.GetStatusAppointment())
+                            {
+                                if (Model.Status == int.Parse(item.Value))
+                                {
+                                    <option value="@item.Value" selected>@item.Text</option>
+                                }
+                                else
+                                {
+                                    <option value="@item.Value">@item.Text</option>
+                                }
+                            }
+
+                        </select>
+                    </div>
+                }
+
+                <div class="form-group text-right">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fa fa-save "></i>
+                        Lưu giữ liệu
+                    </button>
+
+                    <a href="~/Appointment" class="btn btn-primary">
+                        <i class="fa fa-chevron-left"></i> Quay lại
+                    </a>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

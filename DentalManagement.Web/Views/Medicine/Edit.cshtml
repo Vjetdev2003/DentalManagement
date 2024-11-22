@@ -1,12 +1,13 @@
 ﻿@model DentalManagement.DomainModels.Medicine
-
+@{
+}
 <div class="box box-primary">
     <div class="box-body">
         <form class="form-horizontal" method="post" enctype="multipart/form-data" action="~/Medicine/Save">
-            <input type="hidden" name="MedicineID" value="@Model.MedicineId" />
+            <input type="hidden" name="MedicineId" value="@Model.MedicineId" />
 
             <div class="form-group">
-                <label class="control-label col-sm-2">Tên loại thuốc:</label>
+                <label class="control-label col-sm-2">Tên thuốc:</label>
                 <div class="col-sm-10">
                     <input type="text" class="form-control" name="@nameof(Model.MedicineName)" autofocus value="@Model.MedicineName" />
                     @Html.ValidationMessageFor(m => m.MedicineName)
@@ -18,33 +19,31 @@
                     <input type="text" class="form-control" name="@nameof(Model.Unit)" value="@Model.Unit" />
                 </div>
             </div>
-
             <div class="form-group">
-                <label class="control-label col-sm-2">Liều dùng/ Hướng dẫn:</label>
+                <label class="control-label col-sm-2">Liều dùng / Hướng dẫn:</label>
                 <div class="col-sm-10">
                     <input type="text" class="form-control" name="@nameof(Model.DosageInstructions)" value="@Model.DosageInstructions" />
                 </div>
             </div>
             <div class="form-group">
-                <label class="control-label col-sm-2">Số lượng:</label>
+                <label class="control-label col-sm-2">Số Lượng:</label>
                 <div class="col-sm-10">
                     <input type="text" class="form-control" name="@nameof(Model.StockQuantity)" value="@Model.StockQuantity" />
-                    @Html.ValidationMessageFor(m => m.StockQuantity)
-                </div>
-            </div><div class="form-group">
-                <label class="control-label col-sm-2">Cách sử dụng:</label>
-                <div class="col-sm-10">
-                    <input  class="form-control" name="@nameof(Model.Usage)" value="@Model.Usage" />
-                   
-                </div>
-            </div><div class="form-group">
-                <label class="control-label col-sm-2">Giá tiền:</label>
-                <div class="col-sm-10">
-                    <input  class="form-control" name="@nameof(Model.Price)" value="@Model.Price" />
                 </div>
             </div>
             <div class="form-group">
-                <label class="control-label col-sm-2">Ảnh loại thuốc:</label>
+                <label class="control-label col-sm-2">Giá:</label>
+                <div class="col-sm-10">
+                    <input type="text" class="form-control" name="@nameof(Model.Price)" value="@Model.Price" />
+                </div>
+            </div> <div class="form-group">
+                <label class="control-label col-sm-2">Cách sử dụng:</label>
+                <div class="col-sm-10">
+                    <input type="text" class="form-control" name="@nameof(Model.Usage)" value="@Model.Usage" />
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="control-label col-sm-2">Ảnh dịch vụ:</label>
                 <div class="col-sm-10">
                     <input type="hidden" name="@nameof(Model.Photo)" value="@Model.Photo" />
                     <input type="file" class="form-control" name="uploadPhoto" accept="image/*"
@@ -54,7 +53,7 @@
 
             <div class="form-group">
                 <div class="col-lg-offset-2 col-sm-10">
-                    <img id="Photo" src="~/images/medicines/@Model.Photo" class="img img-bordered" style="width:200px" alt="NoPhoto" />
+                    <img id="Photo" src="~/images/accounts/@Model.Photo" class="img img-bordered" style="width:200px" alt="NoPhoto" />
                 </div>
             </div>
 
@@ -64,7 +63,7 @@
                         <i class="fa fa-floppy-o"></i>
                         Lưu dữ liệu
                     </button>
-                    <a href="~/Medicine" class="btn btn-default">Quay lại</a>
+                    <a href="~/Service" class="btn btn-default">Quay lại</a>
                 </div>
             </div>
         </form>

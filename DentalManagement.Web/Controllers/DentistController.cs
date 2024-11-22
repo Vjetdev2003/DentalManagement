@@ -120,7 +120,7 @@ namespace DentalManagement.Web.Controllers
             if (uploadPhoto != null)
             {
                 string fileName = $"{DateTime.Now.Ticks}_{uploadPhoto.FileName}"; // Tên file sẽ lưu
-                string folder = Path.Combine(ApplicationContext.WebRootPath, @"images\dentists"); // Đường dẫn đến thư mục lưu file
+                string folder = Path.Combine(ApplicationContext.WebRootPath, @"images\accounts"); // Đường dẫn đến thư mục lưu file
                 string filePath = Path.Combine(folder, fileName); // Đường dẫn đến file cần lưu
 
                 using (var stream = new FileStream(filePath, FileMode.Create))
