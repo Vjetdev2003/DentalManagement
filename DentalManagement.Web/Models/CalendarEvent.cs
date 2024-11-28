@@ -6,6 +6,7 @@ namespace DentalManagement.Web.Models
 	{
         public string Title { get; set; }
         public DateTime Start { get; set; }
+        public TimeSpan? Time { get; set; }
         public string Description { get; set; }
         public int AppointmentId {  get; set; }
         public int Status { get; set; }

@@ -1,38 +1,313 @@
-﻿
+﻿@model AppointmentCreateModel
+
 @{
+    var userData = User.GetUserData();
     ViewData["Title"] = "Trang chủ";
-    Layout = "_Home";
+    if (userData.Roles.Contains("patient"))
+    {
+        Layout = "_Home";
+    }
+    else
+    {
+    }
+    var successMessage = TempData["SuccessMessage"];
+    var errorMessage = TempData["ErrorMessage"];
 }
 
-<div class="hero-section">
-    <div class="row">
-        <div class="col-md-6 d-flex flex-column justify-content-center">
-            <h1><strong>Chăm Sóc Nụ Cười Của Bạn</strong></h1>
-            <p>Đội ngũ nha sĩ chuyên nghiệp, trang thiết bị hiện đại,<br> mang đến cho trải nghiệm nha khoa tốt nhất tại VietClinic.</p>
-            <a href="/Appointment/Create" class="btn btn-primary btn-lg justify-content-center">Đặt Lịch Ngay</a>
-        </div>
-        <div class="col-md-6">
-            <img src="images/accounts/clinnic.png" alt="VietClinic" / width="598px" height="400px">
-        </div>
-    </div>
-</div>
+@{
 
+    
+    if (userData.Roles.Contains("patient"))
+    {
+        <button id="chatButton">💬</button>
 
-<footer class="bg-dark text-white mt-4 py-4">
-    <div class="container">
-        <div class="row">
-            <div class="col-md-6">
-                <h5><img src="~/Themes/favicon1.ico" alt="VietClinic Icon" width="30" height="30" /> VietClinic</h5>
-                <p> Chăm sóc sức khỏe răng miệng chuyên nghiệp.</p>
+        <!-- Cửa sổ chat -->
+        <div id="chatWindow">
+            <div class="text-center text-white " style="background:rgb(0, 95, 157); padding-bottom:20px; border-radius:0px 0px 20px 20px; padding:20px 24px; padding-bottom:52px;">
+                <h1 class="pkcp-popup-setup-header-logo">
+                    <img src="Themes/bg.ico" alt="VietClinic" width="60" height="60">
+                    <div id="closeChatButton" class="button-plugin" style="width: 38px; height: 38px;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                            <path d="M21 12C21 12.1989 20.921 12.3897 20.7803 12.5303C20.6397 12.671 20.4489 12.75 20.25 12.75H3.75C3.55109 12.75 3.36032 12.671 3.21967 12.5303C3.07902 12.3897 3 12.1989 3 12C3 11.8011 3.07902 11.6103 3.21967 11.4697C3.36032 11.329 3.55109 11.25 3.75 11.25H20.25C20.4489 11.25 20.6397 11.329 20.7803 11.4697C20.921 11.6103 21 11.8011 21 12Z" fill="#FFFFFF"></path>
+                        </svg>
+                    </div>
+                </h1>
+            <h2 class=" text-start fs-5">Liên hệ trực tuyến</h2>
+            <h3 class="text-start fs-6">👋 Nha Khoa VietClinic xin hân hạnh phục vụ Quý khách. Vui lòng cung cấp Tên & Số điện thoại để bắt đầu chat. Hoặc cần tư vấn qua hotline, vui lòng liên hệ: 0879345947</h3>
             </div>
-            <div class="col-md-6">
-                <h5>Liên Hệ</h5>
-                <ul class="list-unstyled">
-                    <li><i class="fa fa-phone"></i> Số điện thoại: <a href="tel:+84879345957">+84 879345947</a></li>
-                    <li><i class="fa fa-envelope"></i> Email: <a href="mailto:21t1020171@husc.edu.vn">21t1020171@husc.edu.vn</a></li>
-                    <li><i class="fa fa-map-marker"></i> Địa chỉ: 26 Lương Văn Can, Huế, Việt Nam</li>
-                </ul>
+            <div id="chatMessages" class="pkcp-popup-setup-container">
+                <form id="pkcp-popup-setup" class="pkcp-popup-setup">
+                    <div class="virtual-scroll-area">
+                        <div class="scroll-area virtual-scroll">
+                            <div class="pkcp-popup-setup-info">
+                                <div class="pkcp-popup-setup-info-field">
+                                    <input name="name" placeholder="Tên của bạn" required class="pkcp-base-input" value fdprocessedid="ntwxmk" />
+                                </div>
+                                <div class="pkcp-popup-setup-info-field">
+                                    <input name="phone" placeholder="Số điện thoại của bạn* " required class="pkcp-base-input" pattern="\d*" value fdprocessedid="mx6tk" />
+                                </div>
+                            </div>
+                            <div class="pkcp-popup-setup-info-field setup-send-message" style="min-height: max(100% - 147px, 82px);">
+                                <span class="pkcp-popup-setup-info-field-label">Tin nhắn<span style=" color: rgb(207, 19, 34);">*</span></span>
+                                <textarea class="pkcp-base-input setup-message-area" name="message" required placeholder="Nhập tin nhắn của bạn*"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                </form>
+
+            </div>
+            <div class="pkcp-popup-setup-footer">
+                <button id="submitRequest" type="button" class="pkcp-popup-setup-submit" fdprocessedid="a00mmq">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 256 256" fill="none">
+                        <path d="M231.4,44.34s0,.1,0,.15l-58.2,191.94a15.88,15.88,0,0,1-14,11.51q-.69.06-1.38.06a15.86,15.86,0,0,1-14.42-9.15L107,164.15a4,4,0,0,1,.77-4.58l57.92-57.92a8,8,0,0,0-11.31-11.31L96.43,148.26a4,4,0,0,1-4.58.77L17.08,112.64a16,16,0,0,1,2.49-29.8l191.94-58.2.15,0A16,16,0,0,1,231.4,44.34Z" fill="#FFFFFF" ></path>
+                    </svg>Gửi Tin Nhắn
+                </button>
             </div>
         </div>
+        <div class="hero-section">
+            <div class="row">
+                <div class="col-md-6 d-flex flex-column justify-content-center">
+                    <div class="text-container">
+                        <span class="font-weight-bold fs-1"><strong>Chăm Sóc Nụ Cười Của Bạn</strong></span><br />
+                        <span>Đội ngũ nha sĩ chuyên nghiệp, trang thiết bị hiện đại, mang đến cho bạn trải nghiệm nha khoa tốt nhất tại VietClinic.</span>
+                    </div>
+                    <a href="#booking" class="btn btn-primary btn-lg justify-content-center pe-3">Đặt Lịch Ngay</a>
+                </div>
+                <div class="col-md-6">
+                    <img src="images/accounts/clinnic.png" alt="VietClinic" width="538px" height="350px">
+                </div>
+            </div>
+        </div>
+        <div id="service" class="list-service">
+            <div class="text-center pt-3 fs-1 pb-3">
+                <h1><strong>Dịch Vụ Của Chúng Tôi</strong></h1>
+            </div>
+            <div class="row row-cols-1 row-cols-md-3 g-4 fb-3" id="service-list">
+                @foreach (var service in Model.Services)
+                {
+                    <div class="col service-card">
+                        <div class="card h-100">
+                            <img src="~/images/accounts/@service.Photo" class="card-img-top" alt="@service.ServiceName">
+                            <div class="card-body">
+                                <h5 class="card-title">@service.ServiceName</h5>
+                                <p class="card-text">@service.Description</p>
+                                <!-- Chỉ truyền ServiceId và ServiceName -->
+                                <a href="#booking" class="btn btn-primary"
+                                   data-service-id="@service.ServiceId"
+                                   data-service-name="@service.ServiceName">Đặt Lịch</a>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+            <div class="text-center pt-3 ">
+                <button id="next-button" class="btn btn-secondary" onclick="showNextServices()">Xem Thêm</button>
+            </div>
+        </div>
+        @if (userData.Roles.Contains("patient") || userData.Roles.Contains(""))
+        {
+            <div class="container mt-5">
+                <div class="appointment-form">
+                    <h2 id="booking" class="text-center mb-4 font-weight-bold"><strong>Đặt Lịch Hẹn</strong></h2>
+                    @if (successMessage != null)
+                    {
+                        <div class="alert alert-success">
+                            @successMessage
+                        </div>
+                    }
+
+                    @if (errorMessage != null)
+                    {
+                        <div class="alert alert-danger">
+                            @errorMessage
+                        </div>
+                    }
+                    <form action="/Appointment/Submit" method="post" class="w-75 mx-auto pb-3">
+                        <div class="row">
+                            <!-- Tên bệnh nhân (Hiển thị tự động nếu là bệnh nhân) -->
+                            <div class="col-md-6 mb-3">
+                                <label for="patientName" class="form-label">Tên Bệnh Nhân</label>
+                                <input type="text" class="form-control form-control-sm" id="patientName" name="PatientName" value="@userData.DisplayName" readonly>
+                                <input type="hidden" id="patientId" name="@nameof(Model.PatientId)" value="@userData.UserId">
+                                </div>
+
+                            <!-- Email (Hiển thị tự động nếu là bệnh nhân) -->
+                            <div class="col-md-6 mb-3">
+                                <label for="email" class="form-label">Email</label>
+                                <input type="email" class="form-control form-control-sm" id="email" name="email" value="@userData.Email" readonly>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <!-- Số điện thoại -->
+                            <div class="col-md-6 mb-3">
+                                <label for="phone" class="form-label">Số Điện Thoại</label>
+                                <input type="tel" class="form-control form-control-sm" id="phone" name="phone" placeholder="Nhập số điện thoại" required>
+                            </div>
+
+                            <!-- Dịch vụ -->
+                            <div class="col-md-6 mb-3">
+                                <label for="service" class="form-label">Dịch Vụ</label>
+                                <select class="form-select form-select-sm" id="service" name="ServiceId" required>
+                                    <option value="">Chọn dịch vụ</option>
+                                    @foreach (var service in ViewBag.ServiceList as List<SelectListItem>)
+                                    {
+                                        <option value="@service.Value">@service.Text</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="dentist" class="form-label" >Chọn Bác Sĩ (Không bắt buộc)</label>
+                            <select class="form-select" id="dentist" name="DentistId">
+                                <option value="">Không chọn</option>
+                                @foreach (var dentist in ViewBag.DentistList as List<SelectListItem>)
+                                {
+                                    <option value="@dentist.Value">@dentist.Text</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="row">
+                            <!-- Ngày hẹn -->
+                            <div class="col-md-6 mb-3">
+                                <label for="appointmentDate" class="form-label">Ngày Hẹn</label>
+                                <input type="date" class="form-control form-control-sm" id="appointmentDate" name="appointmentDate" required>
+                            </div>
+
+                            <!-- Giờ hẹn -->
+                            <div class="col-md-6 mb-3">
+                                <label for="appointmentTime" class="form-label">Giờ Hẹn</label>
+                                <input type="time" class="form-control form-control-sm" id="appointmentTime" name="appointmentTime" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="comments" class="form-label">Ghi Chú</label>
+                            <textarea class="form-control form-control-sm" id="comments" name="@nameof(Model.Notes)" rows="3" placeholder="Nhập yêu cầu hoặc ghi chú thêm"></textarea>
+                        </div>
+
+                        <!-- Nút gửi -->
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-primary btn-sm">Gửi Lịch Hẹn</button>
+                        </div>
+                        <div id="appointmentMessage" class="mt-3 text-center text-success"></div>
+                        
+                    </form>
+                </div>
+            </div>
+        }
+        else
+        {
+            <span class="text-danger">Error</span>
+        }
+
+        <!-- Bootstrap 5 CSS -->
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+        <footer id="contact" style="background-color: rgba(24, 113, 173, 1);" class="text-white">
+            <div class="container">
+                <!-- Hai phần chính -->
+                <div class="row">
+                    <!-- Phần VietClinic -->
+                    <div class="col-md-4 mt-4">
+                        <h5 class="d-flex align-items-center">
+                            <img src="~/Themes/bg-vietclinic-footer.ico" alt="VietClinic Icon" class="me-2" height="250" width="300"/>
+                        </h5>
+                    </div>
+                    <div class="col-md-4 mt-4 fs-3">
+                    <div><strong>Nha Khoa Viet Clinic</strong></div>
+                    <br />
+                    <p class="small">Chăm sóc sức khỏe răng miệng chuyên nghiệp với đội ngũ bác sĩ giàu kinh nghiệm.</p>
+                    </div>
+                    
+                    <!-- Thông Tin Liên Hệ -->
+                    <div class="col-md-4 mt-4 ">
+                        <h5 class="text-uppercase mb-3 fs-2">Thông Tin Liên Hệ</h5>
+                        <ul class="list-unstyled small">
+                            <li class="mb-2">
+                                <i class="fa fa-phone me-2 text-black"></i>
+                                Số điện thoại: <a class="text-white text-decoration-none">+84 879345947</a>
+                            </li>
+                            <li class="mb-2">
+                                <i class="fa fa-envelope me-2 text-black"></i>
+                                Email: <a class="text-white text-decoration-none">nhakhoa.vietclinic@gmail.com</a>
+                            </li>
+                            <li>
+                                <i class="fa fa-map-marker me-2 text-black"></i>
+                                Địa chỉ: 26 Lương Văn Can, Huế, Việt Nam
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Phần Copyright -->
+            <div class="text-center bg-black py-3">
+                <strong>© Copyright 2024 VietClinic. All Rights Reserved.</strong>
+            </div>
+        </footer>
+
+    }
+    else
+    {
+        <div>Trang chủ</div>
+        
+    }
+}
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["SuccessMessage"]
     </div>
-</footer>
+}
+<script src="/js/signalr/dist/browser/signalr.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.0/signalr.min.js"></script>
+
+<!-- Chat.js -->
+<script src="/js/chat.js?v=3.0"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $("#submitAppointment").on("click", function () {
+        console.log("Button clicked!"); // Kiểm tra nút đã click
+        var formData = $("#appointmentForm").serialize();
+        console.log("Form Data:", formData); // Kiểm tra dữ liệu từ form
+
+        $.ajax({
+            url: '/Appointment/Submit',
+            type: 'POST',
+            data: formData,
+            success: function (response) {
+                console.log("Success:", response); // Kiểm tra phản hồi thành công
+                alert("Lịch hẹn đã được gửi thành công!");
+            },
+            error: function (error) {
+                console.error("Error:", error); // Kiểm tra lỗi
+                alert("Có lỗi xảy ra, vui lòng thử lại!");
+            }
+        });
+    });
+    
+    let currentIndex = 3; // Start by showing the first 3 services
+    const totalServices = document.querySelectorAll('.service-card').length; 
+
+    // Function to show the next 3 services when the Next button is clicked
+    function showNextServices() {
+        const services = document.querySelectorAll('.service-card');
+
+        // Display the next 3 services
+        for (let i = currentIndex; i < currentIndex + 3 && i < totalServices; i++) {
+            services[i].style.display = 'block';
+        }
+
+        // Update the current index to the next set of services
+        currentIndex += 3;
+
+        // Hide the "Next" button if all services have been shown
+        if (currentIndex >= totalServices) {
+            document.getElementById('next-button').style.display = 'none';
+        }
+    }
+
+    
+</script>
+

@@ -102,6 +102,7 @@ namespace DentalManagement.Web.Repository
                 _context.Entry(existingPatient).Property(e => e.Phone).IsModified = true;
                 _context.Entry(existingPatient).Property(e => e.Email).IsModified = true;
                 _context.Entry(existingPatient).Property(e => e.Address).IsModified = true;
+                _context.Entry(existingPatient).Property(e => e.Photo).IsModified = true;
 
 
                 existingPatient.PatientName = entity.PatientName;
@@ -113,6 +114,7 @@ namespace DentalManagement.Web.Repository
                 existingPatient.Address = entity.Address;
                 existingPatient.Phone = entity.Phone;
                 existingPatient.Email = entity.Email;
+                existingPatient.Photo = entity.Photo;
                 await _context.SaveChangesAsync();
             }
         }

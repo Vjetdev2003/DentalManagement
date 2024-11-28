@@ -28,7 +28,9 @@
                         <td>@item.PatientName</td>
                         <td>@item.ServiceName</td>
                         <td>@item.DentistName</td>
-                        <td>@item.AppointmentDate</td>
+                        <td>
+                            @item.AppointmentDate?.ToString("dd/MM/yyyy") @item.AppointmentTime?.ToString(@"hh\:mm")
+                        </td>
                         <td>@item.Notes</td>
                         <td>@item.FinishedTime</td>
                         <td>@item.StatusDescription</td>

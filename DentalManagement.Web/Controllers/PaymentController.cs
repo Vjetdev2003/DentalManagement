@@ -50,6 +50,7 @@ namespace DentalManagement.Web.Controllers
                 ServiceId = d.ServiceId,
                 ServiceName = d.Service?.ServiceName,
                 Price = d.Service?.Price ?? 0,
+                Quantity = d.Quantity,
                 PaymentStatus = d.PaymentStatus
             }).ToList();
 

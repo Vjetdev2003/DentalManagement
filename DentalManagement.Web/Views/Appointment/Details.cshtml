@@ -23,9 +23,9 @@
                             @switch (Model.Appointments.Status)
                             {
                                 case Constants.APPOINTMENT_INIT:
-                                    <li>
+                                    @* <li>
                                         <a href="~/Appointment/EditDentist/@Model.Appointments.AppointmentId" class="btn btn-modal">Thay đổi thông tin nha sĩ</a>
-                                    </li>
+                                    </li> *@
                                     <li>
                                         <a href="~/Appointment/Accept/@Model.Appointments.AppointmentId" onclick="return confirm('Xác nhận cuộc hẹn này?')">Xác nhận</a>
                                     </li>
@@ -39,9 +39,9 @@
                                     break;
 
                                 case Constants.APPOINTMENT_CONFIRMED:
-                                    <li>
+                                    @* <li>
                                         <a href="~/Appointment/EditDentist/@Model.Appointments.AppointmentId" class="btn btn-modal">Thay đổi thông tin nha sĩ</a>
-                                    </li>
+                                    </li> *@
                                     <li>
                                         <a href="~/Appointment/Finish/@Model.Appointments.AppointmentId" onclick="return confirm('Xác nhận hoàn tất cuộc hẹn này?')">Hoàn tất cuộc hẹn</a>
                                     </li>
@@ -126,7 +126,27 @@
     </div>
 
     <div id="dialogModal" class="modal fade" role="dialog"></div>
-
+    <div class="box-body">
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped table-hover">
+                <h4>Danh sách dịch vụ</h4>
+            <thead>
+                <tr>
+                    <th>Tên dịch vụ</th>
+                    <th>Giá</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>@Model.Services.ServiceName</td>
+                    <td>@Model.Services.Price</td>
+                </tr>
+            </tbody>
+            </table>
+        </div>
+    </div>
+    
     @section scripts {
         <script>
             $(document).on('click', '.btn-modal', function (e) {

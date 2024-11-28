@@ -28,7 +28,7 @@ namespace DentalManagement.Web.Repository
         }
         public async Task<IEnumerable<AppointmentStatus>> StatusList(AppointmentStatus appointmentStatus)
         {
-             return await _context.AppointmentStatuses.ToListAsync();
+            return await _context.AppointmentStatuses.ToListAsync();
         }
 
         public bool InUse(int id)
@@ -55,6 +55,7 @@ namespace DentalManagement.Web.Repository
                 {
                     AppointmentId = a.AppointmentId, // Đảm bảo rằng bạn lấy AppointmentId
                     AppointmentDate = a.AppointmentDate,
+                    AppointmentTime=a.AppointmentTime,
                     PatientName = a.Patient.PatientName,
                     ServiceName = a.Service.ServiceName,
                     DateCreated = a.DateCreated,
@@ -83,12 +84,12 @@ namespace DentalManagement.Web.Repository
         }
 
         public async Task<IEnumerable<Appointment>> GetAllAsync()
-        {   
-                return await _context.Appointments
-                    .Include(a => a.Patient)
-                    .Include(a => a.Dentist)
-                    .Include(a => a.Service)
-                    .ToListAsync();
+        {
+            return await _context.Appointments
+                .Include(a => a.Patient)
+                .Include(a => a.Dentist)
+                .Include(a => a.Service)
+                .ToListAsync();
         }
 
 
@@ -217,60 +218,41 @@ namespace DentalManagement.Web.Repository
 
             return true; // Deletion was successful
         }
-       
 
-        //public async Task<bool> SaveDetail(int appointmentId, int dentistId, int patientId, string description)
-        //{
-        //    var appointmentDetail = new AppointmentDetail
-        //    {
-        //        AppointmentId = appointmentId,
-        //        DentistId = dentistId,
-        //        PatientId = patientId,
-        //        Description = description,
-        //        DateCreated = DateTime.Now // Or any other relevant detail fields
-        //    };
 
-        //    await _context.AppointmentDetails.AddAsync(appointmentDetail);
-        //    await _context.SaveChangesAsync();
-        //    return true;
-        //}
+        public async Task SaveAppointment(AppointmentCreateModel model)
+        {
+            var userData = new WebUserData();
 
-        //public async Task<int> InitAppointment(int dentistId, int patientId, string description, IEnumerable<AppointmentDetail> details)
-        //{
-        //    if (!details.Any())
-        //        return 0;
+            // Lấy thông tin dịch vụ từ cơ sở dữ liệu theo ServiceId
+            var service = await _context.Services
+                .FirstOrDefaultAsync(s => s.ServiceId == model.ServiceId);
 
-        //    // Tạo một đối tượng Appointment mới
-        //    Appointment appointment = new Appointment()
-        //    {
-        //        DentistId = dentistId,
-        //        PatientId = patientId,
-        //        Status = Constants.APPOINTMENT_INIT, // Đặt trạng thái là Init
-        //        Description = description,
-        //        DateCreated = DateTime.Now
-        //    };
+            if (service == null)
+            {
+                // Xử lý nếu không tìm thấy dịch vụ (nếu cần)
+                throw new Exception("Dịch vụ không tồn tại.");
+            }
 
-        //    // Thêm lịch hẹn vào ngữ cảnh cơ sở dữ liệu
-        //    await _context.Appointments.AddAsync(appointment);
+            var appointment = new Appointment
+            {
+                PatientId = Int32.Parse(userData.UserId),
+                PatientName = userData.DisplayName,
+                ServiceID = model.ServiceId,
+                DentistId = Int32.Parse(userData.UserId),
+                DentistName = model.PatientName,
+                ServiceName = service.ServiceName, // Gán tên dịch vụ từ cơ sở dữ liệu
+                Phone = model.Phone,
+                Email = model.Email,
+                AppointmentDate = model.AppointmentDate,
+                Notes = model.Notes,
+                Status = Constants.APPOINTMENT_INIT,
+                DateCreated = DateTime.Now,
+                UserIdCreate = "currentUserId" // Gán ID người dùng hiện tại
+            };
 
-        //    // Lưu thay đổi để lấy appointmentId sau khi lưu vào cơ sở dữ liệu
-        //    await _context.SaveChangesAsync();
-
-        //    // Giờ đây, lịch hẹn đã được lưu, ID của nó sẽ được thiết lập
-        //    int appointmentId = appointment.AppointmentId;
-
-        //    // Kiểm tra nếu lịch hẹn đã được lưu thành công
-        //    if (appointmentId > 0)
-        //    {
-        //        // Lặp qua chi tiết và lưu chúng
-        //        foreach (var item in details)
-        //        {
-        //            await SaveDetail(appointmentId, item.DentistId, item.PatientId, item.Description);
-        //        }
-        //        return appointmentId; // Trả về appointmentId đã được tạo
-        //    }
-
-        //    return 0;
-        //}
+            _context.Appointments.Add(appointment);
+            await _context.SaveChangesAsync();
+        }
     }
 }

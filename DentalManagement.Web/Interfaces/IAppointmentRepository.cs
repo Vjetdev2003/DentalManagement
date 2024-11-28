@@ -18,5 +18,6 @@ namespace DentalManagement.Web.Interfaces
         Task<bool> CancelAppointment(int appointmentID);
         Task<bool> NoShowAppointment(int appointmentID);
         Task<bool> FinishAppointment(int appointmentID);
+        public Task SaveAppointment(AppointmentCreateModel appointmentModel);
     }
 }

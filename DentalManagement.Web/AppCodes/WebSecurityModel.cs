@@ -19,6 +19,8 @@ namespace DentalManagement.Web
         public string? SessionId { get; set; }
         public string? AdditionalData { get; set; }
         public List<string>? Roles { get; set; }
+        public int MessageCount { get; set; }
+        
 
         /// <summary>
         /// Thông tin người dùng dưới dạng danh sách các Claim

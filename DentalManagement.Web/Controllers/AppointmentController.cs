@@ -18,6 +18,7 @@ public class AppointmentController : Controller
     private readonly IRepository<Dentist> _dentistRepository;
     private readonly IRepository<Service> _serviceRepository;
     private readonly IRepository<Patient> _patientRepository;
+    private readonly EmailSerivce _emailSerivce;
     private readonly AppointmentStatus _status;
 
     private readonly DentalManagementDbContext _dentalManagementDbContext;
@@ -25,14 +26,15 @@ public class AppointmentController : Controller
     private const string SEARCH_CONDITION = "appointment_search";
 
     public AppointmentController(AppointmentRepository appointmentRepository, AppointmentStatus status, DentalManagementDbContext dentalManagementDbContext, IRepository<Dentist> dentistRepository, 
-        IRepository<Service> serviceRepository, IRepository<Patient> patientRepository)
+        IRepository<Service> serviceRepository, IRepository<Patient> patientRepository,EmailSerivce emailSerivce)
     {
         _appointmentRepository = appointmentRepository;
         _dentalManagementDbContext = dentalManagementDbContext;
         _dentistRepository = dentistRepository;
         _serviceRepository = serviceRepository;
         _patientRepository = patientRepository;
-        _status= status;
+        _emailSerivce = emailSerivce;
+        _status = status;
     }
     // Action để hiển thị danh sách đặt lịch hẹn
     [HttpGet]
@@ -49,6 +51,7 @@ public class AppointmentController : Controller
         {
             Title = string.IsNullOrEmpty(a.PatientName) ? "Chưa rõ tên" : $"{a.PatientName} - {a.ServiceName}",
             Start = a.AppointmentDate ?? DateTime.Now,
+            Time = a.AppointmentTime ,
             Description = string.IsNullOrEmpty(a.Notes) ? "Không có mô tả" : $"{a.Notes}",
             AppointmentId = a.AppointmentId ,
             Status = a.Status ,
@@ -80,24 +83,46 @@ public class AppointmentController : Controller
     {
         try
         {
-            var data = await _dentalManagementDbContext.Appointments.ToListAsync();
-            if(input.Status != 0)
+            // Lấy thông tin người dùng đăng nhập
+            var userData = User.GetUserData();
+
+            // Lấy tất cả cuộc hẹn từ cơ sở dữ liệu
+            var query = _dentalManagementDbContext.Appointments.AsQueryable();
+
+            // Nếu là bác sĩ, chỉ hiển thị các cuộc hẹn thuộc về bác sĩ đó
+            if (userData.Roles.Contains("dentist"))
             {
-                data = data.Where(a => a.Status ==input.Status).ToList();
+                query = query.Where(a => a.DentistId == Int32.Parse(userData.UserId));
             }
+
+            // Áp dụng lọc trạng thái
+            if (input.Status != 0)
+            {
+                query = query.Where(a => a.Status == input.Status);
+            }
+
+            // Áp dụng lọc theo khoảng ngày
             if (!string.IsNullOrEmpty(input.DateRange))
             {
-                data = data.Where(a=>a.AppointmentDate <= input.ToTime && a.AppointmentDate>= input.FromTime).ToList();
+                query = query.Where(a => a.AppointmentDate <= input.ToTime && a.AppointmentDate >= input.FromTime);
             }
-            if (!string.IsNullOrEmpty(input.SearchValue)) { 
-            
-                data = data.Where(a=>a.PatientName.ToUpper().Contains(input.SearchValue) && a.DentistName.ToUpper().Contains(input.SearchValue)).ToList();
+
+            // Áp dụng tìm kiếm theo từ khóa
+            if (!string.IsNullOrEmpty(input.SearchValue))
+            {
+                var searchValueUpper = input.SearchValue.ToUpper();
+                query = query.Where(a => a.PatientName.ToUpper().Contains(searchValueUpper) || a.DentistName.ToUpper().Contains(searchValueUpper));
             }
-            int rowCount = data.Count();
-            data = data.Skip((input.Page - 1) * input.PageSize)
-                 .Take(input.PageSize).ToList();
 
+            // Đếm tổng số hàng trước khi phân trang
+            int rowCount = await query.CountAsync();
 
+            // Áp dụng phân trang
+            var data = await query.Skip((input.Page - 1) * input.PageSize)
+                                  .Take(input.PageSize)
+                                  .ToListAsync();
+
+            // Chuẩn bị model cho kết quả tìm kiếm
             var model = new AppointmentSearchResult()
             {
                 Page = input.Page,
@@ -107,7 +132,9 @@ public class AppointmentController : Controller
                 Appointments = data
             };
 
+            // Lưu điều kiện tìm kiếm trong session (nếu cần)
             ApplicationContext.SetSessionData(SEARCH_CONDITION, input);
+
             return View(model);
         }
         catch (Exception ex)
@@ -115,7 +142,7 @@ public class AppointmentController : Controller
             // Ghi log lỗi hoặc hiển thị thông báo lỗi
             Console.WriteLine($"Error while searching appointments: {ex.Message}");
 
-            // Bạn có thể trả về một trang lỗi hoặc xử lý lỗi tùy ý
+            // Trả về trang lỗi hoặc xử lý lỗi tùy ý
             return RedirectToAction("Error", new { message = "There was an issue processing your request." });
         }
     }
@@ -149,7 +176,7 @@ public class AppointmentController : Controller
     //    // Xử lý logic lưu lịch hẹn
     //    TempData["SuccessMessage"] = "Appointment created successfully!";
     //    return RedirectToAction("Create");
-   // }
+    // }
 
     public IActionResult Create()
 	{   
@@ -418,6 +445,80 @@ public class AppointmentController : Controller
         }
         return RedirectToAction("Index");
     }
-    
-    
+
+    [HttpPost]
+    public async Task<IActionResult> Submit(AppointmentCreateModel model)
+    {
+        var userData = User.GetUserData();
+        if (userData == null)
+        {
+            // Trả về thông báo lỗi hoặc chuyển hướng đến trang đăng nhập
+            TempData["ErrorMessage"] = "Bạn cần đăng nhập trước khi đặt lịch!";
+            return View(); // Hoặc chuyển hướng: RedirectToAction("Login", "Account");
+        }
+        var service = await _dentalManagementDbContext.Services
+         .Where(s => s.ServiceId == model.ServiceId)
+         .FirstOrDefaultAsync();
+
+        // Lấy dữ liệu bác sĩ (trường hợp bác sĩ không được chọn)
+        var dentist = model.DentistId.HasValue
+            ? await _dentalManagementDbContext.Dentists
+                .Where(d => d.DentistId == model.DentistId)
+                .FirstOrDefaultAsync()
+            : await _dentalManagementDbContext.Dentists
+                .OrderBy(d => d.Appointments.Count) // Phân bổ bác sĩ ít lịch nhất
+                .FirstOrDefaultAsync();
+        if (dentist == null)
+        {
+            ModelState.AddModelError("", "Không có bác sĩ khả dụng.");
+            return View(model);
+        }
+        if (service != null)
+        {
+            // Tạo đối tượng Appointment với ServiceName đã lấy
+            var appointment = new Appointment
+            {
+                PatientId = Int32.Parse(userData.UserId),
+                PatientName = userData.DisplayName,
+                ServiceID = model.ServiceId,
+                ServiceName = service.ServiceName, // Lấy tên dịch vụ từ đối tượng Service
+                DentistId = dentist.DentistId,
+                DentistName = dentist.DentistName,
+                Phone = model.Phone,
+                Email = model.Email,
+                AppointmentDate = model.AppointmentDate,
+                AppointmentTime = model.AppointmentTime,
+                Notes = model.Notes,
+                Status = Constants.APPOINTMENT_INIT,
+                DateCreated = DateTime.Now,
+                DateUpdated = DateTime.Now,
+                UserIdCreate = userData.UserId // Gán ID người dùng hiện tại
+            };
+
+            // Lưu lịch hẹn vào cơ sở dữ liệu
+            _dentalManagementDbContext.Appointments.Add(appointment);
+            await _dentalManagementDbContext.SaveChangesAsync();
+
+            var subject = "Xác nhận đặt lịch hẹn tại VietClinic";
+            var body = $@"
+                <h1>Chào {model.PatientName},</h1>
+                <p>Bạn đã đặt lịch hẹn thành công với thông tin sau:</p>
+                <ul>
+                    <li><b>Dịch vụ:</b> {service.ServiceName}</li>
+                    <li><b>Bác sĩ:</b> {dentist.DentistName}</li>
+                    <li><b>Thời gian:</b> {model.AppointmentDate:dd/MM/yyyy} - {model.AppointmentTime}</li>
+                </ul>
+                <p>Cảm ơn bạn đã tin tưởng VietClinic!</p>";
+
+            await _emailSerivce.SendEmailAsync(model.Email, subject, body);
+            TempData["SuccessMessage"] = "Lịch hẹn đã được đặt thành công. Vui lòng kiểm tra email của bạn!";
+            
+            return RedirectToAction("Index", "Home");
+        }
+
+        TempData["ErrorMessage"] = "Dịch vụ không hợp lệ.";
+        return RedirectToAction("Index", "Home");
+
+    }
+
 }

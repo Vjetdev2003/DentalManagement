@@ -1,81 +1,126 @@
 ﻿@model DentalManagement.DomainModels.Patient
 @{
-    ViewBag.Title = "Chỉnh sửa thông tin cá nhân";
+    ViewBag.Title = "Thông Tin Cá Nhân";
+    Layout = "_Home";
 }
 
 <div class="container mt-5">
     <div class="row justify-content-center">
-<table class="custom-table">
-    <caption class="table-caption text-center">Thông Tin Cá Nhân</caption>
-    <tbody>
-      
-        <tr>
-            <th>Tên Bệnh Nhân:</th>
-            <td>@Model.PatientName</td>
-        </tr>
-        <tr>
-            <th>Ngày Sinh:</th>
-            <td>@Model.PatientDOB.ToString("dd/MM/yyyy")</td>
-        </tr>
-        <tr>
-            <th>Chiều Cao:</th>
-            <td>@Model.Height cm</td>
-        </tr>
-        <tr>
-            <th>Cân Nặng:</th>
-            <td>@Model.Weight kg</td>
-        </tr>
-        <tr>
-            <th>Giới Tính:</th>
-                    <td class="text-center">
-                        @(Model.Gender == true ? "Nam" : Model.Gender == false ? "Nữ" : "Chưa xác định") <!-- Xử lý khi Gender có thể là null -->
-                    </td>
-        </tr>
-        <tr>
-            <th>Email:</th>
-            <td>@Model.Email</td>
-        </tr>
-        <tr>
-            <th>Địa chỉ:</th>
-            <td>@Model.Address</td>
-        </tr>
-    </tbody>
-</table>
-<div class="mt-4 text-center">
-    <a asp-action="Edit" asp-route-id="@Model.PatientId" class="btn btn-success">
-        <i class="fa fa-edit"></i> Chỉnh sửa
-    </a>
-</div>
-</div>
+        <div class="col-md-8">
+            <!-- Tiêu đề -->
+            <div class="text-center mb-4">
+                <h1 class="page-title">Thông Tin Cá Nhân</h1>
+            </div>
+
+            <!-- Thông tin bệnh nhân -->
+            <div class="card shadow-lg p-4">
+                <div class="text-center">
+                    <!-- Ảnh bệnh nhân -->
+                    <img class="profile-img"
+                         alt="no-photo"
+                         src="~/images/accounts/@(string.IsNullOrWhiteSpace(Model.Photo) ? "patient.png" : Model.Photo)">
+                </div>
+                <table class="custom-table mt-4">
+                    <tbody>
+                        <tr>
+                            <th>Tên Bệnh Nhân:</th>
+                            <td>@Model.PatientName</td>
+                        </tr>
+                        <tr>
+                            <th>Ngày Sinh:</th>
+                            <td>@Model.PatientDOB.ToString("dd/MM/yyyy")</td>
+                        </tr>
+                        <tr>
+                            <th>Chiều Cao:</th>
+                            <td>@Model.Height cm</td>
+                        </tr>
+                        <tr>
+                            <th>Cân Nặng:</th>
+                            <td>@Model.Weight kg</td>
+                        </tr>
+                        <tr>
+                            <th>Giới Tính:</th>
+                            <td>
+                                @(Model.Gender == true ? "Nam" : Model.Gender == false ? "Nữ" : "Chưa xác định")
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Email:</th>
+                            <td>@Model.Email</td>
+                        </tr>
+                        <tr>
+                            <th>Địa chỉ:</th>
+                            <td>@Model.Address</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <!-- Nút chỉnh sửa -->
+                <div class="text-center mt-4">
+                    <a asp-action="Edit" asp-route-id="@Model.PatientId" class="btn btn-success btn-lg px-4">
+                        <i class="fa fa-edit"></i> Chỉnh sửa
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
-<!-- Custom CSS for Table -->
+<!-- Custom CSS -->
 <style>
-    .custom-table {
-        width: 100%;
-        max-width: 800px; /* Điều chỉnh kích thước tối đa của bảng */
-        margin: 0 auto; /* Để bảng nằm giữa màn hình */
-        border-collapse: collapse;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Đổ bóng cho bảng */
-        border: 1px solid #ddd; /* Thêm viền cho bảng */
+    body {
+        font-family: 'Roboto', sans-serif;
     }
 
-        .custom-table caption {
-            font-size: 30px; /* Tăng kích thước chữ cho tiêu đề */
-            font-weight: bold; /* Đậm cho tiêu đề */
-            margin-bottom: 10px; /* Khoảng cách dưới tiêu đề */
-            text-align: center; /* Căn giữa tiêu đề */
-        }
+    .page-title {
+        font-size: 2.5rem;
+        font-weight: bold;
+        color: #007bff;
+    }
+
+    .card {
+        border: none;
+        border-radius: 10px;
+        background: #ffffff;
+    }
+
+    .profile-img {
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid #007bff;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .custom-table {
+        width: 100%;
+        margin-top: 20px;
+        border-collapse: collapse;
+    }
 
         .custom-table th, .custom-table td {
-            padding: 12px 16px; /* Tăng padding cho các ô trong bảng */
+            padding: 12px 15px;
             text-align: left;
-            border-bottom: 1px solid #ddd; /* Viền dưới cho các hàng */
-            font-size: 18px; /* Tăng kích thước font chữ */
+            border-bottom: 1px solid #ddd;
+            font-size: 16px;
         }
 
         .custom-table th {
-            width: 35%; /* Thay đổi tỷ lệ cột để cân đối hơn */
-            background-color: #f2f2f2; /* Màu nền cho tiêu đề cột */
+            background-color: #f8f9fa;
+            font-weight: bold;
+            color: #333;
+        }
+
+    .btn-success {
+        background-color: #28a745;
+        border-color: #28a745;
+        font-size: 18px;
+        transition: 0.3s;
+    }
+
+        .btn-success:hover {
+            background-color: #218838;
+            border-color: #1e7e34;
         }
 </style>

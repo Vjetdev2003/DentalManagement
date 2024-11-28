@@ -43,7 +43,8 @@ namespace DentalManagement.Web.Repository
                     UserName = p.Email,
                     FullName = p.PatientName,
                     Email = p.Email,
-                    RoleNames = "patient"
+                    RoleNames = "patient",
+                    Photo = p.Photo,
                 })
                 .FirstOrDefaultAsync();
 

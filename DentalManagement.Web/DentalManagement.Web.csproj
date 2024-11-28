@@ -7,7 +7,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="wwwroot\js\signalr\node_modules\**" />
+    <Content Remove="wwwroot\js\signalr\node_modules\**" />
+    <EmbeddedResource Remove="wwwroot\js\signalr\node_modules\**" />
+    <None Remove="wwwroot\js\signalr\node_modules\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Dapper" Version="2.1.35" />
+    <PackageReference Include="MailKit" Version="4.8.0" />
     <PackageReference Include="Microsoft.AspNet.WebApi.Client" Version="6.0.0" />
     <PackageReference Include="Microsoft.AspNet.WebApi.Core" Version="5.3.0" />
     <PackageReference Include="Microsoft.AspNet.WebApi.Cors" Version="5.3.0" />
@@ -33,6 +41,8 @@
     <Folder Include="wwwroot\images\employees\" />
     <Folder Include="wwwroot\images\dentists\" />
     <Folder Include="wwwroot\images\medicines\" />
+    <Folder Include="wwwroot\images\patients\" />
+    <Folder Include="wwwroot\lib\aspnet\" />
   </ItemGroup>
 
 </Project>

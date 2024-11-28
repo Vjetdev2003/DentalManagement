@@ -1,6 +1,7 @@
 ﻿using DentalManagement.DomainModels;
 using DentalManagement.Web.AppCodes;
 using DentalManagement.Web.Data;
+using DentalManagement.Web.Hubs;
 using DentalManagement.Web.Interfaces;
 using DentalManagement.Web.Repository;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -37,7 +38,9 @@ builder.Services.AddScoped<PaymentRepository>();
 builder.Services.AddScoped<IPayment,PaymentRepository>();
 builder.Services.AddScoped<IUserAccount, UserAccountRepository>();
 builder.Services.AddTransient<IInvoiceRepository,InvoiceRepository>();
+builder.Services.AddScoped<EmailSerivce>();
 builder.Services.AddMvc();
+builder.Services.AddSignalR();
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", builder =>
@@ -54,6 +57,11 @@ builder.Services.AddDbContext<DentalManagementDbContext>(options =>
 builder.Services.Configure<FormOptions>(options =>
 {
     options.MultipartBodyLengthLimit = 10485760; // 10 MB
+});
+builder.Services.Configure<CookiePolicyOptions>(options =>
+{
+    options.CheckConsentNeeded = context => true;
+    options.MinimumSameSitePolicy = SameSiteMode.None;
 });
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
                 .AddCookie(option =>
@@ -95,6 +103,7 @@ app.UseSession();
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
+app.UseCookiePolicy();
 app.UseAuthentication(); // Đảm bảo middleware xác thực được thêm vào
 app.UseAuthorization();
 app.UseCors("AllowAll");
@@ -106,6 +115,6 @@ ApplicationContext.Configure
 (
     httpContextAccessor: app.Services.GetRequiredService<IHttpContextAccessor>(),
     hostEnvironment: app.Services.GetRequiredService<IWebHostEnvironment>()
-); 
-
+);
+app.MapHub<ChatHub>("/chatHub");
 app.Run();

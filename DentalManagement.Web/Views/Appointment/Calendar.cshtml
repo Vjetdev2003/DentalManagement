@@ -30,7 +30,14 @@
                 week: 'Tuần',
                 day: 'Ngày'
             },
-                events: @Html.Raw(Json.Serialize(Model)),
+                events: @Html.Raw(Json.Serialize(Model.Select(a => new
+            {
+                title = a.Title,
+                start = a.Start.ToString("yyyy-MM-dd"),  // Chỉ gửi ngày
+                appointmentTime = a.Time,  // Gửi thời gian (dạng HH:mm)
+                status = a.Status,
+                appointmentId = a.AppointmentId
+            }))),
             editable: true,
             droppable: true,
             eventRender: function (event, element) {
@@ -69,7 +76,7 @@
                             statusText = "Không xác định";
                             break;
                     }
-                    let startTime = event.start ? moment(event.start).format('HH:mm') : "Không xác định";
+                    let startTime = event.appointmentTime ? event.appointmentTime : "Không xác định";
                     // Hiển thị trạng thái và giờ bắt đầu bên trong ô sự kiện
                     element.html(`
                     <strong>${event.title}</strong><br>

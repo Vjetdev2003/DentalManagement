@@ -1,6 +1,110 @@
 ﻿@model DentalManagement.DomainModels.Patient
+@{
+    var userData = User.GetUserData();
+    if (userData.Roles.Contains("patient"))
+    {
+        Layout = "_Home";
+    }
+    else
+    {
+        
+    }
+}
+ @if (userData.Roles.Contains("patient"))
+{
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="text-center mb-4">
+                    <h1 class="page-title">Chỉnh sửa thông tin</h1>
+                </div>
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <form method="post" enctype="multipart/form-data" action="~/Patient/Save">
+                            <input type="hidden" name="PatientId" value="@Model.PatientId" />
 
-<div class="box box-primary">
+                            <!-- Ảnh bệnh nhân (full width) -->
+                            <div class="form-group text-center">
+                                <img id="Photo" src="~/images/accounts/@(string.IsNullOrWhiteSpace(Model.Photo) ? "patient.png" : Model.Photo)"
+                                     class="img-thumbnail rounded-circle mb-3" style="width:120px; height:120px;" alt="NoPhoto" />
+                                <input type="file" class="form-control-file mt-2" name="uploadPhoto" accept="image/*"
+                                       onchange="document.getElementById('Photo').src = window.URL.createObjectURL(this.files[0])" />
+                            </div>
+
+                            <!-- Chia form thành 2 cột đối xứng -->
+                            <div class="row">
+                                <!-- Cột bên trái -->
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="PatientName">Họ và tên:</label>
+                                        <input type="text" class="form-control" name="@nameof(Model.PatientName)" value="@Model.PatientName" />
+                                        @Html.ValidationMessageFor(m => m.PatientName, "", new { @class = "text-danger" })
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="PatientDOB">Ngày sinh:</label>
+                                        <input type="text" class="form-control date-picker" name="BirthDateInput"
+                                               value="@Model.PatientDOB.ToString("dd/MM/yyyy", new System.Globalization.CultureInfo("en-GB"))" />
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="Height">Chiều cao:</label>
+                                        <input type="number" class="form-control" name="@nameof(Model.Height)" value="@Model.Height" />
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="Phone">Điện thoại:</label>
+                                        <input type="text" class="form-control" name="@nameof(Model.Phone)" value="@Model.Phone" />
+                                    </div>
+                                </div>
+
+                                <!-- Cột bên phải -->
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="Weight">Cân nặng:</label>
+                                        <input type="number" class="form-control" name="@nameof(Model.Weight)" value="@Model.Weight" />
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="Address">Địa chỉ:</label>
+                                        <input type="text" class="form-control" name="@nameof(Model.Address)" value="@Model.Address" />
+                                        @Html.ValidationMessageFor(m => m.Address, "", new { @class = "text-danger" })
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="Email">Email:</label>
+                                        <input type="email" class="form-control" name="@nameof(Model.Email)" value="@Model.Email" />
+                                        @Html.ValidationMessageFor(m => m.Email, "", new { @class = "text-danger" })
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Giới tính:</label>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="@nameof(Model.Gender)" value="true" @(Model.Gender ? "checked" : "") />
+                                            <label class="form-check-label">Nam</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="@nameof(Model.Gender)" value="false" @(!Model.Gender ? "checked" : "") />
+                                            <label class="form-check-label">Nữ</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Nút hành động -->
+                            <div class="form-group text-center mt-4">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fa fa-save"></i> Lưu thông tin
+                                </button>
+                                <a href="~/Patient" class="btn btn-secondary px-4">
+                                    <i class="fa fa-arrow-left"></i> Quay lại
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+}
+else
+{
+    <div class="box box-primary">
     <div class="box-body">
         <form class="form-horizontal" method="post" enctype="multipart/form-data" action="~/Patient/Save">
             <input type="hidden" name="PatientId" value="@Model.PatientId" />
@@ -76,7 +180,20 @@
                     @Html.ValidationMessageFor(m => m.Email)
                 </div>
             </div>
+            <div class="form-group">
+                <label class="control-label col-sm-2">Ảnh bệnh nhân:</label>
+                <div class="col-sm-10">
+                    <input type="hidden" name="@nameof(Model.Photo)" value="@Model.Photo" />
+                    <input type="file" class="form-control" name="uploadPhoto" accept="image/*"
+                           onchange="document.getElementById('Photo').src = window.URL.createObjectURL(this.files[0])" />
+                </div>
+            </div>
 
+            <div class="form-group">
+                <div class="col-lg-offset-2 col-sm-10">
+                    <img id="Photo" src="~/images/accounts/@Model.Photo" class="img img-bordered" style="width:200px" alt="NoPhoto" />
+                </div>
+                </div>
             <div class="form-group">
                 <div class="col-lg-offset-2 col-sm-10">
                     <button type="submit" class="btn btn-primary">
@@ -89,8 +206,16 @@
         </form>
     </div>
 </div>
-
-@section scripts {
+} 
+<!-- Custom CSS -->
+<style >
+    .page-title {
+       font-size: 2.5rem;
+       font-weight: bold;
+       color: #007bff;
+       }
+</style>
+@* @section scripts {
     <script>
         document.getElementById('backButton').addEventListener('click', function (e) {
             e.preventDefault(); // Ngăn chặn hành động mặc định
@@ -109,3 +234,4 @@
     </script>
 }
 
+ *@

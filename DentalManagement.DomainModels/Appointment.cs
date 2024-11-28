@@ -25,9 +25,10 @@ namespace DentalManagement.DomainModels
         [ForeignKey("ServiceID")]
         public int ServiceID { get; set; }
         public string ServiceName { get; set; } = string.Empty;
-        public string Phone { get; set; }
-        public string Email { get; set; }
+        public string Phone { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
         public DateTime? AppointmentDate { get; set; }
+        public TimeSpan? AppointmentTime { get; set; }
         public string Notes {  get; set; } = string.Empty;
         public virtual Service Service { get; set; }
         public virtual Dentist Dentist { get; set; }

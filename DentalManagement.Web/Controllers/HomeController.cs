@@ -1,9 +1,10 @@
-using DentalManagement.DomainModels;
+ï»¿using DentalManagement.DomainModels;
 using DentalManagement.Web.AppCodes;
 using DentalManagement.Web.Data;
-using DentalManagement.Web.DTOs;
 using DentalManagement.Web.Models;
+using DentalManagement.Web.Repository;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
 
 namespace DentalManagement.Web.Controllers
@@ -12,53 +13,30 @@ namespace DentalManagement.Web.Controllers
     {
         private readonly ILogger<HomeController> _logger;
         private readonly DentalManagementDbContext _context;
+        private readonly IRepository<Service> _serviceRepo;
+        private readonly IRepository<Dentist> _dentistRepo;
 
-        public HomeController(ILogger<HomeController> logger, DentalManagementDbContext context)
+        public HomeController(ILogger<HomeController> logger, DentalManagementDbContext context, IRepository<Service> serviceRepo, IRepository<Dentist> dentistRepo)
         {
             _logger = logger;
             _context = context;
+            _serviceRepo = serviceRepo;
+            _dentistRepo = dentistRepo;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            return View();
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateAppointment([FromBody] AppointmentDto model)
-        {
-            try
+            var services = await _context.Services.ToListAsync();
+            ViewBag.ServiceList = SelectListHelper.GetServices(_serviceRepo);
+            ViewBag.DentistList = SelectListHelper.GetDentists(_dentistRepo);
+            var model = new AppointmentCreateModel
             {
-                if (!ModelState.IsValid)
-                {
-                    return Json(new { success = false, message = "D? li?u không h?p l?" });
-                }
+                Services = services,
 
-                var appointment = new Appointment
-                {
-                    PatientName = model.Name,
-                    Phone = model.Phone,
-                    Email = model.Email,
-                    AppointmentDate = DateTime.Parse(model.Date),
-                    ServiceName = model.ServiceName,
-                    Notes = model.Notes,
-                    Status = Constants.APPOINTMENT_IN_PROGRESS,
-                    DateCreated = DateTime.UtcNow
-                };
-
-                _context.Appointments.Add(appointment);
-                await _context.SaveChangesAsync();
-
-                return Json(new { success = true, message = "??t l?ch h?n thành công" });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "L?i khi t?o l?ch h?n");
-                return Json(new { success = false, message = "Có l?i x?y ra khi ??t l?ch h?n" });
-            }
+            };
+            return View(model);
         }
-
+      
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {

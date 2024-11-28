@@ -122,7 +122,7 @@ namespace DentalManagement.Web.Controllers
             return View(patient);
         }
         [HttpPost]
-        public async Task<IActionResult> Save(Patient data, string birthDateInput)
+        public async Task<IActionResult> Save(Patient data, string birthDateInput,IFormFile? uploadPhoto)
         {
             ViewBag.Title = data.PatientId == 0 ? "Bổ sung bệnh nhân" : "Cập nhật thông tin bệnh nhân";
             if (string.IsNullOrEmpty(data.PatientName))
@@ -132,6 +132,18 @@ namespace DentalManagement.Web.Controllers
             if (string.IsNullOrEmpty(data.Email))
                 ModelState.AddModelError(nameof(data.Email), "Email không được để trống");
 
+            if (uploadPhoto != null)
+            {
+                string fileName = $"{DateTime.Now.Ticks}_{uploadPhoto.FileName}"; // Tên file sẽ lưu
+                string folder = Path.Combine(ApplicationContext.WebRootPath, @"images\accounts"); // Đường dẫn đến thư mục lưu file
+                string filePath = Path.Combine(folder, fileName); // Đường dẫn đến file cần lưu
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await uploadPhoto.CopyToAsync(stream);
+                }
+                data.Photo = fileName; // Lưu tên file ảnh vào thuộc tính Avatar
+            }
 
 
             // Xử lý ngày sinh

@@ -63,6 +63,7 @@ namespace DentalManagement.Web.Controllers
             HttpContext.Session.SetString("UserName", userAccount.UserName);
             HttpContext.Session.SetString("UserID", userAccount.UserID);
             HttpContext.Session.SetString("UserRoles", userAccount.RoleNames);
+            HttpContext.Session.SetString("Photo",userAccount.Photo);
             // Bất kỳ thông tin nào khác bạn cần lưu vào session
 
             // Redirect về trang chủ sau khi đăng nhập
