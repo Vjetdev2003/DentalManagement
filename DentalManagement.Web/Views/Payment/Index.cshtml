@@ -43,7 +43,11 @@ else
                         <td>
                             @if (service.PaymentStatus != "Đã thanh toán")
                             {
-                                <a href="@Url.Action("AddPayment", "Payment", new { invoiceId = service.InvoiceId, serviceId = service.ServiceId })" class="btn btn-sm btn-primary">
+                                <!--<a href="@Url.Action("AddPayment", "Payment", new { invoiceId = service.InvoiceId, serviceId = service.ServiceId })" class="btn btn-sm btn-primary">
+                                    <i class="fa fa-credit-card"></i> Thanh toán
+                                </a>-->
+                                <a href="#" class="btn btn-sm btn-primary pay-button"
+                                   data-url="@Url.Action("AddPayment", "Payment", new { invoiceId = service.InvoiceId, serviceId = service.ServiceId })">
                                     <i class="fa fa-credit-card"></i> Thanh toán
                                 </a>
                             }
@@ -56,11 +60,36 @@ else
                 }
             </tbody>
         </table>
+        <script>
+            $(document).ready(function () {
+                // Gắn sự kiện click vào nút "Thanh toán"
+                $('.pay-button').on('click', function (e) {
+                    e.preventDefault(); // Ngăn hành động mặc định của thẻ <a>
+
+                    var url = $(this).data('url'); // Lấy URL từ data-url
+
+                    $.ajax({
+                        url: url,
+                        type: 'GET', // Hoặc 'POST' nếu controller yêu cầu
+                        success: function (response) {
+                            // Kiểm tra nếu server trả về JSON hoặc HTML
+                            if (response.redirectUrl && response.messages) {
+                                alert(response.messages);
+                                // Nếu server trả về URL để redirect
+                                window.location.href = response.redirectUrl;
+                            } else {
+                                // Cập nhật nội dung nếu là HTML
+                                $('.box').html(response);
+                            }
+                        },
+                        error: function (xhr, status, error) {
+                            alert("Có lỗi xảy ra: " + error);
+                        }
+                    });
+                });
+            });
+        </script>
     </div>
 }
-@if (TempData["SuccessMessage"] != null)
-{
-    <div class="alert alert-success">
-        @TempData["SuccessMessage"]
-    </div>
-}
+
+

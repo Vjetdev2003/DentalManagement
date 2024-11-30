@@ -66,19 +66,15 @@
         $(document).ready(function () {
             // Load treatment voucher items on page load
             showTreatmentVoucher();
-
-            // AJAX form submission for searching services
-            $("#formSearch").submit(function (e) {
-                e.preventDefault();
-                var action = $(this).attr("action");
-                var data = $(this).serialize();
-
-                $.get(action, data, function (result) {
-                    $("#searchResult").html(result);
-                }).fail(function () {
-                    alert("Không thể tìm kiếm dịch vụ. Vui lòng thử lại!");
+                // Gửi form tìm kiếm
+                $("#formSearch").submit(function (e) {
+                    e.preventDefault();
+                    doSearch(this, 1);
+                    return false; // Ngăn chặn form gửi đi mặc định
                 });
-            });
+
+                // Gọi hàm phân trang
+                doSearch("#formSearch", @Model.Page);
 
             // AJAX form submission for initializing invoice
             $('#formInvoiceInit').submit(function (e) {
@@ -95,31 +91,50 @@
                         alert("Yêu cầu của bạn không hợp lệ!");
                     },
                     success: function (data) {
-                        console.log(data); // Log the data for debugging
-                        if (isNaN(data)) {
-                            $("#invoiceInitMessage").html(data);
-                        } else {
-                            // Redirect to the invoice list page after successful creation
-                            window.location.href = "/Invoice/Details";
+                        if(data !=  ""){
+                                window.location.href = `../Invoice/${data}`;
                         }
                     }
                 });
             });
         });
 
-        // Load current treatment voucher asynchronously
-        function showTreatmentVoucher() {
-            $.ajax({
-                url: "/Invoice/ShowTreatmentVoucher",
-                type: "GET",
-                async: true,
-                error: function () {
-                    alert("Your request is not valid!");
-                },
-                success: function (data) {
-                    $("#treatmentVoucher").html(data);
-                }
-            });
-        }
+            // Load current treatment voucher asynchronously
+            function showTreatmentVoucher() {
+                $.ajax({
+                    url: "/Invoice/ShowTreatmentVoucher",
+                    type: "GET",
+                    async: true,
+                    error: function () {
+                        alert("Your request is not valid!");
+                    },
+                    success: function (data) {
+                        $("#treatmentVoucher").html(data);
+                    }
+                });
+            }
+            // Load current treatment voucher asynchronously
+            
+            function doSearch(formSearch, page) {
+                var action = $(formSearch).prop("action");
+                var method = $(formSearch).prop("method");
+                var container = $(formSearch).data("container");
+
+                var searchData = $(formSearch).serializeArray();
+                searchData.push({ "name": "Page", "value": page });
+
+                $.ajax({
+                    url: action,
+                    type: method,
+                    data: searchData,
+                    async: false,
+                    error: function () {
+                        alert("Yêu cầu của bạn không hợp lệ!");
+                    },
+                    success: function (data) {
+                        $(container).html(data);
+                    }
+                });
+            }
     </script>
 }

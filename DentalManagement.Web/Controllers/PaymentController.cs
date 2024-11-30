@@ -95,14 +95,18 @@ namespace DentalManagement.Web.Controllers
                 invoiceDetail.ServiceStatus = "Đã thanh toán";
 
                 // Save changes to the database
-                await _context.SaveChangesAsync();
+                var checkSuccess = await _context.SaveChangesAsync() > 0;
 
-                TempData["SuccessMessage"] = "Thanh toán dịch vụ thành công!";
-                return RedirectToAction("Index");
+                if (checkSuccess)
+                {
+                    return Json(new { messages = "Thanh toán thành công!", redirectUrl = Url.Action("Index", "Payment") });
+                }
+                return Json(new { redirectUrl = Url.Action("Index", "Payment") });
+                //TempData["SuccessMessage"] = "Thanh toán dịch vụ thành công!";
+                //return RedirectToAction("Index");
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.ToString());
                 return BadRequest("Đã xảy ra lỗi trong quá trình thanh toán: " + ex.Message);
             }
         }

@@ -32,7 +32,7 @@
                        readonly
                        name="SalePrice" />
             </div>
-            <div class="col-md-3">
+            <div class="col-md-4">
                 <label class="form-label">Số lượng:</label>
                 <input class="form-control form-control-sm"
                        type="number"
@@ -40,13 +40,14 @@
                        min="1"
                        name="Quantity" />
             </div>
-        </div>
-        <div class="row">
-            <div class="col-md-12 text-end">
+            <div class="col-md-4 text-end " style="margin-top:25px">
                 <button type="submit" class="btn btn-sm btn-primary">
-                    <i class="fa fa-shopping-cart"></i> Thêm vào phiếu thu
+                    <i class="fa fa-shopping-cart"></i> Thêm
                 </button>
             </div>
+        </div>
+        <div class="row">
+            
         </div>
         </form>
     }
@@ -71,22 +72,7 @@
         }
     </ul>
 }
-
 <script>
-    $(document).ready(function () {
-        // Tải danh sách dịch vụ ngay khi vào trang
-        $.ajax({
-            url: "/Invoice/SearchService",
-            type: "GET",
-            data: { searchValue: "", page: 1, pageSize: 10 },
-            success: function (data) {
-                $("#serviceList").html(data);
-            },
-            error: function () {
-                alert("Không thể tải danh sách dịch vụ.");
-            }
-        });
-    });
     $(document).ready(function () {
         $(".formAddToTreatmentVoucher").submit(function (e) {
             e.preventDefault();

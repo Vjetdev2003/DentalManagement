@@ -20,7 +20,7 @@ namespace DentalManagement.Web.Repository
 
         public int CountAsync()
         {
-            throw new NotImplementedException();
+            return _context.Medicines.Count();
         }
 
         public async Task DeleteAsync(int id)
@@ -68,10 +68,6 @@ namespace DentalManagement.Web.Repository
             throw new NotImplementedException();
         }
 
-        public Task<List<Medicine>> GetElementById(List<int> ids)
-        {
-            throw new NotImplementedException();
-        }
 
         public bool InUse(int id)
         {
@@ -79,7 +75,12 @@ namespace DentalManagement.Web.Repository
 
             // Có thể kiểm tra thêm các bảng khác tùy thuộc vào yêu cầu
             return inUseMedicine;
-        }   
+        }
+
+        public Task<IEnumerable<Medicine>> ListAlll(string searchValue = "")
+        {
+            throw new NotImplementedException();
+        }
 
         public async Task UpdateAsync(Medicine entity)
         {

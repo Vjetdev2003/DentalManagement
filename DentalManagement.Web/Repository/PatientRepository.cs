@@ -75,10 +75,6 @@ namespace DentalManagement.Web.Repository
             });
         }
 
-        public Task<List<Patient>> GetElementById(List<int> ids)
-        {
-            throw new NotImplementedException();
-        }
 
         public bool  InUse(int id)
         {
@@ -86,6 +82,11 @@ namespace DentalManagement.Web.Repository
 
             // Có thể kiểm tra thêm các bảng khác tùy thuộc vào yêu cầu
             return inUsePatient;
+        }
+
+        public Task<IEnumerable<Patient>> ListAlll(string searchValue = "")
+        {
+            throw new NotImplementedException();
         }
 
         public async Task UpdateAsync(Patient entity)

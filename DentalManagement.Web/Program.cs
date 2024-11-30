@@ -39,6 +39,7 @@ builder.Services.AddScoped<IPayment,PaymentRepository>();
 builder.Services.AddScoped<IUserAccount, UserAccountRepository>();
 builder.Services.AddTransient<IInvoiceRepository,InvoiceRepository>();
 builder.Services.AddScoped<EmailSerivce>();
+builder.Services.AddScoped<MessageRepository>();
 builder.Services.AddMvc();
 builder.Services.AddSignalR();
 builder.Services.AddCors(options =>

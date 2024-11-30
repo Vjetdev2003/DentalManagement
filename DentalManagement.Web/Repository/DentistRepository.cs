@@ -20,7 +20,7 @@ namespace DentalManagement.Web.Repository
 
         public int CountAsync()
         {
-            throw new NotImplementedException();
+            return _context.Dentists.Count();
         }
 
         public async Task DeleteAsync(int id)
@@ -71,17 +71,28 @@ namespace DentalManagement.Web.Repository
             });
         }
 
-        public Task<List<Dentist>> GetElementById(List<int> ids)
-        {
-            throw new NotImplementedException();
-        }
-
         public bool InUse(int id)
         {
             bool inUseDentist= _context.Set<Dentist>().Any(o => o.DentistId == id);
 
             // Có thể kiểm tra thêm các bảng khác tùy thuộc vào yêu cầu
             return inUseDentist;
+        }
+
+        public async Task<IEnumerable<Dentist>> ListAlll(string searchValue = "")
+        {
+            var query = _context.Dentists.AsQueryable();
+
+            // Nếu có giá trị tìm kiếm, lọc danh sách theo tên dịch vụ
+            if (!string.IsNullOrWhiteSpace(searchValue))
+            {
+                query = query.Where(e => e.DentistName.Contains(searchValue));
+            }
+
+            // Thực hiện phân trang
+            var services = await query.ToListAsync();              // Chuyển đổi kết quả thành danh sách
+
+            return services;
         }
 
         public async Task UpdateAsync(Dentist entity)

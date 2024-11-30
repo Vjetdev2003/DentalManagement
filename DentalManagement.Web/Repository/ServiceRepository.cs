@@ -20,7 +20,7 @@ namespace DentalManagement.Web.Repository
 
         public int CountAsync()
         {
-           return _context.Services.Count();
+            return _context.Services.Count();
         }
 
         public async Task DeleteAsync(int id)
@@ -33,30 +33,27 @@ namespace DentalManagement.Web.Repository
             }
         }
 
-        public async Task<IEnumerable<Service>> GetAllAsync()
+
+        public async Task<IEnumerable<Service>> GetAllAsync(int page = 1, int pageSize = 5, string searchValue = "")
         {
-            return await _context.Services.ToListAsync();
+
+            var query = _context.Services.AsQueryable();
+
+            // Nếu có giá trị tìm kiếm, lọc danh sách theo tên dịch vụ
+            if (!string.IsNullOrWhiteSpace(searchValue))
+            {
+                query = query.Where(e => e.ServiceName.Contains(searchValue));
+            }
+
+            // Thực hiện phân trang
+            var services = await query
+                .Skip((page - 1) * pageSize) // Bỏ qua các bản ghi trước đó
+                .Take(pageSize)              // Lấy số bản ghi theo kích thước trang
+                .ToListAsync();              // Chuyển đổi kết quả thành danh sách
+
+            return services;
         }
 
-        public async Task<IEnumerable<Service>> GetAllAsync(int page = 1, int pageSize = 10, string searchValue = "")
-        {
-           
-                var query = _context.Services.AsQueryable();
-
-                // Nếu có giá trị tìm kiếm, lọc danh sách theo tên dịch vụ
-                if (!string.IsNullOrWhiteSpace(searchValue))
-                {
-                    query = query.Where(e => e.ServiceName.Contains(searchValue));
-                }
-
-                // Thực hiện phân trang
-                var services = await query
-                    .Skip((page - 1) * pageSize) // Bỏ qua các bản ghi trước đó
-                    .Take(pageSize)              // Lấy số bản ghi theo kích thước trang
-                    .ToListAsync();              // Chuyển đổi kết quả thành danh sách
-
-                return services;
-                  }
 
 
 
@@ -76,12 +73,28 @@ namespace DentalManagement.Web.Repository
         public async Task<List<Service>> GetElementById(List<int> ids)
         {
             return await _context.Services
-                .Where(s => ids.Contains(s.ServiceId)) 
-                .ToListAsync(); 
+                .Where(s => ids.Contains(s.ServiceId))
+                .ToListAsync();
         }
-        public bool  InUse(int id)
+        public bool InUse(int id)
         {
             throw new NotImplementedException();
+        }
+
+        public async Task<IEnumerable<Service>> ListAlll(string searchValue = "")
+        {
+            var query = _context.Services.AsQueryable();
+
+            // Nếu có giá trị tìm kiếm, lọc danh sách theo tên dịch vụ
+            if (!string.IsNullOrWhiteSpace(searchValue))
+            {
+                query = query.Where(e => e.ServiceName.Contains(searchValue));
+            }
+
+            // Thực hiện phân trang
+            var services = await query.ToListAsync();              // Chuyển đổi kết quả thành danh sách
+
+            return services;
         }
 
         public async Task UpdateAsync(Service entity)

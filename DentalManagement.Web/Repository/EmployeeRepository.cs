@@ -23,7 +23,7 @@ namespace DentalManagement.Web.Repository
 
         public int CountAsync()
         {
-            throw new NotImplementedException();
+           return _context.Employees.Count();
         }
 
         public async Task DeleteAsync(int id)
@@ -54,23 +54,12 @@ namespace DentalManagement.Web.Repository
 
             return employees;
         }
-
-        public Task<Patient?> GetByEmailAsync(string email)
-        {
-            throw new NotImplementedException();
-        }
-
         public async Task<Employee> GetByIdAsync(int id)
         {
             return await _context.Employees.FindAsync(id);
         }
 
         public Task<IEnumerable<Employee>> GetDetailAsyncById(int id)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<List<Employee>> GetElementById(List<int> ids)
         {
             throw new NotImplementedException();
         }
@@ -84,6 +73,10 @@ namespace DentalManagement.Web.Repository
             return inUseInEmployee;
         }
 
+        public Task<IEnumerable<Employee>> ListAlll(string searchValue = "")
+        {
+            throw new NotImplementedException();
+        }
 
         public async Task UpdateAsync(Employee entity)
         {

@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DentalManagement.Web.Controllers
 {
-    [Authorize(Roles = $"{WebUserRoles.Administrator},{WebUserRoles.Dentist}")]
+    [Authorize(Roles = $"{WebUserRoles.Administrator},{WebUserRoles.Dentist},{WebUserRoles.Employee}")]
     public class ServiceController : Controller
     {
         private readonly DentalManagementDbContext _dentalManagementDbContext;

@@ -497,7 +497,7 @@ public class AppointmentController : Controller
 
             // Lưu lịch hẹn vào cơ sở dữ liệu
             _dentalManagementDbContext.Appointments.Add(appointment);
-            await _dentalManagementDbContext.SaveChangesAsync();
+            var success = await _dentalManagementDbContext.SaveChangesAsync() > 0;
 
             var subject = "Xác nhận đặt lịch hẹn tại VietClinic";
             var body = $@"
@@ -511,12 +511,15 @@ public class AppointmentController : Controller
                 <p>Cảm ơn bạn đã tin tưởng VietClinic!</p>";
 
             await _emailSerivce.SendEmailAsync(model.Email, subject, body);
-            TempData["SuccessMessage"] = "Lịch hẹn đã được đặt thành công. Vui lòng kiểm tra email của bạn!";
-            
-            return RedirectToAction("Index", "Home");
+
+
+            if (success)
+            {
+                return Json(new { success = true});
+            }
+            return Json(new { error = "Lỗi đặt lịch hẹn, vui lòng thử lại !" });
         }
 
-        TempData["ErrorMessage"] = "Dịch vụ không hợp lệ.";
         return RedirectToAction("Index", "Home");
 
     }

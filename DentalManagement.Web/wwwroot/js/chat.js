@@ -6,7 +6,10 @@
     const chatMessageInput = document.querySelector("[name='message']");
     const nameInput = document.querySelector("[name='name']");
     const phoneInput = document.querySelector("[name='phone']");
-    const chatMessages = document.getElementById("chatMessages");
+    const messageItems = document.getElementById("messageItems");
+    const messageCountElement = document.getElementById("newMessageCount");
+    const messageHeader = document.getElementById("messageHeader");
+    const openMessagesButton = document.getElementById("messageDropdown");
 
     // Kiểm tra nếu các phần tử tồn tại rồi mới gán sự kiện
     if (chatButton) {
@@ -15,13 +18,14 @@
                 chatButton.style.display = chatWindow.style.display != "none" ? "flex" : "none";
                 chatWindow.style.display = chatWindow.style.display === "none" ? "flex" : "none";
             }
+        
         });
     }
 
     if (closeChatButton) {
         closeChatButton.addEventListener("click", function () {
             if (chatWindow) {
-                chatButton.style.display = "flex" ;
+                chatButton.style.display = "flex";
                 chatWindow.style.display = "none";
             }
         });
@@ -32,14 +36,14 @@
             const name = nameInput.value.trim();
             const phone = phoneInput.value.trim();
             const message = chatMessageInput.value.trim();
-           
+
             if (name && phone && message) {
                 if (isConnected) {
                     // Gửi tin nhắn đến nhân viên
                     chatConnection.invoke("SendMessageToEmployees", name, phone, message)
                         .then(() => {
-                            console.log("Message sent successfully" );
-                            alert("Tin nhắn đã được gửi!");
+                            console.log("Message sent successfully");
+                            alert("Yêu cầu được gửi thành công! Vui lòng chờ nhân viên gọi hỗ trợ bạn.\n Xin cảm ơn!");
                             // Reset form input sau khi gửi
                             nameInput.value = "";
                             phoneInput.value = "";
@@ -85,28 +89,92 @@
             }, 5000);
         });
 
+    // Xử lý sự kiện khi nhận được tin nhắn mới
+    chatConnection.on("ReceiveMessage", function (name, phone, message, timestamp, isNewMessage) {
+        // Tạo một phần tử danh sách mới cho tin nhắn
+        const listItem = document.createElement("li");
 
-    // Lắng nghe thông báo có tin nhắn mới và cập nhật số lượng tin nhắn
+        // Kiểm tra xem đây có phải là tin nhắn mới không
+        if (isNewMessage) {
+            // Thêm lớp CSS hoặc thay đổi màu nền để làm nổi bật tin nhắn mới
+            listItem.classList.add("new-message"); // Thêm lớp CSS "new-message"
+            listItem.style.backgroundColor = "#e0f7fa"; // Ví dụ: Thay đổi màu nền
+        }
+
+        // Tạo cấu trúc HTML cho tin nhắn
+        listItem.innerHTML = `
+    <div>
+        Bệnh nhân <strong>${name}</strong> với số Điện thoại <strong>${phone}</strong> với tin nhắn: 
+        <em>${message}</em> cần tư vấn và hỗ trợ. 
+        <small>(${new Date(timestamp).toLocaleString()})</small>
+    </div>`;
+
+        // Định dạng timestamp để so sánh (trong trường hợp chuỗi thời gian)
+        const messageTimestamp = new Date(timestamp).getTime();
+
+        // Thêm tin nhắn mới vào danh sách và sắp xếp theo timestamp (giảm dần)
+        let inserted = false;
+        const items = messageItems.children;
+        for (let i = 0; i < items.length; i++) {
+            const currentTimestamp = new Date(items[i].querySelector("small").textContent).getTime();
+            if (messageTimestamp > currentTimestamp) {
+                messageItems.insertBefore(listItem, items[i]);
+                inserted = true;
+                break;
+            }
+        }
+
+        // Nếu không có phần tử nào nhỏ hơn, thêm vào cuối danh sách
+        if (!inserted) {
+            messageItems.appendChild(listItem);
+        }
+
+        // Sau một thời gian, loại bỏ lớp "new-message" (có thể sau 5 giây hoặc khi người dùng đã đọc tin nhắn)
+        setTimeout(() => {
+            if (isNewMessage) {
+                listItem.classList.remove("new-message");
+                listItem.style.backgroundColor = ""; // Xóa màu nền
+            }
+        }, 5000); // Tin nhắn sẽ không còn "mới" sau 5 giây
+
+        // Sau khi tin nhắn được hiển thị, đánh dấu nó là đã đọc
+        markMessageAsRead(message, timestamp);
+    });
+
+    // Hàm đánh dấu tin nhắn là đã đọc
+    function markMessageAsRead(message, timestamp) {
+        fetch("/api/markMessageAsRead", {
+            method: "POST",
+            body: JSON.stringify({ message, timestamp }),
+            headers: {
+                "Content-Type": "application/json"
+            }
+        })
+            .then(response => {
+                if (response.ok) {
+                    console.log("Tin nhắn đã được đánh dấu là đã đọc.");
+                } else {
+                    console.log("Không thể đánh dấu tin nhắn là đã đọc.");
+                }
+            })
+            .catch(error => {
+                console.error("Lỗi khi đánh dấu tin nhắn đã đọc: ", error);
+            });
+    }
+
+
+    // Cập nhật số lượng tin nhắn mới
     chatConnection.on("NotifyNewMessageCount", function (newMessageCount, latestMessageContent) {
-        const messageCountElement = document.getElementById("newMessageCount");
-        const messageHeader = document.getElementById("messageHeader");
-        const msgItems = document.getElementById("messageItems");
         if (messageCountElement) {
             messageCountElement.textContent = newMessageCount;  // Cập nhật số lượng tin nhắn mới
         }
         if (messageHeader) {
             messageHeader.textContent = `You have ${newMessageCount} new messages`; // Cập nhật tiêu đề
         }
-        // Tạo một phần tử danh sách hiển thị tin nhắn mới
-        const listItem = document.createElement("li");
-        listItem.innerHTML = `
-        <li>
-            <h4>
-                <span>${latestMessageContent}</span>
-            </h4>
-            </li>
-        `;
-        msgItems.appendChild(listItem);
+        // Thêm một mục thông báo về số lượng tin nhắn mới
+      //  const notificationItem = document.createElement("li");
+       // notificationItem.innerHTML = `<span><strong>New messages:</strong> ${latestMessageContent}</span>`;
+        //messageItems.appendChild(notificationItem);
     });
 
     // Xử lý sự cố mất kết nối và thử kết nối lại

@@ -6,8 +6,6 @@ using DentalManagement.Web.Models;
 using DentalManagement.Web.Repository;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.Blazor;
-using NuGet.Protocol.Plugins;
 using System.Security.Claims;
 
 namespace DentalManagement.Web.Controllers
@@ -25,14 +23,15 @@ namespace DentalManagement.Web.Controllers
         private readonly IPayment _paymentRepository;
         private const string APPOINTMENT_SEARCH = "appointment_search";
         private const string SEARCH_CONDITION = "invoice_search";
+        private const string SERVICE_SEARCH_CONDITION = "service_search";
         private const string TREATMENT_VOUCHER = "treatment_voucher";
         int PAGE_SIZE = 9;
         int APPOINMENT_PAGE_SIZE = 9;
 
         public InvoiceController(DentalManagementDbContext dentalManagementDbContext, IInvoiceRepository invoiceRepository,
             IRepository<Patient> patientRepository, IRepository<Service> serviceRepository, IRepository<Dentist> dentistRepository,
-            IRepository<Employee> employeeRepository, IAppointmentRepository appointmentRepository,IInvoiceDetails invoiceDetailsRepository
-            ,IPayment paymentRepository)
+            IRepository<Employee> employeeRepository, IAppointmentRepository appointmentRepository, IInvoiceDetails invoiceDetailsRepository
+            , IPayment paymentRepository)
         {
             _dentalManagementDbContext = dentalManagementDbContext;
             _invoiceRepository = invoiceRepository;
@@ -63,7 +62,8 @@ namespace DentalManagement.Web.Controllers
 
                 return View(input);
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
                 Console.WriteLine(ex);
                 return View();
             }
@@ -132,40 +132,46 @@ namespace DentalManagement.Web.Controllers
 
         public async Task<IActionResult> Create()
         {
-
-            var input = ApplicationContext.GetSessionData<ServiceSearchInput>(APPOINTMENT_SEARCH);
+            var input = ApplicationContext.GetSessionData<ServiceSearchInput>(SERVICE_SEARCH_CONDITION);
             ViewBag.PatientList = SelectListHelper.GetPatients(_patientRepository);
             if (input == null)
             {
                 input = new ServiceSearchInput()
                 {
                     Page = 1,
-                    PageSize = APPOINMENT_PAGE_SIZE,
+                    PageSize = PAGE_SIZE,
                     SearchValue = "",
                 };
             }
             return View(input);
         }
+        public IEnumerable<Service> listService(out int rowCount, string searchValue = "")
+        {
+            var data = _serviceRepository.ListAlll(searchValue ?? "").Result;
+            rowCount = data.Count();
+            return data;
+        }
         public async Task<IActionResult> SearchService(ServiceSearchInput input)
         {
-            if (string.IsNullOrWhiteSpace(input.SearchValue))
+            /*if (string.IsNullOrWhiteSpace(input.SearchValue))
             {
                 // Trường hợp không tìm kiếm, hiển thị toàn bộ dịch vụ mặc định
                 input.Page = 1; // Đặt trang mặc định
-                input.PageSize = 10; // Số lượng dịch vụ mặc định
-            }
-
-            var data = await _serviceRepository.GetAllAsync(input.Page, input.PageSize, input.SearchValue ?? "");
+                input.PageSize = 5; // Số lượng dịch vụ mặc định
+            }*/
+            var rowCount = 1;
+            listService(out rowCount, input.SearchValue);
+            var data = await _serviceRepository.GetAllAsync(input.Page, input.PageSize, input.SearchValue);
 
             var model = new ServiceSearchResult
             {
                 Page = input.Page,
                 PageSize = input.PageSize,
                 SearchValue = input.SearchValue ?? "",
-                RowCount = data.Count(),
+                RowCount = rowCount,
                 Data = data
             };
-
+            ApplicationContext.SetSessionData(SERVICE_SEARCH_CONDITION, input);
             return View(model);
         }
         public List<InvoiceCreateModel> GetTreatmentVoucher()
@@ -338,7 +344,7 @@ namespace DentalManagement.Web.Controllers
             var patient = await _patientRepository.GetByIdAsync(model.PatientId);
             var invoiceD = await _invoiceDetailsRepository.GetByIdAsync(invoice.Service.ServiceId);
             var service = await _serviceRepository.GetByIdAsync(invoiceD.InvoiceId);
-            if (patient == null || service == null )
+            if (patient == null || service == null)
             {
                 ModelState.AddModelError(string.Empty, "Có thông tin không tồn tại.");
                 return View(model);
@@ -346,7 +352,7 @@ namespace DentalManagement.Web.Controllers
             var userData = User.GetUserData();
             var employeeId = int.Parse(userData.UserId);
             var employee = await _employeeRepository.GetByIdAsync(employeeId);
-            
+
 
             // Update the invoice properties
             invoice.PatientId = model.PatientId;
@@ -479,8 +485,8 @@ namespace DentalManagement.Web.Controllers
                     Quantity = d.Quantity,
                     SalePrice = d.SalePrice,
                     TotalPrice = d.TotalPrice,
-                    PaymentStatus =d.PaymentStatus,
-                    ServiceStatus =d.ServiceStatus
+                    PaymentStatus = d.PaymentStatus,
+                    ServiceStatus = d.ServiceStatus
                 }).ToList();
                 var payments = await _paymentRepository.GetPaymentsByInvoiceIdAsync(invoice.InvoiceId);
                 // Khởi tạo model để truyền dữ liệu cho view
@@ -500,14 +506,15 @@ namespace DentalManagement.Web.Controllers
                 // Trả về view với model
                 return View(model);
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
                 Console.WriteLine(ex);
                 return BadRequest(ex);
             }
         }
 
 
-       
+
         public async Task<IActionResult> ConfirmPayment(int id = 0)
         {
             bool result = await _invoiceRepository.UnPaid(id);
@@ -621,7 +628,7 @@ namespace DentalManagement.Web.Controllers
                     };
 
                     await _dentalManagementDbContext.InvoiceDetails.AddAsync(invoiceDetail);
-                    
+
                 }
                 await _dentalManagementDbContext.SaveChangesAsync();
                 // Lưu các chi tiết hóa đơn vào database
@@ -642,7 +649,7 @@ namespace DentalManagement.Web.Controllers
                 ClearVoucher();
 
                 // Trả về view để hiển thị thông tin hóa đơn và chi tiết hóa đơn
-                return RedirectToAction("Details",invoiceModel);
+                return Json($"Details/{invoiceId}");
             }
             catch (Exception ex)
             {
@@ -650,7 +657,7 @@ namespace DentalManagement.Web.Controllers
                 return BadRequest(ex.ToString());
             }
         }
-        public async Task<IActionResult>AddPayment(PaymentViewModel model)
+        public async Task<IActionResult> AddPayment(PaymentViewModel model)
         {
             try
             {
@@ -671,7 +678,9 @@ namespace DentalManagement.Web.Controllers
 
                 TempData["Message"] = "Payment added successfully";
                 return RedirectToAction("Details", new { id = model.InvoiceId });
-            } catch (Exception ex) {
+            }
+            catch (Exception ex)
+            {
                 Console.WriteLine($"Error adding payment: {ex.Message}");
                 return RedirectToAction("Error", new { message = "Failed to process payment." });
             }

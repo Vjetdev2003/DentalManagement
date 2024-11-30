@@ -68,6 +68,11 @@ namespace DentalManagement.Web.Repository
             throw new NotImplementedException();
         }
 
+        public Task<IEnumerable<MedicalRecord>> ListAlll(string searchValue = "")
+        {
+            throw new NotImplementedException();
+        }
+
         public async Task UpdateAsync(MedicalRecord entity)
         {
             _context.MedicalRecords.Update(entity);

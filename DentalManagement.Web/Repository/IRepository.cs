@@ -5,6 +5,7 @@ namespace DentalManagement.Web.Repository
     public interface IRepository< T> where T : class
     {
         Task<IEnumerable<T>> GetAllAsync(int page = 1, int pagesize = 10, string searchValue = "");
+        Task<IEnumerable<T>> ListAlll(string searchValue = "");
         Task<T> GetByIdAsync(int id);
         Task AddAsync(T entity);
         Task UpdateAsync(T entity);
@@ -12,6 +13,5 @@ namespace DentalManagement.Web.Repository
         bool InUse(int id);
         int CountAsync();
         Task<IEnumerable<T>> GetDetailAsyncById(int id);
-        Task<List<T>> GetElementById(List<int> ids);
     }
 }

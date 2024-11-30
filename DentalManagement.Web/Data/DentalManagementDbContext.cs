@@ -23,7 +23,7 @@ namespace DentalManagement.Web.Data
         public DbSet<AppointmentStatus> AppointmentStatuses { get; set; }
         public DbSet<InvoiceDetails> InvoiceDetails { get; set; }
         public DbSet<Payment>Payments { get; set; }
-        public DbSet<MessageHelp>Messages { get; set; } 
+        public DbSet<Message>Messages { get; set; } 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Payment>()
@@ -112,9 +112,9 @@ namespace DentalManagement.Web.Data
 
             modelBuilder.Entity<AppointmentStatus>()
                 .HasNoKey();
-            modelBuilder.Entity<MessageHelp>()
-                .HasNoKey();
-           
+            modelBuilder.Entity<Message>()
+            .HasKey(m => m.Id);
+
 
 
             // Tùy chỉnh tên bảng (nếu cần)
