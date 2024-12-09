@@ -1,8 +1,10 @@
 ﻿using DentalManagement.DomainModels;
 using DentalManagement.Web.AppCodes;
 using DentalManagement.Web.Data;
+using DentalManagement.Web.Interfaces;
 using DentalManagement.Web.Models;
 using DentalManagement.Web.Repository;
+using DocumentFormat.OpenXml.Spreadsheet;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -20,6 +22,7 @@ namespace DentalManagement.Web.Controllers
         {
             _dentalManagementDbContext = dentalManagementDbContext;
             _patientRepository = patientRepository;
+            
         }
         public async Task<IActionResult> Index()
         {

@@ -1,0 +1,49 @@
+﻿@model MedicalRecordSearchResult
+@{
+    Layout = null;
+}
+<table class="table table-bordered">
+    <thead>
+        <tr class="bg-primary">
+            <th class="text-center">Mã hồ sơ</th>
+            <th class="text-center">Bệnh nhân</th>
+            <th class="text-center">Nha sĩ</th>
+            <th class="text-center">Chẩn đoán</th>
+            <th class="text-center">Dịch vụ</th>
+            <th class ="text-center">Ngày điều trị</th>
+            <th class="text-center">Kết quả điều trị</th>
+            <th class="text-center">Ngày hẹn tiếp theo</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model.MedicalRecords.Any())
+        {
+            foreach (var record in Model.MedicalRecords)
+            {
+                <tr>
+                    <td>@record.MedicalRecordId</td>
+                    <td>@record.Patient?.PatientName</td>
+                    <td>@record.Dentist?.DentistName</td>
+                    <td>@record.Diagnosis</td>
+                    <td>@record.Service?.ServiceName</td>
+                    <td>@record.DateOfTreatment?.ToString("dd/MM/yyyy")</td>
+                    <td>@record.TreatmentOutcome</td>
+                    <td>@record.NextAppointmentDate?.ToString("dd/MM/yyyy")</td>
+                    <td class="text-right">
+                        <a class="btn btn-info btn-xs" href="~/MedicalRecord/Details/@record.MedicalRecordId">
+                            <i class="glyphicon glyphicon-list"></i>
+                        </a>
+                    </td>
+                </tr>
+            }
+        }
+        else
+        {
+            <tr>
+                <td colspan="7" class="text-center">Không tìm thấy hồ sơ nào.</td>
+            </tr>
+        }
+    </tbody>
+</table>
+</div>

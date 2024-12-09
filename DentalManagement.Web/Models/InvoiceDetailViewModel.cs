@@ -10,6 +10,6 @@
         public decimal SalePrice { get; set; }
         public decimal TotalPrice { get; set; }
         public string PaymentStatus {  get; set; }
-        public string ServiceStatus {  get; set; }
+
     }
 }

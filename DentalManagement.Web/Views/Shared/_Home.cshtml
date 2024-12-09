@@ -27,13 +27,13 @@ body {
         }
 
 .navbar {
-   background: linear-gradient(to right, #007bff, #00bfff);
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    border-bottom: 2px solid #ccc;
+    border-bottom: 1px solid #ccc;
+    border-top: 1px solid #ccc;
 }
 
 .navbar-nav .nav-link {
-    color: white;
+    color: black;
 }
 .navbar-custom-menu a {
         text-decoration: none; /* Loại bỏ gạch dưới */
@@ -46,7 +46,7 @@ body {
 
 .text-container {
     display: inline-block;
-            max-width: 100%;
+    max-width: 100%;
     text-align: justify;
     margin-left: 75px;
     padding-bottom: 10px;
@@ -182,14 +182,6 @@ body {
     display: inline-block;
     margin-top: 20px; /* Add some space above the button */
 }
-
-/* Toggle Button for "Show More" 
-#toggle-button {
-    margin-top: 20px;
-}
-    .table-striped tbody tr:hover {
-        background-color: #f2f2f2; /* Màu nền khi hover */
-    }
 
     .table th, .table td {
         padding: 12px 15px; /* Tăng khoảng cách trong các ô bảng */
@@ -407,32 +399,61 @@ body {
             line-height: 24px !important;
             height: 44px;
         }
-
     </style>
 </head>
 <body>
+    <div class="head-top d-flex flex-wrap justify-content-between align-items-center" style="padding: 10px 15px;">
+        <div class="col-right col-right d-flex flex-wrap ms-auto">
+            <div class="hotline d-flex flex-wrap">
+                <i class="fa fa-phone" style="color:#92c830;font-size: 30px;line-height: normal;"></i>
+                <div class="cont">
+                    <h4 class="title-4"> Hotline</h4>
+                    <div class="phone-number">0879345947</div>
+                </div>
+            </div>
+            <div class="time d-flex flex-wrap">
+                <i class="fa fa-clock" style="color:#92c830;font-size: 30px;line-height: normal;"></i>
+                <div class="cont">
+                    <h4 class="title-4"> Thời gian</h4>
+                    <div class="time-cont">Sáng: 8h - 12h , Chiều 14h-20h</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        
+        .col-right .hotline{
+            padding-right: 27px;
+        }
+        .title-4{
+            color: rgba(0, 0, 0, 0.7);
+            text-transform: uppercase;
+            font-size: 11px;
+            margin: 0;
+            font-family: Roboto, sans-serif;
+            font-weight: 500;
+            padding-right:10px;
+        }
+
+    </style>
+    
     <nav class="navbar navbar-expand-lg navbar-light ">
         <div class="container">
             <a class="navbar-brand text-white" href="/Home">
-                <img src="~/Themes/bg.ico" alt="VietClinic Icon" width="30" height="30" /> VietClinic
+                <img src="~/Themes/favicon1.ico" alt="VietClinic Icon" width="45" height="45" /> <i class="text-black"><strong>VietClinic</strong></i>
             </a>
             <div class="collapse navbar-collapse">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="/">Trang chủ</a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link" href="#booking">Đặt lịch</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#contact">Liên hệ</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#service">Dịch vụ</a>
+                        <a class="nav-link" href="/Home"><strong>TRANG CHỦ</strong></a>
                     </li>
                      <li class="nav-item">
-                        <a class="nav-link" href="~/Payment">Thanh Toán</a>
+                        <a class="nav-link" href="~/Payment"><strong>THANH TOÁN</strong></a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="~/Appointment/AppointmentHistory"><strong>LỊCH HẸN</strong></a>
+            </div>
                     </li>
                     <div class="navbar-custom-menu">
                         <ul class="nav navbar-nav">
@@ -443,9 +464,9 @@ body {
                                 {
                                     // Nếu đã đăng nhập, hiển thị menu người dùng
                                    <li class="dropdown user user-menu">
-                                            <a href="#" class="dropdown-toggle text-decoration-none" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="color: white;">
+                                            <a href="#" class="dropdown-toggle text-decoration-none" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="color: black;">
                                             <img src="/images/accounts/@(string.IsNullOrWhiteSpace(userData.Photo) ? "patient.png" : userData.Photo)" class="user-image avatar-border" alt="User Image" width="30" height="30">
-                                                <span class="hidden-xs text-white">@userData.DisplayName</span>
+                                                <span class="hidden-xs text-black">@userData.DisplayName</span>
                                             </a>
                                             <ul class="dropdown-menu" aria-labelledby="userDropdown">
 

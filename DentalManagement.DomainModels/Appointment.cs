@@ -28,7 +28,8 @@ namespace DentalManagement.DomainModels
         public string Phone { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
         public DateTime? AppointmentDate { get; set; }
-        public TimeSpan? AppointmentTime { get; set; }
+        public TimeSpan? StartTime { get; set; } 
+        public TimeSpan? EndTime { get; set; }
         public string Notes {  get; set; } = string.Empty;
         public virtual Service Service { get; set; }
         public virtual Dentist Dentist { get; set; }

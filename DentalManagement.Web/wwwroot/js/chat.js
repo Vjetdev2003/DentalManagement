@@ -143,7 +143,7 @@
 
     // Hàm đánh dấu tin nhắn là đã đọc
     function markMessageAsRead(message, timestamp) {
-        fetch("/api/markMessageAsRead", {
+        fetch("/api/MarkMessageAsRead", {
             method: "POST",
             body: JSON.stringify({ message, timestamp }),
             headers: {

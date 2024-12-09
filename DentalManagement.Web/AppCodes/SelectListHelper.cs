@@ -103,13 +103,9 @@ namespace DentalManagement.Web
         }
         public static List<SelectListItem> GetPatients(IRepository<Patient> patientRepository)
         {
-                        List<SelectListItem> list = new List<SelectListItem>
+                List<SelectListItem> list = new List<SelectListItem>
                 {
-                    new SelectListItem()
-                    {
-                        Value = "0",
-                        Text = "-- Chọn bệnh nhân --"
-                    }
+                    
                 };
 
             var patients = patientRepository.GetAllAsync().Result;
@@ -125,15 +121,30 @@ namespace DentalManagement.Web
 
             return list;
         }
+        public static List<SelectListItem> GetMedicines(IRepository<Medicine> medicineRepository)
+        {
+            List<SelectListItem> list = new List<SelectListItem>
+            {
+
+            };
+
+            var medicines = medicineRepository.GetAllAsync().Result;
+
+            foreach (var item in medicines)
+            {
+                list.Add(new SelectListItem()
+                {
+                    Value = item.MedicineId.ToString(),
+                    Text = item.MedicineName
+                });
+            }
+
+            return list;
+        }
         public static List<SelectListItem> GetDentists(IRepository<Dentist> dentistRepository)
         {
             List<SelectListItem> list = new List<SelectListItem>
-                {
-                    new SelectListItem()
-                    {
-                        Value = "0",
-                        Text = "-- Chọn nha sĩ --"
-                    }
+                { 
                 };
 
             var dentists = dentistRepository.GetAllAsync().Result;
@@ -153,11 +164,7 @@ namespace DentalManagement.Web
         {
             List<SelectListItem> list = new List<SelectListItem>
                 {
-                    new SelectListItem()
-                    {
-                        Value = "0",
-                        Text = "-- Chọn dịch vụ--"
-                    }
+                   
                 };
 
             var services = serviceRepository.GetAllAsync().Result;
@@ -186,8 +193,6 @@ namespace DentalManagement.Web
     {
         new SelectListItem()
         {
-            Value = "0",
-            Text = "-- Chọn nhân viên --"
         }
             };
 

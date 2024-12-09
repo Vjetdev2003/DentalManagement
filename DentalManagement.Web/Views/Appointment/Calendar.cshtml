@@ -33,10 +33,12 @@
                 events: @Html.Raw(Json.Serialize(Model.Select(a => new
             {
                 title = a.Title,
-                start = a.Start.ToString("yyyy-MM-dd"),  // Chỉ gửi ngày
-                appointmentTime = a.Time,  // Gửi thời gian (dạng HH:mm)
+                date = a.Date.ToString("yyyy-MM-dd"),  // Chỉ gửi ngày
+                startTime = a.StartTime,
+                endTime = a.EndTime,// Gửi thời gian (dạng HH:mm)
                 status = a.Status,
-                appointmentId = a.AppointmentId
+                appointmentId = a.AppointmentId,
+                dentistName = a.DentistName
             }))),
             editable: true,
             droppable: true,
@@ -60,7 +62,7 @@
                             statusText = "Lịch hẹn đang diễn ra";
                             break;
                         case 4: // APPOINTMENT_FINISHED
-                            element.css('background-color', '#cccccc'); // Màu xám
+                            element.css('background-color', '#1E90FF'); // Màu xám
                             statusText = "Lịch hẹn đã hoàn tất";
                             break;
                         case -1: // APPOINTMENT_CANCELLED
@@ -76,14 +78,19 @@
                             statusText = "Không xác định";
                             break;
                     }
-                    let startTime = event.appointmentTime ? event.appointmentTime : "Không xác định";
-                    // Hiển thị trạng thái và giờ bắt đầu bên trong ô sự kiện
-                    element.html(`
-                    <strong>${event.title}</strong><br>
-                    <span>Trạng thái: ${statusText}</span><br>
-                    <span>Thời gian: ${startTime}</span>
-            `);
 
+                    let startDate = event.date ? moment(event.date).format("DD/MM/YYYY") : "Không xác định";
+                    let startTime = event.startTime ? moment(event.startTime, "HH:mm").format("HH:mm") : "Không xác định";
+                    let endTime = event.endTime ? moment(event.endTime, "HH:mm").format("HH:mm") : "Không xác định";
+
+                    element.html(`
+                        <strong>${event.title}</strong><br>
+                        <span>Ngày: ${startDate}</span><br>
+                        <span>Thời gian: ${startTime} - ${endTime}</span><br>
+                        <span>Trạng thái: ${statusText}</span><br>
+                        <span>Nha sĩ : ${event.dentistName}</span>
+
+                    `);
             },
             eventClick: function (event) {
                     var appointmentId = parseInt(event.appointmentId);

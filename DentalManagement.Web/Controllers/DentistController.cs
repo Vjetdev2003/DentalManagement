@@ -45,25 +45,31 @@ namespace DentalManagement.Web.Controllers
 
         public async Task<IActionResult> Search(PaginationSearchInput input)
         {
-            int rowCount = await _dentalManagementDbContext.Dentists
-       .Where(e => string.IsNullOrEmpty(input.SearchValue) || e.DentistName.Contains(input.SearchValue))
-       .CountAsync();
-
-            var data = await _dentalManagementDbContext.Dentists
-    .Where(e => string.IsNullOrEmpty(input.SearchValue) || e.DentistName.ToUpper().Contains(input.SearchValue.ToUpper()))
-    .Skip((input.Page - 1) * input.PageSize)
-    .Take(input.PageSize)
-    .ToListAsync();
-            var model = new DentistSearchResult()
+            try
             {
-                Page = input.Page,
-                PageSize = input.PageSize,
-                SearchValue = input.SearchValue ?? "",
-                RowCount = rowCount,
-                Dentists = data
-            };
-            ApplicationContext.SetSessionData(SEARCH_CONDITION, input);
-            return View(model);
+                int rowCount = await _dentalManagementDbContext.Dentists
+           .Where(e => string.IsNullOrEmpty(input.SearchValue) || e.DentistName.Contains(input.SearchValue))
+           .CountAsync();
+
+                var data = await _dentalManagementDbContext.Dentists
+        .Where(e => string.IsNullOrEmpty(input.SearchValue) || e.DentistName.ToUpper().Contains(input.SearchValue.ToUpper()))
+        .Skip((input.Page - 1) * input.PageSize)
+        .Take(input.PageSize)
+        .ToListAsync();
+                var model = new DentistSearchResult()
+                {
+                    Page = input.Page,
+                    PageSize = input.PageSize,
+                    SearchValue = input.SearchValue ?? "",
+                    RowCount = rowCount,
+                    Dentists = data
+                };
+                ApplicationContext.SetSessionData(SEARCH_CONDITION, input);
+                return View(model);
+            }
+            catch (Exception ex) { 
+                return Json(ex);
+            }
         }
         public IActionResult Create()
         {

@@ -1,0 +1,171 @@
+﻿@model PrescriptionViewModel
+@using DentalManagement.DomainModels
+@using DentalManagement.Web.Data
+@using DentalManagement.Web.Repository
+
+@{
+    ViewBag.Title = "Lập đơn thuốc";
+}
+
+<div class="box">
+    <div class="box-body">
+
+        <!-- Service Search Form -->
+        <div class="col-md-4">
+            <h4>Chọn thuốc để tạo đơn</h4>
+            <form id="formSearch" action="~/Prescription/SearchMedicine" method="get" data-container="#searchResult">
+                <input type="hidden" name="@nameof(Model.MedicineSearchInput.PageSize)" value="@Model.MedicineSearchInput.PageSize" />
+                <div class="input-group">
+                    <input type="text" name="@nameof(Model.MedicineSearchInput.SearchValue)" class="form-control" placeholder="Tìm kiếm tên thuốc" value="@Model.MedicineSearchInput.SearchValue" />
+                    <span class="input-group-btn">
+                        <button type="submit" class="btn btn-info">
+                            <i class="fa fa-search"></i> Tìm kiếm
+                        </button>
+                    </span>
+                </div>
+            </form>
+            <div id="searchResult"></div>
+        </div>
+
+        <!-- Current Treatment Voucher Items Display -->
+        <div class="col-md-8">
+            <h4>Phiếu điều trị hiện tại</h4>
+            <div id="prescription_medicine"></div>
+            <form id="formPrescriptionInit" action="~/Prescription/Init" method="post" class="form-horizontal">
+                <div class="form-group">
+                    <label class="control-label col-sm-2 ">Bệnh nhân:</label>
+                    <div class="col-sm-6">
+                        <select id="patientSelect" name="PatientId" class="form-control" required>
+                            <option value="">Chọn bệnh nhân</option>
+                            @foreach (var patient in ViewBag.PatientList as List<SelectListItem>)
+                            {
+                                <option value="@patient.Value">@patient.Text</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+                <!-- Prescription Fields -->
+                <div class="form-group">
+                    <label for="Diagnosis" class="control-label col-sm-2">Chẩn đoán:</label>
+                    <div class="col-sm-6">
+                        <input type="text" id="Diagnosis" name="Diagnosis" class="form-control" value="@Model.PrescriptionCreateModel.Diagnosis" required />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="Frequency" class="control-label col-sm-2">Liều dùng:</label>
+                    <div class="col-sm-6">
+                        <input type="text" id="Frequency" name="Frequency" class="form-control" value="@Model.PrescriptionCreateModel.Frequency" required />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="Dosage" class="control-label col-sm-2">Liều lượng:</label>
+                    <div class="col-sm-6">
+                        <input type="text" id="Dosage" name="Dosage" class="form-control" value="@Model.PrescriptionCreateModel.Dosage" required />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="Duration" class="control-label col-sm-2">Thời gian điều trị:</label>
+                    <div class="col-sm-6">
+                        <input type="text" id="Duration" name="Duration" class="form-control" value="@Model.PrescriptionCreateModel.Duration" required />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="Notes" class="control-label col-sm-2">Lưu ý:</label>
+                    <div class="col-sm-6">
+                        <input type="text" id="Notes" name="Notes" class="form-control" value="@Model.PrescriptionCreateModel.Notes" required />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-sm-offset-2 col-sm-10">
+                        <span id="prescriptionInitMessage" style="color:#f00"></span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="col-md-12 text-right">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fa fa-plus-circle"></i> Lập đơn thuốc
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    @section scripts {
+        <script>
+            $(document).ready(function () {
+                // Load treatment voucher items on page load
+                showPrescription();
+                // Gửi form tìm kiếm
+                $("#formSearch").submit(function (e) {
+                    e.preventDefault();
+                    doSearch(this, 1);
+                    return false; // Ngăn chặn form gửi đi mặc định
+                });
+
+                // Gọi hàm phân trang
+                doSearch("#formSearch", @Model.MedicineSearchInput.Page);
+
+                // AJAX form submission for initializing invoice
+                $('#formPrescriptionInit').submit(function (e) {
+                    e.preventDefault();
+                    var action = $(this).attr("action");
+                    var method = $(this).attr("method");
+                    var data = $(this).serialize();
+
+                    $.ajax({
+                        url: action,
+                        type: method,
+                        data: data,
+                        error: function () {
+                            alert("Yêu cầu của bạn không hợp lệ!");
+                        },
+                        success: function (data) {
+                            if (data != "") {
+                                window.location.href = `../Prescription/${data}`;
+                            }
+                        }
+                    });
+                });
+            });
+
+            // Load current treatment voucher asynchronously
+            function showPrescription() {
+                $.ajax({
+                    url: "/Prescription/ShowPrescription",
+                    type: "GET",
+                    async: true,
+                    error: function () {
+                        alert("Your request is not valid!");
+                    },
+                    success: function (data) {
+                        $("#prescription_medicine").html(data);
+                    }
+                });
+            }
+            // Load current treatment voucher asynchronously
+
+            function doSearch(formSearch, page) {
+                var action = $(formSearch).prop("action");
+                var method = $(formSearch).prop("method");
+                var container = $(formSearch).data("container");
+
+                var searchData = $(formSearch).serializeArray();
+                searchData.push({ "name": "Page", "value": page });
+
+                $.ajax({
+                    url: action,
+                    type: method,
+                    data: searchData,
+                    async: false,
+                    error: function () {
+                        alert("Yêu cầu của bạn không hợp lệ!");
+                    },
+                    success: function (data) {
+                        $(container).html(data);
+                    }
+                });
+            }
+        </script>
+    }

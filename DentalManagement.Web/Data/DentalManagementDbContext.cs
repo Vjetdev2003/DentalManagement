@@ -24,15 +24,25 @@ namespace DentalManagement.Web.Data
         public DbSet<InvoiceDetails> InvoiceDetails { get; set; }
         public DbSet<Payment>Payments { get; set; }
         public DbSet<Message>Messages { get; set; } 
+        public DbSet<PrescriptionDetails>PrescriptionDetails{ get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Payment>()
                 .HasKey(e => e.PaymentId);
+            modelBuilder.Entity<Payment>()
+    .Property(p => p.PaymentId)
+    .ValueGeneratedOnAdd();
 
             // Cấu hình cột InvoiceId với Foreign Key
             modelBuilder.Entity<Payment>()
                 .Property(e => e.InvoiceId)
                 .IsRequired();
+
+            modelBuilder.Entity<Payment>()
+                  .HasOne(p => p.Invoice)
+                  .WithMany()
+                  .HasForeignKey(p => p.InvoiceId)
+                  .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Appointment>()
          .HasOne(a => a.Patient)  
@@ -46,24 +56,33 @@ namespace DentalManagement.Web.Data
                 .HasForeignKey(a => a.DentistId)
                 .OnDelete(DeleteBehavior.ClientSetNull);
 
-
             modelBuilder.Entity<MedicalRecord>()
-                   .HasOne(m => m.Service)
-                   .WithMany(s => s.MedicalRecords)
-                   .HasForeignKey(m => m.ServiceId)
-                   .OnDelete(DeleteBehavior.Restrict); 
+     .HasKey(m => m.MedicalRecordId);
 
+            // Quan hệ với Service
+            modelBuilder.Entity<MedicalRecord>()
+                .HasOne(m => m.Service)
+                .WithMany(s => s.MedicalRecords)
+                .HasForeignKey(m => m.ServiceId)
+                .IsRequired(false) // Cho phép null nếu MedicalRecord không bắt buộc phải có Service
+                .OnDelete(DeleteBehavior.Restrict); // Hạn chế xóa khi có MedicalRecords tham chiếu
+
+            // Quan hệ với Patient
             modelBuilder.Entity<MedicalRecord>()
                 .HasOne(m => m.Patient)
                 .WithMany(p => p.MedicalRecords)
                 .HasForeignKey(m => m.PatientId)
-                .OnDelete(DeleteBehavior.Restrict); 
+                .IsRequired() // MedicalRecord luôn cần một bệnh nhân
+                .OnDelete(DeleteBehavior.Restrict); // Ngăn chặn xóa hàng loạt
 
+            // Quan hệ với Dentist
             modelBuilder.Entity<MedicalRecord>()
                 .HasOne(m => m.Dentist)
                 .WithMany(d => d.MedicalRecords)
-                .HasForeignKey(m => m.DentistId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .HasForeignKey(m => m.DentistId)  // Đảm bảo rằng ForeignKey được chỉ định đúng
+                .OnDelete(DeleteBehavior.Restrict);  // Đảm bảo không tạo cột sai tên
+   
+
 
             // Thiết lập quan hệ giữa Invoice và Patient (Một bệnh nhân có nhiều hóa đơn)
             modelBuilder.Entity<Invoice>()
@@ -79,18 +98,12 @@ namespace DentalManagement.Web.Data
                 .Property(p => p.PatientName)
                 .HasMaxLength(100)
                 .IsRequired();
+            
 
             modelBuilder.Entity<Medicine>()
                 .Property(m => m.MedicineName)
                 .HasMaxLength(100)
                 .IsRequired();
-
-            // Thiết lập bảng Prescription liên kết với Patient và Dentist
-            modelBuilder.Entity<Prescription>()
-                .HasOne(p => p.Patient)
-                .WithMany(pa => pa.Prescriptions)
-                .HasForeignKey(p => p.PatientId)
-                .OnDelete(DeleteBehavior.ClientSetNull);
 
             modelBuilder.Entity<Prescription>()
                 .HasOne(p => p.Dentist)
@@ -98,22 +111,39 @@ namespace DentalManagement.Web.Data
                 .HasForeignKey(p => p.DentistId)
                 .OnDelete(DeleteBehavior.ClientSetNull);
 
+
+            modelBuilder.Entity<Invoice>()
+                .HasOne(i => i.Patient)
+                .WithMany(p => p.Invoices)
+                .HasForeignKey(i => i.PatientId);
+
+            // Cấu hình InvoiceDetails với ServiceId mà không cần ServiceId trong Invoice
             modelBuilder.Entity<InvoiceDetails>()
-                .HasKey(id => new {id.InvoiceId, id.ServiceId});
+                .HasKey(id => new { id.InvoiceId, id.ServiceId });
 
             modelBuilder.Entity<InvoiceDetails>()
-                .HasOne(id => id.Invoice)
+                .HasOne(id => id.Invoice)  // Chỉ định mối quan hệ với Invoice
                 .WithMany(i => i.InvoiceDetails)
-                .HasForeignKey(i => i.InvoiceId);
+                .HasForeignKey(id => id.InvoiceId);
+
             modelBuilder.Entity<InvoiceDetails>()
-               .HasOne(id => id.Service)
-               .WithMany(i => i.InvoiceDetails)
-               .HasForeignKey(i => i.ServiceId);
+                .HasOne(id => id.Service)
+                .WithMany(s => s.InvoiceDetails) // Mỗi Service có thể có nhiều InvoiceDetails
+                .HasForeignKey(id => id.ServiceId);
 
             modelBuilder.Entity<AppointmentStatus>()
                 .HasNoKey();
             modelBuilder.Entity<Message>()
             .HasKey(m => m.Id);
+            modelBuilder.Entity<Prescription>()
+             .HasOne(p => p.Patient) // Prescription có một Patient
+             .WithMany(p=>p.Prescriptions) // Patient có thể có nhiều Prescription
+             .HasForeignKey(p => p.PatientId) // Khoá ngoại là PatientId trong Prescription
+             .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<PrescriptionDetails>()
+      .HasKey(pd => new { pd.PrescriptionId, pd.MedicineId });
+
 
 
 

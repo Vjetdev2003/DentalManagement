@@ -1,0 +1,91 @@
+﻿@model IEnumerable<DentalManagement.Web.Models.PrescriptionMedicineViewModel>
+@{
+    Layout = null;
+    int stt = 0;
+    decimal sumOfPrice = 0;
+}
+<table class="table table-bordered table-striped table-hover">
+    <thead>
+        <tr class="bg-primary">
+            <th class="text-center">STT</th>
+            <th class="text-center">Tên thuốc</th>
+            <th class="text-center">Số lượng</th>
+            <th class="text-center">Giá</th>
+            <th class="text-center">Thành tiền</th>
+            <th width="40px"></th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model.Count() > 0)
+        {
+            @foreach (var item in Model)
+            {
+                sumOfPrice += item.TotalMedicine;
+                <tr>
+                    <td class="text-center">@(++stt)</td>
+                    <td class="text-center">@item.MedicineName</td>
+                    <td class="text-center">@item.Quantity</td>
+                    <td class="text-center">@item.MedicinePrice</td>
+                    <td class="text-right">@item.TotalMedicine.ToString("N0")</td>
+                    <td class="text-right">
+                        <a href="~/Prescription/RemoveFromPrescription/@item.MedicineId"
+                           class="btn btn-xs btn-danger ajax-link"
+                           data-question="Xóa @item.MedicineName ra khỏi phiếu thu không?">
+                            <i class="fa fa-minus"></i>
+                        </a>
+                    </td>
+                </tr>
+            }
+        }
+        else
+        {
+            <tr>
+                <td colspan="7" class="text-center">
+                    <p>Đơn thuốc trống</p>
+                </td>
+            </tr>
+        }
+    </tbody>
+    <tfoot>
+        <tr>
+            <th colspan="5" class="text-right">Tổng cộng:</th>
+            <th class="text-right">@sumOfPrice.ToString("N0")</th>
+            <th></th>
+        </tr>
+    </tfoot>
+</table>
+<div class="text-right">
+    <a href="~/Prescription/ClearPrescription" class="btn btn-sm btn-danger ajax-link"
+       data-question="Bạn có muốn xóa toàn bộ thuốc trong đơn không?">
+        <i class="fa fa-trash"></i> Xóa đơn thuốc
+    </a>
+</div>
+
+<script>
+    $(document).ready(function () {
+        $(".ajax-link").click(function (e) {
+            e.preventDefault();
+            var action = $(this).prop("href");
+            var question = $(this).data("question");
+            if (confirm(question)) {
+                $.ajax({
+                    url: action,
+                    type: "GET",
+                    async: false,
+                    error: function () {
+                        alert("Your request is not valid!");
+                    },
+
+                    success: function (data) {
+                        if (data !== "") {
+                            alert(data);
+                        }
+                        else {
+                            showPrescription();
+                        }
+                    }
+                });
+            }
+        });
+    });
+</script>

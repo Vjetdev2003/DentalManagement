@@ -39,9 +39,13 @@ builder.Services.AddScoped<IPayment,PaymentRepository>();
 builder.Services.AddScoped<IUserAccount, UserAccountRepository>();
 builder.Services.AddTransient<IInvoiceRepository,InvoiceRepository>();
 builder.Services.AddScoped<EmailSerivce>();
+builder.Services.AddScoped<StatisticsService>();
 builder.Services.AddScoped<MessageRepository>();
+builder.Services.AddScoped<MedicalRecordRepository>();
+builder.Services.AddScoped<PrescriptionRepository>();
 builder.Services.AddMvc();
 builder.Services.AddSignalR();
+builder.Services.AddHttpClient();
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", builder =>
@@ -88,6 +92,7 @@ builder.Services.AddCors(options =>
             .AllowCredentials());
 });
 builder.Services.AddControllersWithViews();
+builder.Logging.AddConsole();
 var app = builder.Build();
 
 if (!app.Environment.IsDevelopment())
@@ -97,7 +102,7 @@ if (!app.Environment.IsDevelopment())
 }
 else
 {
-    app.UseCors("AllowReactApp");
+    app.UseCors("AllowAll");
 }
 
 app.UseSession();

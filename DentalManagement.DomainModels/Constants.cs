@@ -28,8 +28,15 @@ namespace DentalManagement.DomainModels
     public static class Paymethod
     {
         public const string CASH = "Tiền mặt";
-        public const string CARD = "Thẻ";
         public const string BANKING = "Chuyển khoản";
+
+    }
+    public static class Constants_MedicalRecord {
+        public const int UNPROCESS = 1;
+        public const int PENDING = 2;
+        public const int CANCELLED = -1;
+        public const int FAILED = -2;
+        public const int COMPLETE = 3;
 
     }
 }

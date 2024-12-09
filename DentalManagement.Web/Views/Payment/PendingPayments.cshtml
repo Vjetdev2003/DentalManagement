@@ -1,0 +1,93 @@
+﻿@model List<InvoicePaymentViewModel>
+@{
+    ViewBag.Title = "Danh sách dịch vụ đang xử lý";
+}
+<div class="box box-primary">
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>Hóa đơn</th>
+            <th>Tổng tiền</th>
+            <th>Giảm giá</th>
+            <th>Thao tác</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var service in Model)
+        {
+            <tr>
+                <td>@service.InvoiceId</td>
+                    <td>@service.TotalAmount.ToString("C")</td>
+                <td>@service.Discount.ToString("C")</td>
+                <td>
+                    <form asp-action="ApprovePayment" asp-controller="Payment" method="post" style="display:inline;">
+                        <input type="hidden" name="invoiceId" value="@service.InvoiceId" />
+                        <button type="submit" class="btn btn-success">Chấp nhận</button>
+                    </form>
+                    <form asp-action="RejectPayment" asp-controller="Payment" method="post" style="display:inline;">
+                        <input type="hidden" name="invoiceId" value="@service.InvoiceId" />
+                        <button type="submit" class="btn btn-danger">Từ chối</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+</div>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        document.querySelectorAll("form").forEach(form => {
+            form.addEventListener("submit", (event) => {
+                const button = form.querySelector("button[type='submit']");
+
+                if (button.classList.contains("btn-success")) {
+                    event.preventDefault(); // Ngăn form gửi ngay lập tức
+                    Swal.fire({
+                        title: "Bạn có chắc chắn?",
+                        text: "Bạn muốn chấp nhận thanh toán này!",
+                        icon: "warning",
+                        showCancelButton: true,
+                        confirmButtonText: "Có, chấp nhận!",
+                        cancelButtonText: "Hủy"
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            Swal.fire({
+                                title: "Thành công!",
+                                text: "Thanh toán đã được chấp nhận.",
+                                icon: "success",
+                                showConfirmButton: false,
+                                timer: 1500 // Hiển thị thông báo trong 1.5 giây
+                            }).then(() => {
+                                form.submit(); // Gửi form và thực hiện redirect
+                            });
+                        }
+                    });
+                } else if (button.classList.contains("btn-danger")) {
+                    event.preventDefault(); // Ngăn form gửi ngay lập tức
+                    Swal.fire({
+                        title: "Bạn có chắc chắn?",
+                        text: "Bạn muốn từ chối thanh toán này!",
+                        icon: "warning",
+                        showCancelButton: true,
+                        confirmButtonText: "Có, từ chối!",
+                        cancelButtonText: "Hủy"
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            Swal.fire({
+                                title: "Thành công!",
+                                text: "Thanh toán đã bị từ chối.",
+                                icon: "success",
+                                showConfirmButton: false,
+                                timer: 1500 // Hiển thị thông báo trong 1.5 giây
+                            }).then(() => {
+                                form.submit(); // Gửi form và thực hiện redirect
+                            });
+                        }
+                    });
+                }
+            });
+        });
+    });
+</script>

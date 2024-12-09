@@ -77,9 +77,20 @@ namespace DentalManagement.Web.Repository
             return inUseMedicine;
         }
 
-        public Task<IEnumerable<Medicine>> ListAlll(string searchValue = "")
+        public async Task<IEnumerable<Medicine>> ListAlll(string searchValue = "")
         {
-            throw new NotImplementedException();
+            var query = _context.Medicines.AsQueryable();
+
+            // Nếu có giá trị tìm kiếm, lọc danh sách theo tên dịch vụ
+            if (!string.IsNullOrWhiteSpace(searchValue))
+            {
+                query = query.Where(e => e.MedicineName.Contains(searchValue));
+            }
+
+            // Thực hiện phân trang
+            var medicines = await query.ToListAsync();              // Chuyển đổi kết quả thành danh sách
+
+            return medicines;
         }
 
         public async Task UpdateAsync(Medicine entity)

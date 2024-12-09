@@ -1,0 +1,92 @@
+﻿@model DentalManagement.DomainModels.MedicalRecord
+@{
+    Layout = null;
+}
+<div class="modal-dialog">
+    <div class="modal-content">
+        @if (Model != null)
+        {
+            <form id="formReport" action="~/MedicalRecord/SaveReport" method="post" class="form-horizontal">
+                <input type="hidden" name="id" value="@Model.MedicalRecordId" />
+
+                <div class="modal-header bg-primary">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">Báo cáo sau điều trị</h4>
+                </div>
+
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="control-label col-sm-3">Kết quả điều trị:</label>
+                        <div class="col-sm-9">
+                            <input type="text" class="form-control" name="@nameof(Model.TreatmentOutcome)" value="@Model.TreatmentOutcome" />
+                        </div>
+                    </div>
+
+                    <!-- Thêm trường nhập liệu cho Ngày hẹn tiếp theo -->
+                    <div class="form-group">
+                        <label class="control-label col-sm-3">Ngày hẹn tiếp theo:</label>
+                        <div class="col-sm-9">
+                            <input type="date" class="form-control" name="@nameof(Model.NextAppointmentDate)" value="@Model.NextAppointmentDate?.ToString("yyyy-MM-dd")" />
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-offset-3 col-sm-9">
+                            <span id="errorReport" style="color: #f00"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fa fa-floppy-o"></i> Báo cáo
+                    </button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">
+                        Bỏ qua
+                    </button>
+                </div>
+            </form>
+        }
+        else
+        {
+            <div class="modal-header bg-warning">
+                Thông báo
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p class="text-warning text-center">Yêu cầu không hợp lệ!</p>
+            </div>
+        }
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        $("#formReport").submit(function (e) {
+            e.preventDefault();
+
+            var url = $(this).prop("action");
+            var method = $(this).prop("method");
+
+            var postData = $(this).serializeArray();
+
+            $.ajax({
+                url: url,
+                type: method,
+                data: postData,
+                success: function (response) {
+                    if (response.success) {
+                        // Nếu cập nhật thành công, chuyển hướng hoặc làm mới trang
+                        window.location.href = response.redirectUrl;
+                    } else {
+                        // Hiển thị thông báo lỗi nếu có lỗi
+                        $("#errorReport").html(response.message);
+                    }
+                },
+                error: function () {
+                    alert("Yêu cầu của bạn không hợp lệ!");
+                }
+            });
+        });
+    });
+</script>

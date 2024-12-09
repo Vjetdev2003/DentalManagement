@@ -9,17 +9,10 @@
     var isEmployee = ViewBag.IsEmployee ?? false;
     var isFinish = ViewBag.IsFinish ?? false;
     var i = 0;
-    decimal TotalPrice = Model.Invoices.TotalPrice - Model.Invoices.Discount;  // Total price after discount
-    decimal discount;
-    if(TotalPrice >=1000000 && TotalPrice <= 5000000)
-    {
-        discount = TotalPrice * 0.1m;
-    }
-    else
-    {
-        discount = TotalPrice * 0.2m;
-    }
+    decimal TotalPrice = Model.Invoices.TotalPrice + Model.Invoices.Discount;  // Total price after discount
+    decimal discount = Model.Invoices.Discount;
     decimal TotalAmount = TotalPrice - discount;
+   
 }
 
 <div class="box box-primary">
@@ -49,17 +42,27 @@
                                     <li>
                                         <a href="~/Invoice/Cancel/@Model.Invoices.InvoiceId" onclick="return confirm('Huỷ hoá đơn này')">Huỷ hoá đơn</a>
                                     </li>
-                                    <li>
-                                        <a href="~/Invoice/Finish/@Model.Invoices.InvoiceId" onclick="return confirm('Bạn có muốn hoàn tất hoá đơn')">Xác nhận hoàn tất</a>
-                                    </li>
+                                    @if (Model.Details.Any(d => d.PaymentStatus == "Đang chờ thanh toán"))
+                                    {
+                                        <li class="text-muted text-danger">
+                                            Không thể hoàn tất thanh toán vì có dịch vụ chưa thanh toán
+                                        </li>
+                                    }
+                                    else
+                                    {
+                                        <li>
+                                            <a href="~/Invoice/Finish/@Model.Invoices.InvoiceId" onclick="return confirm('Xác nhận hoàn tất hóa đơn này?')">Hoàn tất hóa đơn</a>
+                                        </li>
+                                    }
                                     break;
                                 case Constants_Invoice.INVOICE_PAID:
                                     <li>
                                         <a href="~/Invoice/Print/@Model.Invoices.InvoiceId" class="btn btn-modal">In hóa đơn</a>
-                                    </li>
-                                    <li>
-                                        <a href="~/Invoice/Finish/@Model.Invoices.InvoiceId" onclick="return confirm('Xác nhận hoàn tất hóa đơn này?')">Hoàn tất hóa đơn</a>
-                                    </li>
+                                    </li> 
+                                        <li>
+                                            <a href="~/Invoice/Finish/@Model.Invoices.InvoiceId" onclick="return confirm('Xác nhận hoàn tất hóa đơn này?')">Hoàn tất hóa đơn</a>
+                                        </li>
+                                    
                                     break;
                             }
                         </ul>
@@ -109,7 +112,6 @@
         </div>
     </div>
 
-
     <section class="invoice">
         <div class="box-body">
             <div class="table-responsive">
@@ -129,25 +131,41 @@
 
                         @foreach (var item in Model.Details)
                         {
+
+                            decimal totalService = item.TotalPrice;
+                            if (item.TotalPrice >= 10000000 && item.TotalPrice < 50000000)
+                            {
+                                decimal discountSV = totalService * 0.1m;
+                                totalService = totalService - discountSV;
+                            }
+                            else if (item.TotalPrice >= 50000000)
+                            {
+                                decimal discountSV = totalService * 0.2m;
+                                totalService = totalService - discountSV;
+                            }
+                            else
+                            {
+                            }
                             <tr>
                                 <td class="text-center">@(++i)</td> <!-- Increment counter properly -->
-                                <td>@item.ServiceName</td>
+                                <td class="text-center">@item.ServiceName</td>
                                 <td class="text-right">@item.SalePrice.ToString("N0")</td>
                                 <td class="text-right">@item.Quantity.ToString("N0")</td>
-                                <td class="text-right">@item.TotalPrice.ToString("N0")</td>
+                                <td class="text-right">@totalService.ToString("N0")</td>
+                               
 
                                 <!-- Check ServiceStatus for each item and apply different styling based on the status -->
-                                @if (item.ServiceStatus == "Đã thanh toán")
+                                @if (Model.Invoices.Status == 3)
                                 {
-                                    <td class="text-center text-success">@item.ServiceStatus</td>
+                                    <td class="text-center text-success">Đã thanh toán</td>
                                 }
-                                else if (item.ServiceStatus == "Chưa thanh toán")
+                                else if (Model.Invoices.Status == 2)
                                 {
-                                    <td class="text-center text-danger">@item.ServiceStatus</td>
+                                    <td class="text-center text-warning">Đang xử lý </td>
                                 }
                                 else
                                 {
-                                    <td class="text-center text-warning">Chờ xử lý</td> <!-- Default status if not paid or unpaid -->
+                                    <td class="text-center text-danger">Đang chờ thanh toán</td> <!-- Default status if not paid or unpaid -->
                                 }
                             </tr>
                         }
@@ -211,70 +229,7 @@
             </div>
         </div>
     </section>
-    <!-- Danh sách thanh toán -->
-    @if(!isUnPaid){
-        <section class="payments">
-            <div class="box-body">
-                <div class="table-responsive">
-                    <table class="table table-bordered table-striped table-hover">
-                        <caption><h4>Các khoản thanh toán</h4></caption>
-                        <thead>
-                            <tr>
-                                <th>Phương thức</th>
-                                <th>Số tiền</th>
-                                <th>Ngày thanh toán</th>
-                                <th>Ghi chú</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var payment in Model.Payments)
-                            {
-                                <tr>
-                                    <td>@payment.PaymentMethod</td>
-                                    <td>@payment.AmountPaid.ToString("C")</td>
-                                    <td>@payment.DateCreated.ToString("dd/MM/yyyy")</td>
-                                    <td>@payment.Notes</td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </section>
-    }
-    else
-    {
-        <section class="payments">
-            <div class="box-body">
-                <div class="table-responsive">
-                    <table class="table table-bordered table-striped table-hover">
-                        <caption><h4>Các khoản thanh toán</h4></caption>
-                        <thead>
-                            <tr>
-                                <th>Phương thức</th>
-                                <th>Số tiền</th>
-                                <th>Ngày thanh toán</th>
-                                <th>Ghi chú</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var payment in Model.Payments)
-                            {
-                                <tr>
-                                    <td>@payment.PaymentMethod</td>
-                                    <td>@payment.AmountPaid.ToString("C")</td>
-                                    <td>@payment.DateCreated.ToString("dd/MM/yyyy")</td>
-                                    <td>@payment.Notes</td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </section>
-        <span class="text-right">Chưa có khoản thanh toán nào</span>
-    }
-
+   
 
 @if (ViewBag.Message != null)
 {

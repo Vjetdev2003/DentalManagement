@@ -291,7 +291,7 @@ namespace DentalManagement.Web.Repository
                     ServiceName = serviceName,
                     Quantity = quantity,
                     SalePrice = salePrice,
-                    PaymentStatus = "Chưa thanh toán"
+                   // PaymentStatus = "Chưa thanh toán"
                 };
                 await _context.InvoiceDetails.AddAsync(newDetail);
             }

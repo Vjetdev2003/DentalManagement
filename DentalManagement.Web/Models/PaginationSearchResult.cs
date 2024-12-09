@@ -24,6 +24,11 @@ namespace DentalManagement.Web.Models
         }
 
     }
+    public class PrescriptionSearchResult : PaginationSearchResult
+    {
+        public List<Prescription> Prescriptions = new List<Prescription>();
+        public IEnumerable<Prescription> Data { get; set; }
+    }
     public class EmployeeSearchResult : PaginationSearchResult
     {
         public required List<Employee> Employees { get; set; }
@@ -38,7 +43,9 @@ namespace DentalManagement.Web.Models
     }
     public class MedicineSearchResult : PaginationSearchResult
     {
-        public required List<Medicine> Medicines { get; set; }
+        public  List<Medicine> Medicines { get; set; }
+        public IEnumerable<Medicine> Data { get; set; }
+
     }
     public class AppointmentSearchResult : PaginationSearchResult
     {

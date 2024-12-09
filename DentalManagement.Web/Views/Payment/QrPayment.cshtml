@@ -1,0 +1,40 @@
+﻿@{
+    ViewBag.Title = "QR Payment";
+    var invoiceId = ViewBag.InvoiceId; // Lấy InvoiceId từ ViewBag
+    var qrCodeUrl = ViewBag.QrCodeUrl; // Lấy URL mã QR từ ViewBag
+}
+
+<div class="container mt-5">
+    <h2 class="text-center">Thanh toán bằng QR</h2>
+    <hr />
+    <div class="text-center">
+        @if (!string.IsNullOrEmpty(qrCodeUrl))
+        {
+            <iframe id="qrCodeIframe" src="@qrCodeUrl" width="400px" height="400px" frameborder="0"></iframe>
+        }
+        else
+        {
+            <p class="text-danger">Không thể tạo mã QR. Vui lòng thử lại sau.</p>
+        }
+    </div>
+    <div class="text-center mt-3">
+        <a href="javascript:history.back()" class="btn btn-primary">
+            <i class="fa fa-arrow-left"></i> Quay lại
+        </a>
+    </div>
+</div>
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        document.querySelectorAll(".qr-pay-button").forEach(button => {
+            button.addEventListener("click", (event) => {
+                event.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ <a>
+
+                const url = button.getAttribute("data-url"); // Lấy URL từ thuộc tính data-url
+                const invoiceId = button.getAttribute("data-invoice-id"); // Lấy InvoiceId
+
+                // Chuyển hướng sang trang QrPayment
+                window.location.href = `/Payment/QrPayment?invoiceId=${invoiceId}`;
+            });
+        });
+    });
+</script>

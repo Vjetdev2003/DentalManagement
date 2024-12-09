@@ -26,9 +26,11 @@ namespace DentalManagement.Web.Controllers
 
         public async Task<IActionResult> Index()
         {
+            var userData = User.GetUserData();
             var services = await _context.Services.ToListAsync();
             ViewBag.ServiceList = SelectListHelper.GetServices(_serviceRepo);
-            ViewBag.DentistList = SelectListHelper.GetDentists(_dentistRepo);
+           // ViewBag.DentistList = SelectListHelper.GetDentists(_dentistRepo);
+         //   ViewBag.IsPatient = userData.Roles.Contains("patient");
             var model = new AppointmentCreateModel
             {
                 Services = services,

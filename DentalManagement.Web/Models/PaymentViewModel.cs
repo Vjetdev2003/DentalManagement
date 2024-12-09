@@ -2,10 +2,11 @@
 {
     public class PaymentViewModel
     {
-        public int InvoiceId { get; set; }
-        public decimal TotalAmount { get; set; }
+        public int PaymentId { get; set; }
+        public int InvoiceId {  get; set; }
+        public string PaymentStatus { get; set; }
         public decimal AmountPaid { get; set; }
-        public string PaymentMethod { get; set; }= string.Empty;
-        public string Notes { get; set; } = string.Empty;
+        public DateTime DateCreated { get; set; }
+        public string Notes { get; set; }
     }
 }

@@ -1,10 +1,12 @@
-﻿@{
+﻿@using System.Web
+@{
     Layout = null;
 }
 
 <!DOCTYPE html>
 <html>
 <head>
+
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>Viet Clinic - Đăng nhập</title>
@@ -41,7 +43,7 @@
         <div class="login-box-body">
             <p class="login-box-msg">Đăng nhập hệ thống</p>
 
-            <form action="~/Account/Login" method="post">
+            <form action="~/Account/Login" method="post" id="login-form">
                 @Html.AntiForgeryToken()
                 <div class="form-group has-feedback">
                     <input type="text" class="form-control" placeholder="Tên đăng nhập" name="username" value="@ViewBag.UserName">
@@ -92,6 +94,30 @@
                 checkboxClass: 'icheckbox_square-blue',
                 radioClass: 'iradio_square-blue',
                 increaseArea: '20%' /* optional */
+            });
+        });
+        $(document).ready(function () {
+            var loginError = '@HttpUtility.JavaScriptStringEncode(TempData["LoginError"] as string)'; // Mã hóa đúng trong JavaScript
+
+
+
+            if (loginError) {
+                // Hiển thị thông báo lỗi bằng alert
+                alert(loginError);
+
+                // Thêm thông báo lỗi vào một phần tử HTML nếu bạn muốn (thí dụ: một div)
+                // $('#errorMessage').text(loginError);
+            }
+
+            // Nếu người dùng không nhập đủ tên đăng nhập hoặc mật khẩu, hiển thị lỗi
+            $('#loginForm').submit(function (e) {
+                var username = $('#username').val().trim();
+                var password = $('#password').val().trim();
+
+                if (!username || !password) {
+                    e.preventDefault();  // Ngừng gửi form
+                    alert('Vui long nhap');
+                }
             });
         });
     </script>

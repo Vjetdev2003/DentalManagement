@@ -1,0 +1,58 @@
+﻿@model DentalManagement.Web.Models.PrescriptionDetailModel
+@{
+    var userData = User.GetUserData();
+    if (userData.Roles.Contains("patient"))
+    {
+        Layout = "_Home";
+    }
+    ViewBag.Title = "Chi tiết đơn thuốc";
+}
+<div class="container">
+    <div class="header text-center">
+        <h2 class="font-weight-bold">Nha sĩ : @Model.Dentists?.DentistName</h2>
+        <p>Địa chỉ: 26 Lương Văn Can - An Cựu - TP.Huế</p>
+        <p>Phone: 0879 345 947</p>
+    </div>
+
+    <div class="sub-header text-center my-4">
+        <h3 class="text-uppercase font-weight-bold text-decoration-underline">Toa Thuốc</h3>
+    </div>
+
+    <div class="info mb-4">
+        <p><strong>Họ tên bệnh nhân:</strong> @Model.Patients?.PatientName</p>
+        <p><strong>Giới tính:</strong> @Model.Patients?.Gender</p>
+        <p><strong>Năm sinh:</strong> @Model.Patients?.PatientDOB</p>
+        <p><strong>Địa chỉ:</strong> @Model.Patients?.Address</p>
+        <p><strong>Chẩn đoán:</strong> @Model.Prescriptions?.Diagnosis</p>
+    </div>
+
+    <table class="table table-bordered table-striped text-center">
+        <thead class="thead-light">
+            <tr>
+                <th>STT</th>
+                <th>Tên thuốc</th>
+                <th>Số lượng</th>
+                <th>Đơn giá</th>
+                <th>Thành tiền</th>
+            </tr>
+        </thead>
+        <tbody>
+            @for (int i = 0; i < Model.Details.Count; i++)
+            {
+                var item = Model.Details.ElementAt(i);
+                <tr>
+                    <td>@(i + 1)</td>
+                    <td>@item.MedicineName</td>
+                    <td>@item.Quantity</td>
+                    <td>@String.Format("{0:#,##0 VNĐ}", item.MedicinePrice)</td>
+                    <td>@String.Format("{0:#,##0 VNĐ}", item.TotalMedicine)</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <div class="footer text-right mt-4">
+        <p><strong>Ngày:</strong> @Model.Prescriptions?.DateCreated.ToString("dd/MM/yyyy")</p>
+        <p><strong>BS:</strong> @Model.Dentists?.DentistName</p>
+    </div>
+</div>

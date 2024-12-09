@@ -24,6 +24,8 @@ namespace DentalManagement.Web.Models
         [DataType(DataType.Date)]
         [Display(Name = "Ngày hẹn")]
         public DateTime AppointmentDate { get; set; }
+        public TimeSpan? StartTime { get; set; } // Giờ bắt đầu
+        public TimeSpan? EndTime { get; set; }
         public string Phone {  get; set; } = string.Empty;
         public string Email {  get; set; } = string.Empty;
         public int Status { get; set; }

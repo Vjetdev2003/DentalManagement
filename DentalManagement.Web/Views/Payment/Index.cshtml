@@ -1,9 +1,18 @@
-﻿@model List<ServicePaymentViewModel>
+﻿@using DentalManagement.DomainModels
+@model List<InvoicePaymentViewModel>
 @{
-    ViewBag.Title = " Danh sách dịch vụ cần thanh toán";
+    ViewBag.Title = "Danh sách dịch vụ cần thanh toán";
+    var userData = User.GetUserData();
+    if (userData.Roles.Contains("patient"))
+    {
+        Layout = "_Home";
+    }
+    else
+    {
+        Layout = "_Layout"; // Điều chỉnh layout cho người không phải bệnh nhân
+    }
     Layout = "_Home";
 }
-
 
 @if (ViewBag.Message != null)
 {
@@ -16,9 +25,9 @@ else
         <table class="table table-bordered table-striped">
             <thead>
                 <tr>
-                    <th>Tên dịch vụ</th>
-                    <th>Số lượng</th>
-                    <th>Giá</th>
+                    <th>Hoá đơn</th>
+                    <th>Tổng tiền</th>
+                    <th>Giảm giá</th>
                     <th>Trạng thái thanh toán</th>
                     <th>Thao tác</th>
                 </tr>
@@ -27,11 +36,11 @@ else
                 @foreach (var service in Model)
                 {
                     <tr>
-                        <td>@service.ServiceName</td>
-                        <td>@service.Quantity</td>
-                        <td>@service.Price.ToString("C")</td>
+                        <td>@service.InvoiceId</td>
+                        <td>@service.TotalAmount</td>
+                        <td>@service.Discount</td>
                         <td>
-                            @if (service.PaymentStatus == "Đã thanh toán")
+                            @if (service.Status == 3)
                             {
                                 <span class="text-success">Đã thanh toán</span>
                             }
@@ -41,15 +50,31 @@ else
                             }
                         </td>
                         <td>
-                            @if (service.PaymentStatus != "Đã thanh toán")
+                            @if (service.Status != 3)
                             {
-                                <!--<a href="@Url.Action("AddPayment", "Payment", new { invoiceId = service.InvoiceId, serviceId = service.ServiceId })" class="btn btn-sm btn-primary">
-                                    <i class="fa fa-credit-card"></i> Thanh toán
-                                </a>-->
-                                <a href="#" class="btn btn-sm btn-primary pay-button"
-                                   data-url="@Url.Action("AddPayment", "Payment", new { invoiceId = service.InvoiceId, serviceId = service.ServiceId })">
-                                    <i class="fa fa-credit-card"></i> Thanh toán
-                                </a>
+                                <div class="btn-group">
+                                    <button type="button" class="btn btn-sm btn-info dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="fa fa-credit-card"></i> Thanh toán
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        <!-- Nút thanh toán thông thường -->
+                                        <li>
+                                            <a href="#" class="btn btn-sm btn-success pay-button"
+                                               data-url="@Url.Action("AddPayment", "Payment", new { invoiceId = service.InvoiceId })"
+                                               data-invoice-id="@service.InvoiceId">
+                                                <i class="fa fa-money"></i> Tiền Mặt
+                                            </a>
+                                        </li>
+                                        <!-- Nút thanh toán bằng QR -->
+                                        <li>
+                                            <a href="#" class="btn btn-sm btn-success qr-pay-button"
+                                               data-url="@Url.Action("GenerateQRCode", "Payment", new { invoiceId = service.InvoiceId })"
+                                               data-invoice-id="@service.InvoiceId">
+                                                <i class="fa fa-qrcode"></i> Banking QR
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
                             }
                             else
                             {
@@ -57,39 +82,128 @@ else
                             }
                         </td>
                     </tr>
+                } @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="5" class="text-center text-muted">
+                            <i class="fa fa-info-circle"></i> Không có hóa đơn nào cần thanh toán.
+                        </td>
+                    </tr>
                 }
             </tbody>
         </table>
-        <script>
-            $(document).ready(function () {
-                // Gắn sự kiện click vào nút "Thanh toán"
-                $('.pay-button').on('click', function (e) {
-                    e.preventDefault(); // Ngăn hành động mặc định của thẻ <a>
-
-                    var url = $(this).data('url'); // Lấy URL từ data-url
-
-                    $.ajax({
-                        url: url,
-                        type: 'GET', // Hoặc 'POST' nếu controller yêu cầu
-                        success: function (response) {
-                            // Kiểm tra nếu server trả về JSON hoặc HTML
-                            if (response.redirectUrl && response.messages) {
-                                alert(response.messages);
-                                // Nếu server trả về URL để redirect
-                                window.location.href = response.redirectUrl;
-                            } else {
-                                // Cập nhật nội dung nếu là HTML
-                                $('.box').html(response);
-                            }
-                        },
-                        error: function (xhr, status, error) {
-                            alert("Có lỗi xảy ra: " + error);
-                        }
-                    });
-                });
-            });
-        </script>
+        <div class="text-end mt-3">
+            <a href="@Url.Action("PaymentHistory", "Payment")" class="btn">
+                <i class="fa fa-history"></i> Xem lịch sử thanh toán
+            </a>
+        </div>
     </div>
 }
 
+<!-- Modal hiển thị mã QR -->
+<div id="qrModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="qrModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="qrModalLabel">QR Code</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <!-- Thay thế thẻ <img> bằng iframe -->
+                <iframe id="qrCodeIframe" src="" width="100%" height="400px" frameborder="0"></iframe>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
 
+<!-- SweetAlert CSS & JS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.payos.vn/payos-checkout/v1/stable/payos-initialize.js"></script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        document.querySelectorAll(".qr-pay-button").forEach(button => {
+            button.addEventListener("click", (event) => {
+                event.preventDefault(); // Prevent default action
+
+                const url = button.getAttribute("data-url"); // Get the URL from the data-url attribute
+                const invoiceId = button.getAttribute("data-invoice-id"); // Lấy InvoiceId
+                // Call the API to get the QR code URL
+                fetch(url)
+                    .then(response => response.json())  // Parse JSON response from API
+                    .then(data => {
+                        if (data.success) {
+                            console.log(data);  
+
+                            // Ensure that qrCodeUrl exists in the response
+                            if (data.qrCodeImageUrl) {
+                                const qrModal = document.getElementById("qrModal");
+                                const qrCodeIframe = document.getElementById("qrCodeIframe");
+
+                                // Set the URL to the iframe src
+                                qrCodeIframe.src = data.qrCodeImageUrl; 
+                                window.location.href = data.qrCodeImageUrl;
+                                // Show the modal after iframe is set
+                               // $(qrModal).modal("show");
+                            } else {
+                                Swal.fire("Error!", "Could not generate the QR code. Please try again later.", "error");
+                            }
+                        } else {
+                            Swal.fire("Error!", data.message || "Unable to generate the QR code. Please try again later.", "error");
+                        }
+                    })
+                    .catch(error => {
+                        console.error("Error:", error);
+                        Swal.fire("Error!", "Unable to generate the QR code. Please try again later.", "error");
+                    });
+            });
+        });
+
+        // Payment button click
+        document.querySelectorAll(".pay-button").forEach(button => {
+            button.addEventListener("click", (event) => {
+                event.preventDefault(); // Prevent default action
+                const url = button.getAttribute("data-url");
+
+                Swal.fire({
+                    title: "Xác nhận thanh toán",
+                    text: "Bạn có chắc chắn muốn thanh toán tiền mặt cho hoá đơn này không?",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonText: "Đồng ý",
+                    cancelButtonText: "Hủy",
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Using fetch to send POST request for payment
+                        fetch(url, {
+                            method: 'POST', // Make sure it's POST
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                invoiceId: button.getAttribute("data-invoice-id"),
+                            })
+                        })
+                            .then(response => response.json())  // Convert response to JSON
+                            .then(data => {
+                                console.log(data);  // Debugging: Log response data
+                                if (data.success) {
+                                    Swal.fire("Thành công!", data.message, "success").then(() => {
+                                        window.location.href = data.redirectUrl;
+                                    });
+                                } else {
+                                    Swal.fire("Lỗi!", data.message, "error");
+                                }
+                            })
+                    }
+                });
+            });
+        });
+    });
+</script>

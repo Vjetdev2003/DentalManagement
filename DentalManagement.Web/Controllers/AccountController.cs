@@ -27,10 +27,11 @@ namespace DentalManagement.Web.Controllers
         public async Task<IActionResult> Login(string username = "", string password = "")
         {
             ViewBag.UserName = username;
-
+            
             if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
             {
                 ModelState.AddModelError("Error", "Nhập tên và mật khẩu!");
+                TempData["LoginError"] = "Vui long nhap ten va mat khau!";
                 return View();
             }
 
@@ -39,6 +40,7 @@ namespace DentalManagement.Web.Controllers
             if (userAccount == null)
             {
                 ModelState.AddModelError("Error", "Đăng nhập thất bại!");
+                TempData["LoginError"] = "Ten dang nhap hoac mat khau khong dung!";
                 return View();
             }
 

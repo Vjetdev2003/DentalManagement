@@ -40,24 +40,30 @@ namespace DentalManagement.Web.Controllers
         }
         public async Task<IActionResult> Search(PaginationSearchInput input)
         {
-            int rowCount = await _dentalManagementDbContext.Medicines
-       .Where(e => string.IsNullOrEmpty(input.SearchValue) || e.MedicineName.Contains(input.SearchValue))
-       .CountAsync();
+            try
+            {
+                int rowCount = await _dentalManagementDbContext.Medicines
+           .Where(e => string.IsNullOrEmpty(input.SearchValue) || e.MedicineName.Contains(input.SearchValue))
+           .CountAsync();
                 var data = await _dentalManagementDbContext.Medicines
                     .Where(e => string.IsNullOrEmpty(input.SearchValue) || e.MedicineName.ToUpper().Contains(input.SearchValue.ToUpper()))
                     .Skip((input.Page - 1) * input.PageSize)
                     .Take(input.PageSize)
                     .ToListAsync();
-            var model = new MedicineSearchResult()
-            {
-                Page = input.Page,
-                PageSize = input.PageSize,
-                SearchValue = input.SearchValue ?? "",
-                RowCount = rowCount,
-                Medicines = data
-            };
-            ApplicationContext.SetSessionData(SEARCH_CONDITION, input);
-            return View(model);
+                var model = new MedicineSearchResult()
+                {
+                    Page = input.Page,
+                    PageSize = input.PageSize,
+                    SearchValue = input.SearchValue ?? "",
+                    RowCount = rowCount,
+                    Medicines = data
+                };
+                ApplicationContext.SetSessionData(SEARCH_CONDITION, input);
+                return View(model);
+            }
+            catch (Exception ex) { 
+            return View(ex.Message);
+            }
         }
         public async Task<IActionResult> Create()
         {

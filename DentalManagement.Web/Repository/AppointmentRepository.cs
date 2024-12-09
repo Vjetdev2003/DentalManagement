@@ -51,11 +51,15 @@ namespace DentalManagement.Web.Repository
             return await _context.Appointments
                 .Include(a => a.Patient)
                 .Include(a => a.Service)
+                .Include(a=>a.Dentist)
                 .Select(a => new Appointment
                 {
                     AppointmentId = a.AppointmentId, // Đảm bảo rằng bạn lấy AppointmentId
                     AppointmentDate = a.AppointmentDate,
-                    AppointmentTime=a.AppointmentTime,
+                    StartTime = a.StartTime,
+                    EndTime = a.EndTime,
+                    DentistId = a.DentistId,
+                    DentistName = a.DentistName,
                     PatientName = a.Patient.PatientName,
                     ServiceName = a.Service.ServiceName,
                     DateCreated = a.DateCreated,
@@ -89,6 +93,7 @@ namespace DentalManagement.Web.Repository
                 .Include(a => a.Patient)
                 .Include(a => a.Dentist)
                 .Include(a => a.Service)
+                .OrderByDescending(a => a.DateCreated)
                 .ToListAsync();
         }
 
@@ -233,7 +238,7 @@ namespace DentalManagement.Web.Repository
                 // Xử lý nếu không tìm thấy dịch vụ (nếu cần)
                 throw new Exception("Dịch vụ không tồn tại.");
             }
-
+            var timeSlotParts = model.TimeSlot.Split('-');
             var appointment = new Appointment
             {
                 PatientId = Int32.Parse(userData.UserId),
@@ -242,6 +247,8 @@ namespace DentalManagement.Web.Repository
                 DentistId = Int32.Parse(userData.UserId),
                 DentistName = model.PatientName,
                 ServiceName = service.ServiceName, // Gán tên dịch vụ từ cơ sở dữ liệu
+                StartTime = TimeSpan.FromHours(int.Parse(timeSlotParts[0])),
+                EndTime = TimeSpan.FromHours(int.Parse(timeSlotParts[1])),
                 Phone = model.Phone,
                 Email = model.Email,
                 AppointmentDate = model.AppointmentDate,
@@ -253,6 +260,16 @@ namespace DentalManagement.Web.Repository
 
             _context.Appointments.Add(appointment);
             await _context.SaveChangesAsync();
+        }
+
+        public async Task<IEnumerable<Appointment>> GetAppointmentsByPatientIdAsync(int patientId)
+        {
+            return await _context.Appointments
+               .Where(a => a.PatientId == patientId) // Lọc theo ID bệnh nhân
+               .Include(a => a.Service)
+               .Include(a => a.Dentist)
+               .OrderByDescending(a => a.DateCreated) // Sắp xếp theo ngày tạo giảm dần
+               .ToListAsync();
         }
     }
 }

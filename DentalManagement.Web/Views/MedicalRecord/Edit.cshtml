@@ -1,0 +1,89 @@
+﻿@model DentalManagement.DomainModels.MedicalRecord
+
+@{
+    ViewData["Title"] = "Chỉnh sửa Hồ sơ Y tế";
+}
+
+<div class="box box-primary">
+    <div class="box-header with-border">
+    </div>
+    <div class="box-body">
+        <form class="form-horizontal" enctype="multipart/form-data" method="post" action="~/MedicalRecord/Save">
+            <input type="hidden" name="MedicalRecordId" value="@Model.MedicalRecordId" />
+
+
+            <div class="form-group">
+                <label class="control-label col-sm-2">Bệnh nhân</label>
+                <div class="col-sm-10">
+                    <select asp-for="PatientId" class="form-control" asp-items="ViewBag.PatientList">
+                        <option value="0">-- Chọn bệnh nhân --</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="control-label col-sm-2">Tên nha sĩ:</label>
+                <div class="col-sm-10">
+                    <select asp-for="DentistId" class="form-control" asp-items="ViewBag.DentistList">
+                    <option value="0">-- Chọn nha sĩ --</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="control-label col-sm-2">Dịch vụ:</label>
+                <div class="col-sm-10">
+                    <select asp-for="ServiceId" class="form-control" asp-items="ViewBag.ServiceList">
+                    <option value="0">-- Chọn dịch vụ --</option>
+                    </select>
+                </div>
+               
+
+            </div>
+
+            <div class="form-group">
+                <label class="control-label col-sm-2">Triệu chứng:</label>
+                <div class="col-sm-10">
+                    <textarea class="form-control" name="@nameof(Model.Symptoms)">@Model.Symptoms</textarea>
+                    @Html.ValidationMessage(nameof(Model.Symptoms), new { @class = "text-danger custom-error-color" })
+                </div>
+               
+
+            </div>
+            <div class="form-group">
+                <label class="control-label col-sm-2">Chẩn đoán:</label>
+                <div class="col-sm-10">
+                    <textarea class="form-control" name="@nameof(Model.Diagnosis)">@Model.Diagnosis</textarea>
+                    @Html.ValidationMessage(nameof(Model.Diagnosis), new { @class = "text-danger custom-error-color" })
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label class="control-label col-sm-2">Phương pháp điều trị:</label>
+                <div class="col-sm-10">
+                    <textarea class="form-control" name="@nameof(Model.Treatment)">@Model.Treatment</textarea>
+                    @Html.ValidationMessage(nameof(Model.Treatment), new { @class = "text-danger custom-error-color" })
+                </div>
+                
+
+            </div>
+
+            <div class="form-group">
+                <label class="control-label col-sm-2">Ngày điều trị:</label>
+                <div class="col-sm-10">
+                    <input type="date" class="form-control" name="@nameof(Model.DateOfTreatment)" value="@Model.DateOfTreatment?.ToString("dd/MM/yyyy")" />
+                </div>
+            </div>
+
+           
+
+            <div class="form-group">
+                <div class="col-lg-offset-2 col-sm-10">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fa fa-save"></i> Lưu thay đổi
+                    </button>
+                    <a href="~/MedicalRecord" class="btn btn-default">Quay lại</a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>

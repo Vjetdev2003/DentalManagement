@@ -15,6 +15,7 @@
                     <th>Tên dịch vụ</th>
                     <th>Nha sĩ phụ trách</th>
                     <th>Ngày hẹn</th>
+                    <th>Khoảng thời gian</th>
                     <th>Ghi chú</th>
                     <th>Thời điểm hoàn tất</th>
                     <th>Trạng thái</th>
@@ -29,8 +30,9 @@
                         <td>@item.ServiceName</td>
                         <td>@item.DentistName</td>
                         <td>
-                            @item.AppointmentDate?.ToString("dd/MM/yyyy") @item.AppointmentTime?.ToString(@"hh\:mm")
+                            @item.AppointmentDate?.ToString("dd/MM/yyyy") 
                         </td>
+                        <td>@item.StartTime?.ToString(@"hh\:mm") - @item.EndTime?.ToString(@"hh\:mm") </td>
                         <td>@item.Notes</td>
                         <td>@item.FinishedTime</td>
                         <td>@item.StatusDescription</td>

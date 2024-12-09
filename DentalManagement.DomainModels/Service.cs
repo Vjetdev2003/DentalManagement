@@ -11,7 +11,6 @@ namespace DentalManagement.DomainModels
         public string Photo { get; set; } = string.Empty ;
         public string Description { get; set; } = string.Empty;
         public virtual ICollection<MedicalRecord> MedicalRecords { get; set; } // Một dịch vụ có thể liên quan đến nhiều hồ sơ y tế
-        public virtual ICollection<Invoice> Invoices { get; set; } // Một dịch vụ có thể có nhiều hóa đơn
         public ICollection<InvoiceDetails> InvoiceDetails { get; set; }
         public DateTime DateCreated { get ; set ; }
         public DateTime DateUpdated { get; set ; }

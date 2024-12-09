@@ -36,6 +36,7 @@
                     <label class="control-label col-sm-2 ">Bệnh nhân:</label>
                     <div class="col-sm-6">
                         <select id="patientSelect" name="PatientId" class="form-control" required>
+                            <option value="">Chọn bệnh nhân</option>
                             @foreach (var patient in ViewBag.PatientList as List<SelectListItem>)
                             {
                                 <option value="@patient.Value">@patient.Text</option>
@@ -43,7 +44,6 @@
                         </select>
                     </div>
                 </div>
-
                 <div class="form-group">
                     <div class="col-sm-offset-2 col-sm-10">
                         <span id="invoiceInitMessage" style="color:#f00"></span>
