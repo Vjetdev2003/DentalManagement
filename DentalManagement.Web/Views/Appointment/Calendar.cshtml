@@ -6,6 +6,7 @@
 <div class="text-right">
     <a asp-controller="Appointment" asp-action="Create" class="btn btn-primary">Tạo lịch hẹn mới</a>
 </div>
+
 <div id="calendar"></div>
 
 @section Scripts {
@@ -15,21 +16,21 @@
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/fullcalendar.min.js"></script>
 
-   <script>
-    $(document).ready(function () {
-        /* initialize the calendar */
-        $('#calendar').fullCalendar({
-            header: {
-                left: 'prev,next today',
-                center: 'title',
-                right: 'month,agendaWeek,agendaDay'
-            },
-            buttonText: {
-                today: 'Hôm nay',
-                month: 'Tháng',
-                week: 'Tuần',
-                day: 'Ngày'
-            },
+    <script>
+        $(document).ready(function () {
+            /* initialize the calendar */
+            $('#calendar').fullCalendar({
+                header: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'month,agendaWeek,agendaDay'
+                },
+                buttonText: {
+                    today: 'Hôm nay',
+                    month: 'Tháng',
+                    week: 'Tuần',
+                    day: 'Ngày'
+                },
                 events: @Html.Raw(Json.Serialize(Model.Select(a => new
             {
                 title = a.Title,
@@ -40,14 +41,14 @@
                 appointmentId = a.AppointmentId,
                 dentistName = a.DentistName
             }))),
-            editable: true,
-            droppable: true,
-            eventRender: function (event, element) {
-                console.log(event); 
-                    
-                // Kiểm tra trạng thái và thiết lập màu
+                editable: true,
+                droppable: true,
+                eventRender: function (event, element) {
+                    console.log(event);
+
+                    // Kiểm tra trạng thái và thiết lập màu
                     let statusText = "";
-                   
+
                     switch (event.status) {
                         case 1: // APPOINTMENT_INIT
                             element.css('background-color', '#ffcc00'); // Màu vàng
@@ -84,24 +85,24 @@
                     let endTime = event.endTime ? moment(event.endTime, "HH:mm").format("HH:mm") : "Không xác định";
 
                     element.html(`
-                        <strong>${event.title}</strong><br>
-                        <span>Ngày: ${startDate}</span><br>
-                        <span>Thời gian: ${startTime} - ${endTime}</span><br>
-                        <span>Trạng thái: ${statusText}</span><br>
-                        <span>Nha sĩ : ${event.dentistName}</span>
+                                <strong>${event.title}</strong><br>
+                                <span>Ngày: ${startDate}</span><br>
+                                <span>Thời gian: ${startTime} - ${endTime}</span><br>
+                                <span>Trạng thái: ${statusText}</span><br>
+                                <span>Nha sĩ : ${event.dentistName}</span>
 
-                    `);
-            },
-            eventClick: function (event) {
+                            `);
+                },
+                eventClick: function (event) {
                     var appointmentId = parseInt(event.appointmentId);
-                if (!isNaN(appointmentId)) {
-                    window.location.href = '@Url.Action("Details", "Appointment")/' + appointmentId;
-                } else {
-                    console.error("appointmentId is not a valid number: ", event.appointmentId);
+                    if (!isNaN(appointmentId)) {
+                        window.location.href = '@Url.Action("Details", "Appointment")/' + appointmentId;
+                    } else {
+                        console.error("appointmentId is not a valid number: ", event.appointmentId);
+                    }
                 }
-            }
+            });
         });
-    });
-</script>
+    </script>
 
 }

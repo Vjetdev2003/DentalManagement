@@ -9,7 +9,7 @@ namespace DentalManagement.Web.Models
         public int MedicineId { get; set; }
         public string MedicineName { get; set; }
         public int Quantity {  get; set; }
-        public decimal MedicinePrice {  get; set; }
-        public decimal TotalMedicine { get; set; }
+        public decimal SalePrice {  get; set; }
+        public decimal TotalMedicine { get;set; }
     }
 }

@@ -20,6 +20,7 @@ namespace DentalManagement.Web.Interfaces
         Task<bool> FinishAppointment(int appointmentID);
         Task SaveAppointment(AppointmentCreateModel appointmentModel);
         Task<IEnumerable<Appointment>> GetAppointmentsByPatientIdAsync(int patientId);
+       
        // Task<IEnumerable<Appointment>> GetFinishedAppointmentsByPatientIdAsync(int patientId);
     }
 }

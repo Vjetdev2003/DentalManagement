@@ -13,16 +13,13 @@ namespace DentalManagement.DomainModels
     {
         public int AppointmentId { get; set; }
         [Required]
-        [ForeignKey("PatientId")]
         public int PatientId { get; set; }
         public string PatientName { get; set; } = string.Empty;
 
         [Required]
-        [ForeignKey("DentistId")]
         public int DentistId { get; set; }
         public string DentistName {  get; set; } = string.Empty;
         [Required]
-        [ForeignKey("ServiceID")]
         public int ServiceID { get; set; }
         public string ServiceName { get; set; } = string.Empty;
         public string Phone { get; set; } = string.Empty;
@@ -49,7 +46,7 @@ namespace DentalManagement.DomainModels
                     case Constants.APPOINTMENT_INIT:
                         return "Lịch hẹn đã đặt. Đang chờ xác nhận.";
                     case Constants.APPOINTMENT_CONFIRMED:
-                        return "Lịch hẹn đã xác nhận. Đang chờ đến ngày hẹn.";
+                        return "Lịch hẹn đã xác nhận";
                     case Constants.APPOINTMENT_IN_PROGRESS:
                         return "Lịch hẹn đang diễn ra.";
                     case Constants.APPOINTMENT_FINISHED:

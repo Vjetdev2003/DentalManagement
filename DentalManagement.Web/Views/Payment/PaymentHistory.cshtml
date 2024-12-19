@@ -33,11 +33,11 @@
                                 <td>
                                     @if (payment.PaymentMethod == "Tiền mặt")
                                     {
-                                        <span class="badge bg-success">Tiền mặt</span>
+                                        <span class="badge bg-success"><i class="fa fa-money-bill"></i> Tiền mặt</span>
                                     }
                                     else
                                     {
-                                        <span class="badge bg-primary">Chuyển Khoản</span>
+                                        <span class="badge bg-primary"><i class="fa fa-university"></i> Chuyển Khoản</span>
                                     }
                                 </td>
                                 <td>
@@ -48,6 +48,10 @@
                                     else if (payment.PaymentStatus == "Thanh toán thành công với PayOS")
                                     {
                                         <span class="text-success"><i class="fa fa-check-circle"></i> Đã thanh toán với chuyển khoản</span>
+                                    }
+                                    else if(payment.PaymentStatus == "Đang xử lý thanh toán tiền mặt")
+                                    {
+                                        <span class="text-warning"><i class="fa fa-spinner fa-spin"></i> Đang xử lý thanh toán</span>
                                     }
                                     else 
                                     {
@@ -71,8 +75,17 @@
 
     <!-- Back Button -->
     <div class="text-end mt-3">
-        <a href="@Url.Action("Index","Payment")" class="btn">
-            <i class="fa fa-arrow-left"></i> Back
+        <a class="btn btn-secondary" onclick="goBack()">
+            <i class="fa fa-arrow-left"></i> Quay lại
         </a>
     </div>
 </div>
+<script>
+    function goBack() {
+        if (document.referrer) {
+            window.location.href = document.referrer;
+        } else {
+            window.location.href = '@Url.Action("Index", "Home")'; // Fallback to home page
+        }
+    }
+</script>

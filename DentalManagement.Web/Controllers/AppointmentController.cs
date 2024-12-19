@@ -9,9 +9,9 @@ using DentalManagement.Web.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using DocumentFormat.OpenXml.Drawing.Charts;
+using MailKit;
+using DocumentFormat.OpenXml.Wordprocessing;
 
-
-[Authorize]
 
 public class AppointmentController : Controller
 {
@@ -26,8 +26,8 @@ public class AppointmentController : Controller
     private const int PAGE_SIZE = 20;
     private const string SEARCH_CONDITION = "appointment_search";
 
-    public AppointmentController(AppointmentRepository appointmentRepository, AppointmentStatus status, DentalManagementDbContext dentalManagementDbContext, IRepository<Dentist> dentistRepository, 
-        IRepository<Service> serviceRepository, IRepository<Patient> patientRepository,EmailSerivce emailSerivce)
+    public AppointmentController(AppointmentRepository appointmentRepository, AppointmentStatus status, DentalManagementDbContext dentalManagementDbContext, IRepository<Dentist> dentistRepository,
+        IRepository<Service> serviceRepository, IRepository<Patient> patientRepository, EmailSerivce emailSerivce)
     {
         _appointmentRepository = appointmentRepository;
         _dentalManagementDbContext = dentalManagementDbContext;
@@ -38,6 +38,7 @@ public class AppointmentController : Controller
         _status = status;
     }
     // Action để hiển thị danh sách đặt lịch hẹn
+    [Authorize(Roles = $"{WebUserRoles.Administrator},{WebUserRoles.Dentist},{WebUserRoles.Employee},{WebUserRoles.Patient}")]
     [HttpGet]
     public async Task<IActionResult> Calendar()
     {
@@ -57,13 +58,13 @@ public class AppointmentController : Controller
             DentistName = a.Status >= 2
             ? (string.IsNullOrEmpty(a.DentistName) ? "Chưa có thông tin nha sĩ" : $"Nha sĩ: {a.DentistName}")
             : "Chưa có thông tin nha sĩ",
-            AppointmentId = a.AppointmentId ,
+            AppointmentId = a.AppointmentId,
             Status = a.Status,
         }).ToList();
 
         return View(events);
     }
-   
+    [Authorize(Roles = $"{WebUserRoles.Administrator},{WebUserRoles.Dentist},{WebUserRoles.Employee}")]
     public async Task<IActionResult> Index()
     {
         var input = ApplicationContext.GetSessionData<AppointmentSearchInput>(SEARCH_CONDITION);
@@ -81,6 +82,7 @@ public class AppointmentController : Controller
 
         return View(input);
     }
+    [Authorize(Roles = $"{WebUserRoles.Administrator},{WebUserRoles.Dentist},{WebUserRoles.Employee}")]
     public async Task<IActionResult> Search(AppointmentSearchInput input)
     {
         try
@@ -148,10 +150,10 @@ public class AppointmentController : Controller
             return RedirectToAction("Error", new { message = "There was an issue processing your request." });
         }
     }
-    
 
+    [Authorize(Roles = $"{WebUserRoles.Administrator},{WebUserRoles.Dentist},{WebUserRoles.Employee}")]
     public IActionResult Create()
-	{   
+    {
 
         ViewBag.Title = "Tạo lịch hẹn mới";
         var model = new AppointmentViewModel
@@ -163,10 +165,11 @@ public class AppointmentController : Controller
         };
         return View("Edit", model);
     }
+    [Authorize(Roles = $"{WebUserRoles.Administrator},{WebUserRoles.Dentist},{WebUserRoles.Employee}")]
     [HttpPost]
     public async Task<IActionResult> Create(Appointment appointment)
     {
-      
+
         if (ModelState.IsValid)
         {
             // Thiết lập các thuộc tính cần thiết
@@ -180,7 +183,7 @@ public class AppointmentController : Controller
 
         return View(appointment); // Nếu model state không hợp lệ, trả về dữ liệu hiện tại
     }
-
+    [Authorize(Roles = $"{WebUserRoles.Administrator},{WebUserRoles.Dentist},{WebUserRoles.Employee}")]
     public async Task<IActionResult> Edit(int id)
     {
         if (id <= 0)
@@ -217,7 +220,7 @@ public class AppointmentController : Controller
         // Trả về view với đối tượng AppointmentViewModel
         return View(model);
     }
-
+    [Authorize(Roles = $"{WebUserRoles.Administrator},{WebUserRoles.Dentist},{WebUserRoles.Employee}")]
     [HttpPost]
     public async Task<IActionResult> Save(AppointmentViewModel model)
     {
@@ -247,7 +250,7 @@ public class AppointmentController : Controller
         {
             return NotFound();
         }
-        if(model.AppointmentId == 0)
+        if (model.AppointmentId == 0)
         {
             appointment.PatientId = model.PatientId;
             appointment.DentistId = model.DentistId;
@@ -255,8 +258,6 @@ public class AppointmentController : Controller
             appointment.AppointmentDate = model.AppointmentDate;
             appointment.Status = Constants.APPOINTMENT_INIT;
             appointment.Notes = model.Notes;
-            appointment.Phone = model.Phone;
-            appointment.Email = model.Email;
             appointment.DateUpdated = DateTime.Now;
             appointment.UserIdUpdated = User?.Identity?.Name;
             var selectedPatient = await _patientRepository.GetByIdAsync(model.PatientId);
@@ -289,7 +290,7 @@ public class AppointmentController : Controller
         }
 
         // Ánh xạ dữ liệu từ AppointmentViewModel về Appointment
-       
+
         // Lấy tên người dùng hiện tại để cập nhật
 
         if (model.AppointmentId == 0)
@@ -309,31 +310,42 @@ public class AppointmentController : Controller
         // Chuyển hướng về trang Index sau khi lưu thành công
         return RedirectToAction("Index");
     }
+    [Authorize(Roles = $"{WebUserRoles.Administrator},{WebUserRoles.Dentist},{WebUserRoles.Employee},{WebUserRoles.Patient}")]
     public async Task<IActionResult> Details(int id = 0)
     {
         ViewBag.IsFinish = false;
         ViewBag.IsDelete = false;
         ViewBag.IsEditDetails = false;
         ViewBag.IsDentist = false;
+        ViewBag.IsEmployee = false;
 
         var userData = User.GetUserData();
-        
+
         var appointment = await _appointmentRepository.GetByIdAsync(id);
         var services = appointment.ServiceID;
         var appointmentService = await _serviceRepository.GetByIdAsync(appointment.ServiceID);
         var dentist = appointment.DentistId;
         var dentists = await _dentistRepository.GetByIdAsync(dentist);
-        if (appointment == null)
+        var appointments = await _dentalManagementDbContext.Appointments
+            .Include(a => a.Patient)
+            .Include(a => a.Service)
+            .FirstOrDefaultAsync(a => a.AppointmentId == id);
+        if (appointments == null)
         {
             return RedirectToAction("Index");
         }
-      
+
         if (userData.UserId.Equals(appointment.DentistId.ToString()))
         {
             ViewBag.IsDentist = true;
-        }
 
-        switch (appointment.Status)
+        }
+        else
+        {
+            ViewBag.IsEmployee = true;
+        }
+        
+        switch (appointments.Status)
         {
             case Constants.APPOINTMENT_INIT:
                 ViewBag.IsDelete = true;
@@ -373,7 +385,7 @@ public class AppointmentController : Controller
         {
             Dentists = dentists,
             Services = appointmentService,
-            Appointments = appointment,
+            Appointments = appointments,
             Details = appointmentDetailsViewModel // Use mapped view models
         };
 
@@ -409,7 +421,7 @@ public class AppointmentController : Controller
             TempData["Message"] = "Không thể thực hiện thao tác từ chối của lịch hẹn";
         return RedirectToAction("Details", new { id });
     }
-    public async Task<IActionResult> Delete(int id )
+    public async Task<IActionResult> Delete(int id)
     {
         bool result = await _appointmentRepository.DeleteAsync(id);
         if (!result)
@@ -420,7 +432,6 @@ public class AppointmentController : Controller
         }
         return RedirectToAction("Index");
     }
-
     [HttpPost]
     public async Task<IActionResult> Submit(AppointmentCreateModel model)
     {
@@ -463,25 +474,27 @@ public class AppointmentController : Controller
 
         // Kiểm tra trùng lặp lịch hẹn
         var isConflict = await _dentalManagementDbContext.Appointments
-            .AnyAsync(a => a.DentistId == dentist.DentistId &&
-                           a.AppointmentDate == model.AppointmentDate &&
-                           ((startTime >= a.StartTime && startTime < a.EndTime) ||
-                            (endTime > a.StartTime && endTime <= a.EndTime)));
+        .AnyAsync(a => a.DentistId == dentist.DentistId &&
+                       a.AppointmentDate == model.AppointmentDate &&
+                       ((startTime >= a.StartTime && startTime < a.EndTime) ||
+                        (endTime > a.StartTime && endTime <= a.EndTime)));
 
         if (isConflict)
         {
             // Tìm khung giờ trống khác trong ngày
-            var availableSlots = await FindAvailableSlotsInDay(model.AppointmentDate??DateTime.Now, dentist.DentistId);
+            var availableSlots = await FindAvailableSlotsInDay(model.AppointmentDate ?? DateTime.Now, dentist.DentistId);
 
             // Trả về thông báo cho người dùng
             return Json(new
             {
                 success = false,
-                message = "Khung giờ bạn chọn đã bị trùng lịch.",
+                message = "Khung giờ bạn chọn đã bị kín lịch.",
                 availableSlots,
                 suggestion = "Bạn có muốn dời lịch sang khung giờ khác không? Hoặc liên hệ nhân viên để được hỗ trợ sớm nhất."
             });
         }
+
+
 
         // Tạo đối tượng Appointment
         var appointment = new Appointment
@@ -501,7 +514,9 @@ public class AppointmentController : Controller
             Status = Constants.APPOINTMENT_INIT,
             DateCreated = DateTime.Now,
             DateUpdated = DateTime.Now,
-            UserIdCreate = userData.UserId
+            UserIdCreate = userData.UserId,
+            UserIdUpdated = userData.UserId
+
         };
 
         // Lưu lịch hẹn vào cơ sở dữ liệu
@@ -533,25 +548,90 @@ public class AppointmentController : Controller
         const int slotDurationHours = 2; // Mỗi khung giờ là 2 tiếng
         var availableSlots = new List<string>();
 
+        // Lấy phần ngày từ appointmentDate (chỉ lấy ngày mà không có phần giờ phút giây)
+        var appointmentDateOnly = appointmentDate.Date;
+
+        // Lặp qua các khung giờ từ 08:00 đến 18:00
         for (var hour = 8; hour < 18; hour += slotDurationHours)
         {
-            var startTime = TimeSpan.FromHours(hour);
+            var startTime = appointmentDateOnly.Add(TimeSpan.FromHours(hour));
             var endTime = startTime.Add(TimeSpan.FromHours(slotDurationHours));
 
             var isConflict = await _dentalManagementDbContext.Appointments
                 .AnyAsync(a => a.DentistId == dentistId &&
-                               a.AppointmentDate == appointmentDate &&
-                               ((startTime >= a.StartTime && startTime < a.EndTime) ||
-                                (endTime > a.StartTime && endTime <= a.EndTime)));
+                               a.AppointmentDate == appointmentDateOnly && // So sánh chỉ phần ngày
+                               ((startTime.TimeOfDay >= a.StartTime && startTime.TimeOfDay < a.EndTime) ||  // Kiểm tra xung đột
+                                (endTime.TimeOfDay > a.StartTime && endTime.TimeOfDay <= a.EndTime))); // Kiểm tra xung đột
 
+            // Nếu không có xung đột, thêm vào danh sách khung giờ trống
             if (!isConflict)
             {
-                availableSlots.Add($"{startTime}-{endTime}");
+                availableSlots.Add($"{startTime:HH:mm}-{endTime:HH:mm}");
             }
         }
 
         return availableSlots;
     }
+
+
+    public IActionResult EditDentist(int id = 0)
+    {
+        var model = _dentalManagementDbContext.Appointments.SingleOrDefaultAsync(a => a.AppointmentId == id);
+        return View(model.Result);
+    }
+    public async Task<IActionResult> SaveDentist(int id)
+    {
+        if (id == 0)
+            return BadRequest();
+
+        var appointment = await _dentalManagementDbContext.Appointments
+            .Include(a => a.Dentist)
+            .SingleOrDefaultAsync(a => a.AppointmentId == id);
+
+        if (appointment == null)
+            return NotFound();
+
+        // Find the dentist with the fewest appointments
+        var newDentist = await _dentalManagementDbContext.Dentists
+            .OrderBy(d => d.Appointments.Count) // Dentist with the least appointments
+            .FirstOrDefaultAsync();
+
+        if (newDentist == null)
+            return NotFound("No available dentists.");
+
+        // Update the dentist for the appointment
+        appointment.DentistId = newDentist.DentistId;
+        appointment.DentistName = newDentist.DentistName;
+        appointment.DateUpdated = DateTime.Now;
+
+        _dentalManagementDbContext.Appointments.Update(appointment);
+        await _dentalManagementDbContext.SaveChangesAsync();
+        var redirectUrl = Url.Action("Index", "Appointment");
+        return Json(new { success = true, redirectUrl = redirectUrl });
+    }
+    [HttpGet]
+    public async Task<IActionResult> SearchDentists(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+            return Json(new { success = false, message = "Tên không hợp lệ." });
+
+        var dentists = await _dentalManagementDbContext.Dentists
+            .Where(d => EF.Functions.Like(d.DentistName, $"%{name}%"))
+            .Select(d => new
+            {
+                id = d.DentistId,
+                name = d.DentistName,
+                appointmentsCount = d.Appointments.Count
+            })
+            .ToListAsync();
+
+        if (!dentists.Any())
+            return Json(new { success = false, message = "Không tìm thấy nha sĩ phù hợp." });
+
+        return Json(new { success = true, dentists });
+    }
+
+
     [Authorize(Roles = WebUserRoles.Patient)]
     public async Task<IActionResult> AppointmentHistory(int patientId)
     {
@@ -566,5 +646,18 @@ public class AppointmentController : Controller
         return View(model);
     }
 
+    [HttpGet("api/autocomplete")]
+    public async Task<IActionResult> Autocomplete(string term)
+    {
+        if (string.IsNullOrWhiteSpace(term))
+            return Json(new { success = false, suggestions = new List<string>() });
 
+        var suggestions = await _dentalManagementDbContext.Dentists
+            .Where(d => EF.Functions.Like(d.DentistName, $"%{term}%"))
+            .Select(d => d.DentistName)
+            .Take(10) // Giới hạn tối đa 10 gợi ý
+            .ToListAsync();
+
+        return Json(new { success = true, suggestions });
+    }
 }

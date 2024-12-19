@@ -13,6 +13,7 @@ namespace DentalManagement.DomainModels
 
         public int PatientId { get; set; }
         public string PatientName { get; set; }
+        public int PrescriptionId { get; set; }
         public int EmployeeId { get; set; }
         public string EmployeeName { get; set; }
         public string PatientAddress { get ; set; }
@@ -53,6 +54,7 @@ namespace DentalManagement.DomainModels
         public string? UserIdUpdated { get; set; }
         public DateTime? FinishTime {  get; set; }
         public ICollection<InvoiceDetails> InvoiceDetails { get; set; }
+      //  public  ICollection<PrescriptionDetails> PrescriptionDetails { get; set; }
 
     }
     public class InvoiceStatus

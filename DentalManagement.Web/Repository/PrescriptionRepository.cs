@@ -40,6 +40,10 @@ namespace DentalManagement.Web.Repository
         {
             return await _context.Prescriptions.FindAsync(id);
         }
+        public async Task<IEnumerable<Prescription>>GetAllAsync()
+        {
+            return await _context.Prescriptions.ToListAsync();
+        }
         public async Task<IEnumerable<Prescription>> GetAllAsync(int page = 1, int pagesize = 10, string searchValue = "")
         {
 
@@ -53,6 +57,15 @@ namespace DentalManagement.Web.Repository
                 .ToListAsync();               // Chuyển đổi kết quả thành danh sách
 
             return prescriptions;
+        }
+        public async Task<IEnumerable<Prescription>> GetPrescriptionByPatientIdAsync(int patientId)
+        {
+            return await _context.Prescriptions
+               .Where(a => a.PatientId == patientId) // Lọc theo ID bệnh nhân
+               .Include(a => a.Patient)
+               .Include(a => a.Dentist)
+               .OrderByDescending(a => a.DateCreated) // Sắp xếp theo ngày tạo giảm dần
+               .ToListAsync();
         }
     }
 }

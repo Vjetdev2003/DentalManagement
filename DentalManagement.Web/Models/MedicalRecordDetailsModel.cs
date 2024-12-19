@@ -7,6 +7,5 @@ namespace DentalManagement.Web.Models
         public MedicalRecord MedicalRecord { get; set; }
         public Dentist Dentist { get; set; }
         public Patient Patient { get; set; }
-        public Service Service { get; set; }
     }
 }

@@ -39,7 +39,7 @@ namespace DentalManagement.Web.Repository
                 // Giả sử bạn tìm kiếm theo tên bệnh nhân hoặc các trường liên quan
                 query = query.Where(i => i.Patient.PatientName.Contains(searchValue));
             }
-            query = query.OrderByDescending(i => i.DateCreated);
+            query = query.OrderBy(i => i.DateCreated);
 
             return await query
                 .Skip((page - 1) * pageSize)

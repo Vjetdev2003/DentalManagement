@@ -1,6 +1,7 @@
 ﻿using DentalManagement.DomainModels;
 using DentalManagement.Web.Data;
 using DentalManagement.Web.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -11,12 +12,14 @@ using System.Text;
 namespace DentalManagement.Web.Controllers
 {
     [ApiController]
+    [Authorize(Roles = $"{WebUserRoles.Administrator},{WebUserRoles.Employee}")]
+
     public class PayOsController : ControllerBase
     {
         private readonly DentalManagementDbContext _context;
         private readonly string checksumKey = "e2c88633b9cb46240d1300376bac12c6077566f54d848d84066909f7e7c2f7b9";
         private readonly ILogger _log;
-        public PayOsController(DentalManagementDbContext context,ILogger log)
+        public PayOsController(DentalManagementDbContext context, ILogger log)
         {
             _context = context;
             _log = log;

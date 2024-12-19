@@ -269,6 +269,9 @@ namespace DentalManagement.Web.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("PrescriptionId")
+                        .HasColumnType("int");
+
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
@@ -300,6 +303,9 @@ namespace DentalManagement.Web.Migrations
 
                     b.Property<decimal>("Discount")
                         .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("PrescriptionId")
+                        .HasColumnType("int");
 
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
@@ -339,10 +345,6 @@ namespace DentalManagement.Web.Migrations
                         .IsRequired()
                         .HasColumnType("int");
 
-                    b.Property<string>("DescriptionStatus")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("Diagnosis")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -354,8 +356,7 @@ namespace DentalManagement.Web.Migrations
                         .IsRequired()
                         .HasColumnType("int");
 
-                    b.Property<int?>("ServiceId")
-                        .IsRequired()
+                    b.Property<int>("Status")
                         .HasColumnType("int");
 
                     b.Property<string>("Symptoms")
@@ -381,8 +382,6 @@ namespace DentalManagement.Web.Migrations
                     b.HasIndex("DentistId");
 
                     b.HasIndex("PatientId");
-
-                    b.HasIndex("ServiceId");
 
                     b.ToTable("MedicalRecords", (string)null);
                 });
@@ -663,11 +662,11 @@ namespace DentalManagement.Web.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<decimal>("MedicinePrice")
-                        .HasColumnType("decimal(18,2)");
-
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
+
+                    b.Property<decimal>("SalePrice")
+                        .HasColumnType("decimal(18,2)");
 
                     b.HasKey("PrescriptionId", "MedicineId");
 
@@ -829,16 +828,9 @@ namespace DentalManagement.Web.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("DentalManagement.DomainModels.Service", "Service")
-                        .WithMany("MedicalRecords")
-                        .HasForeignKey("ServiceId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.Navigation("Dentist");
 
                     b.Navigation("Patient");
-
-                    b.Navigation("Service");
                 });
 
             modelBuilder.Entity("DentalManagement.DomainModels.Payment", b =>
@@ -878,15 +870,13 @@ namespace DentalManagement.Web.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("DentalManagement.DomainModels.Prescription", "Prescription")
+                    b.HasOne("DentalManagement.DomainModels.Prescription", null)
                         .WithMany("PrescriptionDetails")
                         .HasForeignKey("PrescriptionId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Medicine");
-
-                    b.Navigation("Prescription");
                 });
 
             modelBuilder.Entity("DentalManagement.DomainModels.Dentist", b =>

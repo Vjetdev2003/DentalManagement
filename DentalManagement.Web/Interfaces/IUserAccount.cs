@@ -7,5 +7,6 @@ namespace DentalManagement.Web.Interfaces
         Task<UserAccount?> Authorize(string userName, string password);
         Task<bool> ChangePassword(string userName, string oldPassword, string newPassword);
         Task<bool> Register(string userName, string password, string email);
+        Task<bool>CheckEmailExists( string email);
     }
 }

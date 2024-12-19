@@ -6,12 +6,12 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace DentalManagement.Web.Migrations
 {
     /// <inheritdoc />
-    public partial class Delete : Migration
+    public partial class Add : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            
+          
         }
 
         /// <inheritdoc />

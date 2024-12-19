@@ -27,7 +27,7 @@ namespace DentalManagement.Web.Controllers
         public async Task<IActionResult> Index()
         {
             
-            // Kiểm tra nếu cookie có chứa UserRoles
+           
             var userData = User.GetUserData();
             if (userData == null)
             {
@@ -94,7 +94,7 @@ namespace DentalManagement.Web.Controllers
                 return RedirectToAction("Index");
             }
 
-            // Nếu model không hợp lệ, trả về view với model hiện tại để hiển thị thông báo lỗi
+            
             return View(model);
         }
         public  IActionResult Detail(int id)
@@ -155,14 +155,14 @@ namespace DentalManagement.Web.Controllers
                 data.PatientDOB = birthDate.Value;
             var userData = User.GetUserData();
           
-            // Lưu thông tin ngày tạo, ngày cập nhật và người tạo/cập nhật
-            if (data.PatientId == 0) // Nếu là nhân viên mới
+           
+            if (data.PatientId == 0) 
             {
-                data.DateCreated = DateTime.Now; // Thời gian tạo
-                data.UserIdCreate = userData.UserId; // Người tạo
+                data.DateCreated = DateTime.Now; 
+                data.UserIdCreate = userData.UserId; 
             }
-            data.DateUpdated = DateTime.Now; // Cập nhật thời gian
-            data.UserIdUpdated = User.Identity?.Name; // Người cập nhật
+            data.DateUpdated = DateTime.Now; 
+            data.UserIdUpdated = User.Identity?.Name; 
             if (!ModelState.IsValid)
             {
                 return View("Edit", data);

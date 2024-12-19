@@ -3,12 +3,13 @@
 @{
     var userData = User.GetUserData();
     ViewData["Title"] = "Trang chủ";
-    if (userData.Roles.Contains("patient"))
+    if (userData.Roles.Contains("admin") || userData.Roles.Contains("employee") || userData.Roles.Contains("dentist"))
     {
-        Layout = "_Home";
+        
     }
     else
     {
+        Layout = "_Home";
     }
     var successMessage = TempData["SuccessMessage"];
     var errorMessage = TempData["ErrorMessage"];
@@ -19,52 +20,7 @@
     
     if (userData.Roles.Contains("patient"))
     {
-            <button id="chatButton">💬</button>
-
-    <!-- Cửa sổ chat -->
-            <div id="chatWindow">
-                <div class="text-center text-white " style="background:rgb(0, 95, 157); padding-bottom:20px; border-radius:0px 0px 20px 20px; padding:20px 24px; padding-bottom:52px;">
-                    <h1 class="pkcp-popup-setup-header-logo">
-                        <img src="Themes/bg.ico" alt="VietClinic" width="60" height="60">
-                        <div id="closeChatButton" class="button-plugin" style="width: 38px; height: 38px;">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-                                <path d="M21 12C21 12.1989 20.921 12.3897 20.7803 12.5303C20.6397 12.671 20.4489 12.75 20.25 12.75H3.75C3.55109 12.75 3.36032 12.671 3.21967 12.5303C3.07902 12.3897 3 12.1989 3 12C3 11.8011 3.07902 11.6103 3.21967 11.4697C3.36032 11.329 3.55109 11.25 3.75 11.25H20.25C20.4489 11.25 20.6397 11.329 20.7803 11.4697C20.921 11.6103 21 11.8011 21 12Z" fill="#FFFFFF"></path>
-                            </svg>
-                        </div>
-                    </h1>
-                <h2 class=" text-start fs-5">Liên hệ trực tuyến</h2>
-                <h3 class="text-start fs-6">👋 Nha Khoa VietClinic xin hân hạnh phục vụ Quý khách. Vui lòng cung cấp Tên & Số điện thoại để bắt đầu chat. Hoặc cần tư vấn qua hotline, vui lòng liên hệ: 0879345947</h3>
-                </div>
-                <div id="chatMessages" class="pkcp-popup-setup-container">
-                    <form id="pkcp-popup-setup" class="pkcp-popup-setup">
-                        <div class="virtual-scroll-area">
-                            <div class="scroll-area virtual-scroll">
-                                <div class="pkcp-popup-setup-info">
-                                    <div class="pkcp-popup-setup-info-field">
-                                        <input name="name" placeholder="Tên của bạn" required class="pkcp-base-input" value fdprocessedid="ntwxmk" />
-                                    </div>
-                                    <div class="pkcp-popup-setup-info-field">
-                                        <input name="phone" placeholder="Số điện thoại của bạn* " required class="pkcp-base-input" pattern="\d*" value fdprocessedid="mx6tk" />
-                                    </div>
-                                </div>
-                                <div class="pkcp-popup-setup-info-field setup-send-message" style="min-height: max(100% - 147px, 82px);">
-                                    <span class="pkcp-popup-setup-info-field-label">Tin nhắn<span style=" color: rgb(207, 19, 34);">*</span></span>
-                                    <textarea class="pkcp-base-input setup-message-area" name="message" required placeholder="Nhập tin nhắn của bạn*"></textarea>
-                                </div>
-                            </div>
-                        </div>
-
-                    </form>
-
-                </div>
-                <div class="pkcp-popup-setup-footer">
-                    <button id="submitRequest" type="button" class="pkcp-popup-setup-submit" fdprocessedid="a00mmq">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 256 256" fill="none">
-                            <path d="M231.4,44.34s0,.1,0,.15l-58.2,191.94a15.88,15.88,0,0,1-14,11.51q-.69.06-1.38.06a15.86,15.86,0,0,1-14.42-9.15L107,164.15a4,4,0,0,1,.77-4.58l57.92-57.92a8,8,0,0,0-11.31-11.31L96.43,148.26a4,4,0,0,1-4.58.77L17.08,112.64a16,16,0,0,1,2.49-29.8l191.94-58.2.15,0A16,16,0,0,1,231.4,44.34Z" fill="#FFFFFF" ></path>
-                        </svg>Gửi Tin Nhắn
-                    </button>
-                </div>
-            </div>
+           
             <div class="hero-section">
                 <div class="row">
                     <div class="col-md-6 d-flex flex-column justify-content-center">
@@ -99,6 +55,7 @@
                 </div>
                 <div class="text-center pt-3 ">
                     <button id="next-button" class="btn btn-secondary" onclick="showNextServices()">Xem Thêm</button>
+                <button id="collapse-button" class="btn btn-secondary" onclick="toggleCollapse()">Thu Gọn</button>
                 </div>
             </div>
     @if (userData.Roles.Contains("patient") || userData.Roles.Contains(""))
@@ -124,7 +81,6 @@
                         }
 
                         <form id="appointmentForm" action="/Appointment/Submit" method="post" class="w-75 mx-auto pb-3">
-                            <input type="hidden" id="serviceId" name="serviceId" />
                             <div id="appointmentMessage" class="alert alert-info text-center " style="display: none; font-size: 20px"></div>
                             <div class="row">
                                 <!-- Tên bệnh nhân -->
@@ -151,7 +107,7 @@
                                 <!-- Dịch vụ -->
                                 <div class="col-md-6 mb-3">
                                     <label for="service" class="form-label">Dịch Vụ</label>
-                                    <select class="form-select form-select-sm" id="serviceId" required>
+                                    <select class="form-select form-select-sm" id="service" name="ServiceID" required>
                                         <option value="">Chọn dịch vụ</option>
                                         @foreach (var service in ViewBag.ServiceList as List<SelectListItem>)
                                         {
@@ -164,8 +120,9 @@
                                 <div class="col-md-6 mb-3">
                                     <label for="dentistName">Tên bác sĩ:</label>
                                     <input type="text" id="dentistName" name="DentistName" class="form-control" placeholder="Nhập tên bác sĩ">
+                                    <input type="hidden" id="dentistId" name="DentistId">
                                 </div>
-
+            
                                 <!-- Ngày hẹn -->
                                 <div class="col-md-6 mb-3">
                                     <label for="appointmentDate" class="form-label">Ngày Hẹn</label>
@@ -238,17 +195,25 @@
                                     $('#appointmentMessage').removeClass('text-danger').addClass('text-success');
                                     $('#appointmentForm')[0].reset();
                                 } else if (response.message) {
-                                    // Hiển thị thông báo nếu lịch trùng
+                                    // Hiển thị thông báo nếu kín lịch
                                     $('#appointmentMessage').css('display', 'block');
                                     $('#appointmentMessage').html(response.message);
                                     $('#appointmentMessage').removeClass('text-success').addClass('text-danger');
 
-                                    // Hiển thị các khung giờ trống thay thế
+                                    // Nếu response trả về mảng availableSlots (khung giờ còn trống)
                                     if (response.availableSlots && response.availableSlots.length > 0) {
                                         var slotSuggestions = '<ul>';
-                                        response.availableSlots.forEach(function (slot) {
-                                            slotSuggestions += `<li>Khung giờ: ${slot}</li>`;
+
+                                        // Lọc ra những khung giờ đã kín
+                                        var bookedSlots = allSlots.filter(function (slot) {
+                                            return !response.availableSlots.includes(slot);
                                         });
+
+                                        // Hiển thị khung giờ đã kín
+                                        bookedSlots.forEach(function (slot) {
+                                            slotSuggestions += `<li>Khung giờ đã kín: ${slot}</li>`;
+                                        });
+
                                         slotSuggestions += '</ul>';
                                         $('#appointmentMessage').append(slotSuggestions);
                                     }
@@ -341,12 +306,7 @@
         @TempData["SuccessMessage"]
     </div>
 }
-<script src="/js/signalr/dist/browser/signalr.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.0/signalr.min.js"></script>
 
-<!-- Chat.js -->
-<script src="/js/chat.js?v=4.0"></script>
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
     $("#submitAppointment").on("click", function () {
         console.log("Button clicked!"); // Kiểm tra nút đã click
@@ -367,30 +327,43 @@
             }
         });
     });
-    
-    let currentIndex = 3; 
-    const totalServices = document.querySelectorAll('.service-card').length; 
+
+    let serviceIndex = 3; // Số lượng card dịch vụ ban đầu hiển thị
+    const services = document.querySelectorAll('.service-card');
+    const showMoreButton = document.getElementById('next-button');
+    const collapseButton = document.getElementById('collapse-button');
 
     function showNextServices() {
-        const services = document.querySelectorAll('.service-card');
+        for (let i = serviceIndex; i < serviceIndex + 3 && i < services.length; i++) {
+            services[i].style.display = 'block'; // Hiển thị 3 dịch vụ tiếp theo
+        }
+        serviceIndex += 3;
 
-        // Display the next 3 services
-        for (let i = currentIndex; i < currentIndex + 3 && i < totalServices; i++) {
-            services[i].style.display = 'block';
+        // Ẩn nút 'Xem Thêm' nếu hiển thị hết
+        if (serviceIndex >= services.length) {
+            showMoreButton.style.display = 'none';
         }
 
-        // Update the current index to the next set of services
-        currentIndex += 3;
-
-        // Hide the "Next" button if all services have been shown
-        if (currentIndex >= totalServices) {
-            document.getElementById('next-button').style.display = 'none';
-        }
+        // Hiển thị nút 'Thu Gọn'
+        collapseButton.style.display = 'inline-block';
     }
-   
+
+    // Thu gọn danh sách
+    function toggleCollapse() {
+        for (let i = 3; i < services.length; i++) {
+            services[i].style.display = 'none'; // Ẩn tất cả dịch vụ sau cái thứ 3
+        }
+        serviceIndex = 3;
+
+        // Hiển thị nút 'Xem Thêm' lại
+        showMoreButton.style.display = 'inline-block';
+
+        // Ẩn nút 'Thu Gọn'
+        collapseButton.style.display = 'none';
+    }
     flatpickr("#appointmentDate", {
         dateFormat: "d-M-Y", 
     });
-
+   
 </script>
 

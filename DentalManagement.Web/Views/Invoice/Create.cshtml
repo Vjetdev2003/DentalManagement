@@ -35,11 +35,23 @@
                 <div class="form-group">
                     <label class="control-label col-sm-2 ">Bệnh nhân:</label>
                     <div class="col-sm-6">
-                        <select id="patientSelect" name="PatientId" class="form-control" required>
+                        <select id="patientSelect" name="PatientId" class="form-control select2" required>
                             <option value="">Chọn bệnh nhân</option>
                             @foreach (var patient in ViewBag.PatientList as List<SelectListItem>)
                             {
                                 <option value="@patient.Value">@patient.Text</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="control-label col-sm-2 ">Mã đơn thuốc:</label>
+                    <div class="col-sm-6">
+                        <select id="prescriptionSelect" name="PrescriptionId" class="form-control select2" optional>
+                            <option value="0">Chọn mã đơn thuốc</option>
+                            @foreach (var pres in ViewBag.Prescription as List<SelectListItem>)
+                            {
+                                <option value="@pres.Value">@pres.Text</option>
                             }
                         </select>
                     </div>
@@ -63,6 +75,49 @@
 
 @section scripts {
     <script>
+            // $(document).ready(function () {
+            //     // Sự kiện khi thay đổi bệnh nhân
+            //     $('#patientSelect').change(function () {
+            //         const patientId = $(this).val();
+
+            //         if (patientId) {
+            //             // Gửi AJAX để lấy đơn thuốc mới nhất
+            //             $.ajax({
+            //                 url: `/Invoice/GetLatestPrescriptionByPatientId?patientId=${patientId}`,
+            //                 type: "GET",
+            //                 success: function (response) {
+            //                     if (response.success) {
+            //                         const latestPrescription = response.data;
+
+            //                         // Thêm đơn thuốc mới nhất vào dropdown
+            //                         $('#prescriptionSelect').html(`
+            //                             <option value="${latestPrescription.Id}" selected>
+            //                                 ${latestPrescription.PrescriptionCode}
+            //                             </option>
+            //                         `);
+
+            //                         // Hiển thị thông báo (nếu cần)
+            //                         $("#invoiceInitMessage").text("Đơn thuốc mới nhất đã được chọn tự động.");
+            //                     } else {
+            //                         // Nếu không có đơn thuốc
+            //                         $('#prescriptionSelect').html(`
+            //                             <option value="">Không tìm thấy đơn thuốc</option>
+            //                         `);
+            //                         $("#invoiceInitMessage").text(response.message);
+            //                     }
+            //                 },
+            //                 error: function () {
+            //                     alert("Lỗi khi tải đơn thuốc. Vui lòng thử lại!");
+            //                 }
+            //             });
+            //         } else {
+            //             // Xóa đơn thuốc nếu không có bệnh nhân được chọn
+            //             $('#prescriptionSelect').html(`
+            //                 <option value="">Chọn mã đơn thuốc</option>
+            //             `);
+            //         }
+            //     });
+            // });
         $(document).ready(function () {
             // Load treatment voucher items on page load
             showTreatmentVoucher();

@@ -16,7 +16,7 @@ namespace DentalManagement.Web.Controllers
         private readonly IRepository<Medicine> _medicineRepository;
         private const int PAGE_SIZE = 9;
         private const string SEARCH_CONDITION = "medicine_search";
-        public MedicineController(DentalManagementDbContext dentalManagementDbContext,IRepository<Medicine> medicineRepository)
+        public MedicineController(DentalManagementDbContext dentalManagementDbContext, IRepository<Medicine> medicineRepository)
         {
             _medicineRepository = medicineRepository;
             _dentalManagementDbContext = dentalManagementDbContext;
@@ -61,8 +61,9 @@ namespace DentalManagement.Web.Controllers
                 ApplicationContext.SetSessionData(SEARCH_CONDITION, input);
                 return View(model);
             }
-            catch (Exception ex) { 
-            return View(ex.Message);
+            catch (Exception ex)
+            {
+                return View(ex.Message);
             }
         }
         public async Task<IActionResult> Create()
@@ -96,7 +97,7 @@ namespace DentalManagement.Web.Controllers
             return View(medicine);
         }
         [HttpPost]
-        public async Task<IActionResult> Save(Medicine data,IFormFile uploadPhoto)
+        public async Task<IActionResult> Save(Medicine data, IFormFile uploadPhoto)
         {
             ViewBag.Title = data.MedicineId == 0 ? "Bổ sung thuốc" : "Cập nhật thông tin thuốc";
             if (string.IsNullOrEmpty(data.MedicineName))
@@ -113,15 +114,14 @@ namespace DentalManagement.Web.Controllers
             {
                 ModelState.AddModelError(nameof(data.Price), "Giá không được để trống và phải lớn hơn 0.");
             }
-            data.Usage = "";
-            // Lưu thông tin ngày tạo, ngày cập nhật và người tạo/cập nhật
-            if (data.MedicineId == 0) // Nếu là nhân viên mới
+
+            if (data.MedicineId == 0)
             {
-                data.DateCreated = DateTime.Now; // Thời gian tạo
-                data.UserIdCreate = User.Identity?.Name; // Người tạo
+                data.DateCreated = DateTime.Now;
+                data.UserIdCreate = User.Identity?.Name;
             }
-            data.DateUpdated = DateTime.Now; // Cập nhật thời gian
-            data.UserIdUpdated = User.Identity?.Name; // Người cập nhật
+            data.DateUpdated = DateTime.Now;
+            data.UserIdUpdated = User.Identity?.Name;
 
             if (uploadPhoto != null)
             {
@@ -143,7 +143,7 @@ namespace DentalManagement.Web.Controllers
 
             if (data.MedicineId == 0)
             {
-                await  _medicineRepository.AddAsync(data);
+                await _medicineRepository.AddAsync(data);
             }
             else
             {

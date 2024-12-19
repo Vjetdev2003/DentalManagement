@@ -1,58 +1,258 @@
 ﻿@model DentalManagement.Web.Models.PrescriptionDetailModel
+
 @{
     var userData = User.GetUserData();
     if (userData.Roles.Contains("patient"))
     {
         Layout = "_Home";
     }
+    else
+    {
+        
+    }
     ViewBag.Title = "Chi tiết đơn thuốc";
 }
-<div class="container">
-    <div class="header text-center">
-        <h2 class="font-weight-bold">Nha sĩ : @Model.Dentists?.DentistName</h2>
-        <p>Địa chỉ: 26 Lương Văn Can - An Cựu - TP.Huế</p>
-        <p>Phone: 0879 345 947</p>
-    </div>
+@if (userData.Roles.Contains("patient"))
+{
+    <div class="container my-4 ">
+        <div class="d-flex justify-content-end">
+            <a onclick="goBack()" class="btn btn-info mb-3">Quay lại</a>
+            <a class="btn btn-success mb-3" href="@Url.Action("PrintPrescription", "Prescription", new { id = Model.Prescriptions.PrescriptionId })" target="_blank">
+               In Đơn Thuốc
+            </a>
+        </div>
+        <div class="text-center fs-3"><strong>Chi tiết đơn thuốc</strong></div>
+        <div class="card-custom mb-4">
+            <div class="card-body">
+                <div class="row mb-3">
+                    <h4>Thông tin bệnh nhân</h4>
+                    <div class="col-md-4">
+                        <label for="patientName" class="form-label">Họ tên bệnh nhân</label>
+                        <input type="text" class="form-control" id="patientName" value="@Model.Patients?.PatientName" readonly />
+                    </div>
+                    <div class="col-md-4">
+                        <label for="patientDOB" class="form-label">Năm Sinh</label>
+                        <input type="text" class="form-control" id="patientDOB" value="@Model.Patients?.PatientDOB.ToString("yyyy")" readonly />
+                    </div>
+                    <div class="col-md-4">
+                        <label for="gender" class="form-label">Giới tính</label>
+                        @if (Model.Patients?.Gender == true)
+                        {
+                            <input type="text" class="form-control" id="gender" value="Nam" readonly />
+                        }
+                        else if (Model.Patients?.Gender == false)
+                        {
+                            <input type="text" class="form-control" id="gender" value="Nữ" readonly />
+                        }
+                        else
+                        {
+                            <input type="text" class="form-control" id="gender" value="Chưa có thông tin" readonly />
+                        }
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label for="phone" class="form-label">Phone</label>
+                        <input type="text" class="form-control" id="phone" value="@Model.Patients?.Phone" readonly />
+                    </div>
+                    <div class="col-md-4">
+                        <label for="address" class="form-label">Địa chỉ</label>
+                        <input type="text" class="form-control" id="address" value="@Model.Patients?.Address" readonly />
+                    </div>
+                    <div class="col-md-4">
+                        <label for="diagnosis" class="form-label">Chẩn đoán</label>
+                        <input type="text" class="form-control" id="diagnosis" value="@Model.Prescriptions.Diagnosis" readonly />
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label for="phone" class="form-label">Tần suất</label>
+                        <input type="text" class="form-control" id="phone" value="@Model.Prescriptions.Frequency" readonly />
+                    </div>
+                    <div class="col-md-4">
+                        <label for="phone" class="form-label">Liều lượng</label>
+                        <input type="text" class="form-control" id="phone" value="@Model.Prescriptions.Dosage" readonly />
+                    </div>
+                    <div class="col-md-4">
+                        <label for="phone" class="form-label">Trong thời gian</label>
+                        <input type="text" class="form-control" id="phone" value="@Model.Prescriptions.Duration" readonly />
+                    </div>
+                </div>
+            </div>
+        </div>
 
-    <div class="sub-header text-center my-4">
-        <h3 class="text-uppercase font-weight-bold text-decoration-underline">Toa Thuốc</h3>
-    </div>
 
-    <div class="info mb-4">
-        <p><strong>Họ tên bệnh nhân:</strong> @Model.Patients?.PatientName</p>
-        <p><strong>Giới tính:</strong> @Model.Patients?.Gender</p>
-        <p><strong>Năm sinh:</strong> @Model.Patients?.PatientDOB</p>
-        <p><strong>Địa chỉ:</strong> @Model.Patients?.Address</p>
-        <p><strong>Chẩn đoán:</strong> @Model.Prescriptions?.Diagnosis</p>
-    </div>
+        <!-- Prescription Details Table -->
+        <div class="table-responsive mb-4">
+            <h4>Danh sách thuốc</h4>
+            <table class="table table-bordered table-striped text-center">
+                <thead class="table-primary">
+                    <tr>
+                        <th>STT</th>
+                        <th>Tên thuốc</th>
+                        <th>Số lượng</th>
+                        <th>Đơn giá</th>
+                        <th>Thành tiền</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Details?.Any() == true)
+                    {
+                        @for (int i = 0; i < Model.Details.Count; i++)
+                        {
+                            var item = Model.Details.ElementAt(i);
+                            <tr>
+                                <td>@(i + 1)</td>
+                                <td>@item.MedicineName</td>
+                                <td>@item.Quantity</td>
+                                <td>@String.Format("{0:#,##0 VNĐ}", item.SalePrice)</td>
+                                <td>@String.Format("{0:#,##0 VNĐ}", item.TotalPrice)</td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="5">Không có dữ liệu.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <!-- Header Section -->
+        <!-- Footer Section -->
+        <div class="card-custom mb-4">
+            <div class="card-body-custom text-center">
+                <p class="text-muted"><i class="fas fa-map-marker-alt"></i> <strong>Địa chỉ: </strong>26 Lương Văn Can - An Cựu - TP.Huế</p>
+                <p class="text-muted"><i class="fas fa-phone-alt"></i> <strong>Phone:</strong> 0879 345 947</p>
+                <p><strong>Ngày lập đơn thuốc:</strong> @Model.Prescriptions?.DateCreated.ToString("dd/MM/yyyy")</p>
+                <p><strong>Nha sĩ:</strong> @Model.Dentists?.DentistName</p>
+            </div>
+        </div>
 
-    <table class="table table-bordered table-striped text-center">
-        <thead class="thead-light">
-            <tr>
-                <th>STT</th>
-                <th>Tên thuốc</th>
-                <th>Số lượng</th>
-                <th>Đơn giá</th>
-                <th>Thành tiền</th>
-            </tr>
-        </thead>
-        <tbody>
-            @for (int i = 0; i < Model.Details.Count; i++)
-            {
-                var item = Model.Details.ElementAt(i);
+    </div>
+    <style>
+        .mb-4{
+            margin-left:20px;
+        }
+    </style>
+    
+
+    <script>
+        function goBack(){
+        if (document.referrer) {
+            window.location.href = document.referrer;
+        } else {
+            window.location.href = '@Url.Action("Index", "Home")';
+        }
+    }
+</script>
+
+
+
+}
+else
+{
+    <div class="container my-4">
+        <div class="box-header text-right">
+            <a href="@Url.Action("PrintPrescription", "Prescription", new { id = Model.Prescriptions.PrescriptionId })" target="_blank">
+                <i class="btn btn-primary">In Đơn Thuốc</i>
+            </a>
+            <a href="~/Prescription" class="btn btn-sm btn-info">Quay lại</a>
+            <a href="@Url.Action("Delete", "Prescription", new { id = Model.Prescriptions.PrescriptionId })"
+               class="btn btn-sm btn-danger"
+               onclick="return confirm('Có chắc chắn muốn xóa đơn thuốc này không?')">
+                <i class="fa fa-trash"></i> Xóa đơn thuốc
+            </a>
+        </div>
+
+        <!-- Header Section -->
+        <div class="card shadow">
+            <div class="card-body text-center">
+                <h2 class="fw-bold text-primary">Nha sĩ: @Model.Dentists?.DentistName</h2>
+                <p class="text-muted"><i class="fas fa-map-marker-alt"></i> Địa chỉ: 26 Lương Văn Can - An Cựu - TP.Huế</p>
+                <p class="text-muted"><i class="fas fa-phone-alt"></i> Phone: 0879 345 947</p>
+            </div>
+        </div>
+    </div>
+    <div class="box box-primary">
+        <div class=" box-body form-horizontal">
+            <div class="form-group">
+                <div class="box-body">
+                    <div class="form-group">
+                        <label class="col-sm-2">Họ tên bệnh nhân</label>
+                        <div class="col-sm-4">
+                            <p class="form-control">@Model.Patients?.PatientName</p>
+                        </div>
+                        <label class="col-sm-2">Năm Sinh</label>
+                        <div class="col-sm-4">
+                            <p class="form-control">@Model.Patients?.PatientDOB.ToString("yyyy")</p>
+                        </div>
+
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-2">Giới tính</label>
+                        <div class="col-sm-4">
+                            <p class="form-control">@Model.Patients?.Gender</p>
+                        </div> <label class="col-sm-2">Phone</label>
+                        <div class="col-sm-4">
+                            <p class="form-control">@Model.Patients?.Phone</p>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-2">Địa chỉ</label>
+                        <div class="col-sm-4">
+                            <p class="form-control">@Model.Patients?.Address</p>
+                        </div>
+                        <label class="col-sm-2">Chẩn đoán</label>
+                        <div class="col-sm-4">
+                            <p class="form-control">@Model.Prescriptions.Diagnosis</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped text-center">
+            <h4> Danh sách thuốc</h4>
+            <thead class="bg-primary">
                 <tr>
-                    <td>@(i + 1)</td>
-                    <td>@item.MedicineName</td>
-                    <td>@item.Quantity</td>
-                    <td>@String.Format("{0:#,##0 VNĐ}", item.MedicinePrice)</td>
-                    <td>@String.Format("{0:#,##0 VNĐ}", item.TotalMedicine)</td>
+                    <th>STT</th>
+                    <th>Tên thuốc</th>
+                    <th>Số lượng</th>
+                    <th>Đơn giá</th>
+                    <th>Thành tiền</th>
                 </tr>
-            }
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                @if (Model.Details?.Any() == true)
+                {
+                    @for (int i = 0; i < Model.Details.Count; i++)
+                    {
+                        var item = Model.Details.ElementAt(i);
+                        <tr>
+                            <td>@(i + 1)</td>
+                            <td>@item.MedicineName</td>
+                            <td>@item.Quantity</td>
+                            <td>@String.Format("{0:#,##0 VNĐ}", item.SalePrice)</td>
+                            <td>@String.Format("{0:#,##0 VNĐ}", item.TotalPrice)</td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="5">Không có dữ liệu.</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
 
-    <div class="footer text-right mt-4">
-        <p><strong>Ngày:</strong> @Model.Prescriptions?.DateCreated.ToString("dd/MM/yyyy")</p>
-        <p><strong>BS:</strong> @Model.Dentists?.DentistName</p>
+        <div class="footer text-right mt-4">
+            <p><strong>Ngày lập đơn thuốc:</strong> @Model.Prescriptions?.DateCreated.ToString("dd/MM/yyyy")</p>
+            <p><strong>Nha sĩ:</strong> @Model.Dentists?.DentistName</p>
+        </div>
     </div>
-</div>
+
+}

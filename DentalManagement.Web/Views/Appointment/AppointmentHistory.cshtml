@@ -8,60 +8,62 @@
     {
         <div class="custom-card shadow">
             <div class="custom-card-header bg-primary text-white">
-                <h4>Lịch sử lịch hẹn</h4>
-           
-            <div class="custom-card-body">
-                <table class="custom-table table table-striped align-middle">
-                    <thead class="table-dark">
-                        <tr>
-                            <th scope="col">Mã lịch hẹn</th>
-                            <th scope="col">Tên bệnh nhân</th>
-                            <th scope="col">Ngày hẹn</th>
-                            <th scope="col">Khoảng thời gian</th>
-                            <th scope="col">Tình trạng</th>
-                            <th scope="col">Ghi chú</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var appointment in Model.Appointments)
-                        {
-                            <tr>
-                                <td>@appointment.AppointmentId</td>
-                                <td>@appointment.PatientName</td>
-                                <td>@appointment.AppointmentDate?.ToString("dd/MM/yyyy")</td>
-                                <td>@appointment.StartTime - @appointment.EndTime</td>
-                                <td>
-                                    @if (appointment.Status == 1)
-                                    {
-                                        <span class="text-success"><i class="fa fa-clock"></i> @appointment.StatusDescription</span>
-                                    }
-                                    else if (appointment.Status == 2)
-                                    {
-                                        <span class="text-success"><i class="fa fa-clock"></i> @appointment.StatusDescription</span>
-                                    }
-                                    else if (appointment.Status == 3)
-                                    {
-                                        <span class="text-success"><i class="fa fa-clock"></i> @appointment.StatusDescription</span>
+                <h4>Lịch sử đặt lịch</h4>
 
-                                    }
-                                    else if (appointment.Status == 4)
-                                    {
-                                        <span class="text-success">
-                                            <i class="fa fa-check-circle"></i> @appointment.StatusDescription
-                                        </span>
-                                    }
-                                    else{
-                                    <span class="text-danger"><i class="fa fa-clock"></i> @appointment.StatusDescription
-                                        </span> 
-                                    }
-                                    </td>
-                                <td>@appointment.Notes</td>
+                <div class="custom-card-body">
+                    <table class="custom-table table table-striped align-middle">
+                        <thead class="table-dark">
+                            <tr>
+                                <th scope="col">Mã lịch hẹn</th>
+                                <th scope="col">Tên bệnh nhân</th>
+                                <th scope="col">Ngày hẹn</th>
+                                <th scope="col">Khoảng thời gian</th>
+                                <th scope="col">Tình trạng</th>
+                                <th scope="col">Ghi chú</th>
                             </tr>
-                        }
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            @foreach (var appointment in Model.Appointments)
+                            {
+                                <tr>
+                                    <td>@appointment.AppointmentId</td>
+                                    <td>@appointment.PatientName</td>
+                                    <td>@appointment.AppointmentDate?.ToString("dd/MM/yyyy")</td>
+                                    <td>@appointment.StartTime - @appointment.EndTime</td>
+                                    <td>
+                                        @if (appointment.Status == 1)
+                                        {
+                                            <span class="text-warning"><i class="fa fa-spinner fa-spin"></i> @appointment.StatusDescription</span>
+                                        }
+                                        else if (appointment.Status == 2)
+                                        {
+                                            <span class="text-success"><i class="fa fa-clock"></i> @appointment.StatusDescription</span>
+                                        }
+                                        else if (appointment.Status == 3)
+                                        {
+                                            <span class="text-success"><i class="fa fa-clock"></i> @appointment.StatusDescription</span>
+
+                                        }
+                                        else if (appointment.Status == 4)
+                                        {
+                                            <span class="text-success">
+                                                <i class="fa fa-check-circle"></i> @appointment.StatusDescription
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-danger">
+                                                <i class="fa fa-clock"></i> @appointment.StatusDescription
+                                            </span>
+                                        }
+                                    </td>
+                                    <td>@appointment.Notes</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
             </div>
-        </div>
         </div>
     }
     else
@@ -70,4 +72,18 @@
             <i class="fa fa-info-circle"></i> Không có lịch sử lịch hẹn nào.
         </div>
     }
+    <div class="text-end mt-3">
+        <button class="btn btn-secondary" onclick="goBack()">
+            <i class="fa fa-arrow-left"></i> Quay lại
+        </button>
+    </div>
 </div>
+<script>
+    function goBack() {
+        if (document.referrer) {
+            window.location.href = document.referrer;
+        } else {
+            window.location.href = '@Url.Action("Index", "Home")'; // Fallback to home page
+        }
+    }
+</script>

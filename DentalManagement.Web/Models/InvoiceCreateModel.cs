@@ -10,6 +10,7 @@ namespace DentalManagement.Web.Models
         public int InvoiceId { get; set; }
         [Required]
         public int ServiceId { get; set; }
+        public int PrescriptionId {  get; set; }
         public string ServiceName {  get; set; }
         public int Quantity { get; set; }
         public decimal SalePrice { get; set; } = 0;

@@ -66,7 +66,7 @@ namespace DentalManagement.Web.Controllers
                 PageSize = input.PageSize,
                 SearchValue = input.SearchValue ?? "",
                 RowCount = rowCount,
-                Services = data // Đây sẽ không null
+                Services = data 
             };
 
             ApplicationContext.SetSessionData(SEARCH_CONDITION, input);
@@ -86,13 +86,11 @@ namespace DentalManagement.Web.Controllers
         {
             if (ModelState.IsValid)
             {
-                // Lưu nhân viên vào cơ sở dữ liệu
+               
                 await _serviceRepository.AddAsync(model);
                 await _dentalManagementDbContext.SaveChangesAsync();
                 return RedirectToAction("Index");
             }
-
-            // Nếu model không hợp lệ, trả về view với model hiện tại để hiển thị thông báo lỗi
             return View(model);
         }
         public async Task<IActionResult> Edit(int id, Service model)
@@ -117,25 +115,25 @@ namespace DentalManagement.Web.Controllers
             {
                 ModelState.AddModelError(nameof(data.Price), "Giá không được để trống và phải lớn hơn 0.");
             }
-            // Lưu thông tin ngày tạo, ngày cập nhật và người tạo/cập nhật
-            if (data.ServiceId == 0) // Nếu là nhân viên mới
+            
+            if (data.ServiceId == 0) 
             {
-                data.DateCreated = DateTime.Now; // Thời gian tạo
-                data.UserIdCreate = User.Identity?.Name; // Người tạo
+                data.DateCreated = DateTime.Now; 
+                data.UserIdCreate = User.Identity?.Name;
             }
-            data.DateUpdated = DateTime.Now; // Cập nhật thời gian
-            data.UserIdUpdated = User.Identity?.Name; // Người cập nhật
+            data.DateUpdated = DateTime.Now; 
+            data.UserIdUpdated = User.Identity?.Name; 
             if (uploadPhoto != null)
             {
-                string fileName = $"{DateTime.Now.Ticks}_{uploadPhoto.FileName}"; // Tên file sẽ lưu
-                string folder = Path.Combine(ApplicationContext.WebRootPath, @"images\accounts"); // Đường dẫn đến thư mục lưu file
-                string filePath = Path.Combine(folder, fileName); // Đường dẫn đến file cần lưu
+                string fileName = $"{DateTime.Now.Ticks}_{uploadPhoto.FileName}"; 
+                string folder = Path.Combine(ApplicationContext.WebRootPath, @"images\accounts");
+                string filePath = Path.Combine(folder, fileName); 
 
                 using (var stream = new FileStream(filePath, FileMode.Create))
                 {
                     await uploadPhoto.CopyToAsync(stream);
                 }
-                data.Photo = fileName; // Lưu tên file ảnh vào thuộc tính Avatar
+                data.Photo = fileName; 
             }
             if (!ModelState.IsValid)
             {

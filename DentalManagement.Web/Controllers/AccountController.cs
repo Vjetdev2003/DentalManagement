@@ -130,6 +130,17 @@ namespace DentalManagement.Web.Controllers
         [HttpPost]
         public async Task<IActionResult> Register(string userName, string password, string confirmPassword, string email)
         {
+            bool emailExists = await _userAccountRepository.CheckEmailExists(email);
+            if (emailExists)
+            {
+                ViewBag.ErrorMessage = "Email này đã được đăng ký.";
+                return View();
+            }
+            if (password.Length < 8)
+            {
+                ViewBag.ErrorMessage = "Mật khẩu phải có ít nhất 8 ký tự.";
+                return View();
+            }
             if (password != confirmPassword)
             {
                 ViewBag.ErrorMessage = "Mật khẩu và xác nhận mật khẩu không khớp.";
@@ -139,13 +150,15 @@ namespace DentalManagement.Web.Controllers
             bool isRegistered = await _userAccountRepository.Register(userName, password, email);
             if (isRegistered)
             {
+
                 // Đăng ký thành công
-                return RedirectToAction("Login", "Account"); // Chuyển hướng đến trang đăng nhập
+                ViewBag.SuccessMessage = "Đăng ký thành công! Bạn có thể đăng nhập ngay bây giờ.";
+                return View();
             }
             else
             {
                 // Tên đăng nhập hoặc email đã tồn tại
-                ViewBag.ErrorMessage = "Tên đăng nhập hoặc email đã tồn tại.";
+                ViewBag.ErrorMessage = "Vui lòng nhập email chính xác.";
                 return View();
             }
         }

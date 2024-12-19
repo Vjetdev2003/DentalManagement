@@ -1,7 +1,5 @@
 ﻿using DentalManagement.DomainModels;
 using Microsoft.EntityFrameworkCore;
-using static Dapper.SqlMapper;
-
 namespace DentalManagement.Web.Data
 {
     public class DentalManagementDbContext : DbContext
@@ -59,13 +57,8 @@ namespace DentalManagement.Web.Data
             modelBuilder.Entity<MedicalRecord>()
      .HasKey(m => m.MedicalRecordId);
 
-            // Quan hệ với Service
             modelBuilder.Entity<MedicalRecord>()
-                .HasOne(m => m.Service)
-                .WithMany(s => s.MedicalRecords)
-                .HasForeignKey(m => m.ServiceId)
-                .IsRequired(false) // Cho phép null nếu MedicalRecord không bắt buộc phải có Service
-                .OnDelete(DeleteBehavior.Restrict); // Hạn chế xóa khi có MedicalRecords tham chiếu
+        .Ignore("ServiceId");
 
             // Quan hệ với Patient
             modelBuilder.Entity<MedicalRecord>()

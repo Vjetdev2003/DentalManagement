@@ -34,40 +34,40 @@
                        name="@nameof(Model.AppointmentDate)"
                        value="@Model.AppointmentDate.ToString("yyyy-MM-ddTHH:mm")" />
             </div>
+            <div class="form-group">
+                <label>Ghi chú</label>
+                <input type="text" class="form-control" name="@nameof(Model.Notes)" value="@Model.Notes" />
+            </div>
+            @if (Model.AppointmentId != 0) // Kiểm tra nếu không phải là tạo mới
+            {
                 <div class="form-group">
-                    <label>Ghi chú</label>
-                    <input type="text" class="form-control" name="@nameof(Model.Notes)" value="@Model.Notes" />
-                </div>
-                @if (Model.AppointmentId != 0) // Kiểm tra nếu không phải là tạo mới
-                {
-                    <div class="form-group">
-                        <label asp-for="Status">Trạng thái </label>
-                        <select class="form-control" name="@nameof(Model.Status)">
-                            @foreach (var item in SelectListHelper.GetStatusAppointment())
+                    <label asp-for="Status">Trạng thái </label>
+                    <select class="form-control" name="@nameof(Model.Status)">
+                        @foreach (var item in SelectListHelper.GetStatusAppointment())
+                        {
+                            if (Model.Status == int.Parse(item.Value))
                             {
-                                if (Model.Status == int.Parse(item.Value))
-                                {
-                                    <option value="@item.Value" selected>@item.Text</option>
-                                }
-                                else
-                                {
-                                    <option value="@item.Value">@item.Text</option>
-                                }
+                                <option value="@item.Value" selected>@item.Text</option>
                             }
+                            else
+                            {
+                                <option value="@item.Value">@item.Text</option>
+                            }
+                        }
 
-                        </select>
-                    </div>
-                }
+                    </select>
+                </div>
+            }
 
-                <div class="form-group text-right">
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fa fa-save "></i>
-                        Lưu giữ liệu
-                    </button>
+            <div class="form-group text-right">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fa fa-save "></i>
+                    Lưu giữ liệu
+                </button>
 
-                    <a href="~/Appointment" class="btn btn-primary">
-                        <i class="fa fa-chevron-left"></i> Quay lại
-                    </a>
+                <a href="~/Appointment" class="btn btn-primary">
+                    <i class="fa fa-chevron-left"></i> Quay lại
+                </a>
         </form>
     </div>
 </div>

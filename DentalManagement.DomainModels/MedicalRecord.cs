@@ -16,8 +16,6 @@ namespace DentalManagement.DomainModels
 
         [Required]
         public int? DentistId { get; set; }
-        [Required]
-        public int? ServiceId { get; set; }
         public string Diagnosis { get; set; } = string.Empty;//Chẩn đoán
         public string Treatment { get; set; } = string.Empty;//Phương pháp điều trị
         public DateTime? DateOfTreatment { get; set; } // Ngày bắt đầu điều trị
@@ -44,8 +42,6 @@ namespace DentalManagement.DomainModels
         public string Symptoms { get; set; } = string.Empty;//Triệu chứng
         public DateTime? NextAppointmentDate { get; set; } // Ngày hẹn tiếp
         public string TreatmentOutcome { get; set; } = string.Empty; //Kết quả điều trị 
-        
-        public virtual Service Service { get; set; }
         public virtual Dentist Dentist { get; set; }
         public virtual Patient Patient { get; set; }
         public DateTime DateCreated { get; set; }

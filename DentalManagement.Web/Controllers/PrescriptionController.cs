@@ -1,15 +1,21 @@
 ﻿using DentalManagement.DomainModels;
 using DentalManagement.Web.AppCodes;
 using DentalManagement.Web.Data;
+using DentalManagement.Web.History;
 using DentalManagement.Web.Interfaces;
 using DentalManagement.Web.Models;
 using DentalManagement.Web.Repository;
 using DocumentFormat.OpenXml.InkML;
+using iTextSharp.text.pdf;
+using iTextSharp.text.pdf;
+using System.IO;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
 using NuGet.Protocol.Core.Types;
+using iTextSharp.text;
 
 namespace DentalManagement.Web.Controllers
 {
@@ -24,8 +30,8 @@ namespace DentalManagement.Web.Controllers
         private const int PAGE_SIZE = 10;
         private string SEARCH_PRE = "prescription_search";
         private const string PRESCRIPTION_MEDICINE = "prescription_medicine";
-        public PrescriptionController(DentalManagementDbContext context,IRepository<Medicine> medicineRepo,
-            IRepository<Dentist> dentistRepo, IRepository<Patient> patientRepo,PrescriptionRepository prescriptionRepo, MedicalRecordRepository medicalRecordRepo)
+        public PrescriptionController(DentalManagementDbContext context, IRepository<Medicine> medicineRepo,
+            IRepository<Dentist> dentistRepo, IRepository<Patient> patientRepo, PrescriptionRepository prescriptionRepo, MedicalRecordRepository medicalRecordRepo)
         {
             _context = context;
             _medicineRepo = medicineRepo;
@@ -59,8 +65,8 @@ namespace DentalManagement.Web.Controllers
            .Where(e => string.IsNullOrEmpty(input.SearchValue))
            .CountAsync();
                 var data = await _context.Prescriptions
-                    .Include(p=>p.Patient)
-                    .Include(p=>p.Dentist)
+                    .Include(p => p.Patient)
+                    .Include(p => p.Dentist)
                     .Where(e => string.IsNullOrEmpty(input.SearchValue))
                     .Skip((input.Page - 1) * input.PageSize)
                     .Take(input.PageSize)
@@ -76,7 +82,7 @@ namespace DentalManagement.Web.Controllers
                 ApplicationContext.SetSessionData(SEARCH_PRE, input);
                 return View(model);
             }
-            catch (Exception ex) { 
+            catch (Exception ex) {
                 return View(ex);
             }
         }
@@ -114,7 +120,7 @@ namespace DentalManagement.Web.Controllers
 
                 return View(combinedModel);
             }
-            catch (Exception ex) { 
+            catch (Exception ex) {
                 return View(ex.Message);
             }
         }
@@ -167,7 +173,7 @@ namespace DentalManagement.Web.Controllers
         public async Task<IActionResult> AddToPrescription(PrescriptionMedicineViewModel data)
         {
 
-            if (data.MedicinePrice <=0 ||data.Quantity <= 0)
+            if (data.SalePrice <= 0 || data.Quantity <= 0)
                 return Json(" số lượng và giá không hợp lệ ");
             var prescription_medicine = GetMedicine();
             var existsMedicine = prescription_medicine.FirstOrDefault(p => p.MedicineId == data.MedicineId);
@@ -205,19 +211,18 @@ namespace DentalManagement.Web.Controllers
         {
             try
             {
-                // Khởi tạo các biến điều khiển trạng thái trên giao diện
+
                 ViewBag.IsFinish = false;
                 ViewBag.IsDelete = false;
-                ViewBag.IsEmployee = false;
-                ViewBag.IsUnPaid = false;
+
 
                 // Lấy dữ liệu người dùng hiện tại
                 var userData = User.GetUserData();
 
-                // Lấy thông tin hóa đơn từ repository
+
                 var pres = await _prescriptionRepo.GetByIdAsync(id);
-                var dentist = await _context.Dentists.SingleOrDefaultAsync(d=>d.DentistId == pres.DentistId);
-                var patient = await _context.Patients.SingleOrDefaultAsync(d=>d.PatientId == pres.PatientId);
+                var dentist = await _context.Dentists.SingleOrDefaultAsync(d => d.DentistId == pres.DentistId);
+                var patient = await _context.Patients.SingleOrDefaultAsync(d => d.PatientId == pres.PatientId);
                 var presDetails = await _context.Prescriptions
                        .Include(i => i.Patient)
                        .Include(i => i.Dentist)
@@ -233,17 +238,17 @@ namespace DentalManagement.Web.Controllers
                     return RedirectToAction("Index");
                 }
 
-                // Lấy danh sách chi tiết hóa đơn từ repository
 
-                var presDetailViewModel = presDetails.PrescriptionDetails?.Select(d => new PrescriptionMedicineViewModel
+
+                var presDetailViewModel = presDetails.PrescriptionDetails?.Select(d => new PrescriptionCreateModel
                 {
                     MedicineName = d.MedicineName,
                     Quantity = d.Quantity,
-                    MedicinePrice = d.MedicinePrice,
-                    TotalMedicine= d.TotalMedicine,
+                    SalePrice = d.SalePrice,
+                    TotalPrice = d.TotalMedicine,
 
                 }).ToList();
-                // Khởi tạo model để truyền dữ liệu cho view
+
                 var model = new PrescriptionDetailModel
                 {
                     Prescriptions = presDetails,
@@ -252,7 +257,7 @@ namespace DentalManagement.Web.Controllers
                     Patients = patient
                 };
 
-                // Truyền thông báo (nếu có) từ TempData
+
                 if (TempData["Message"] != null)
                 {
                     ViewBag.Message = TempData["Message"];
@@ -267,15 +272,16 @@ namespace DentalManagement.Web.Controllers
                 return BadRequest(ex);
             }
         }
+        [Authorize(Roles = WebUserRoles.Dentist)]
         public async Task<IActionResult> Init(int patientId, IEnumerable<PrescriptionMedicineViewModel> details, PrescriptionViewModel model)
         {
             try
             {
-                // Log thông tin đầu vào
+                
                 Console.WriteLine("Begin Init - Start");
                 Console.WriteLine($"PatientId: {patientId}");
 
-                // Kiểm tra giỏ hàng (treatment voucher)
+                
                 var prescription_medicine = GetMedicine();
                 Console.WriteLine($"Treatment Voucher Count: {prescription_medicine.Count}, Contents: {string.Join(", ", prescription_medicine.Select(t => t.MedicineId))}");
                 if (prescription_medicine.Count == 0)
@@ -284,7 +290,7 @@ namespace DentalManagement.Web.Controllers
                 if (patientId <= 0)
                     return BadRequest("Vui lòng nhập đầy đủ thông tin.");
 
-                // Lấy thông tin Dentist và Patient
+                
                 int dentistId = Convert.ToInt32(User.GetUserData()?.UserId);
                 var dentist = await _dentistRepo.GetByIdAsync(dentistId);
                 var patient = await _patientRepo.GetByIdAsync(patientId);
@@ -297,7 +303,7 @@ namespace DentalManagement.Web.Controllers
                 if (existingPatient == null)
                     throw new Exception($"Patient với ID = {patientId} không tồn tại.");
 
-                // Tạo một Prescription mới
+               
                 var prescription = new Prescription
                 {
                     DentistId = dentist.DentistId,
@@ -316,16 +322,16 @@ namespace DentalManagement.Web.Controllers
                 using var transaction = await _context.Database.BeginTransactionAsync();
                 try
                 {
-                    // Thêm Prescription
+                    
                     await _context.Prescriptions.AddAsync(prescription);
-                    await _context.SaveChangesAsync(); // Lưu ngay để lấy ID
+                    await _context.SaveChangesAsync(); 
 
                     Console.WriteLine($"Added Prescription - ID: {prescription.PrescriptionId}");
 
-                    // Lấy ID Prescription
+                    
                     int prescriptionId = prescription.PrescriptionId;
 
-                    // Thêm PrescriptionDetails
+                   
                     foreach (var item in prescription_medicine)
                     {
                         var prescriptionMedicine = new PrescriptionDetails
@@ -333,20 +339,21 @@ namespace DentalManagement.Web.Controllers
                             PrescriptionId = prescriptionId,
                             MedicineId = item.MedicineId,
                             MedicineName = item.MedicineName,
-                            MedicinePrice = item.MedicinePrice,
+                            SalePrice = item.SalePrice,
                             Quantity = item.Quantity,
+                            
                         };
 
                         await _context.PrescriptionDetails.AddAsync(prescriptionMedicine);
                     }
 
-                    // Lưu tất cả thay đổi
+                   
                     await _context.SaveChangesAsync();
 
-                    // Xóa giỏ hàng sau khi lập đơn thuốc
+                    
                     ClearPrescription();
 
-                    // Commit transaction
+                   
                     await transaction.CommitAsync();
                     Console.WriteLine("Transaction committed successfully.");
 
@@ -354,7 +361,6 @@ namespace DentalManagement.Web.Controllers
                 }
                 catch (Exception ex)
                 {
-                    // Rollback nếu xảy ra lỗi
                     await transaction.RollbackAsync();
                     Console.WriteLine($"Transaction rolled back. Error: {ex.Message}");
                     throw;
@@ -366,6 +372,129 @@ namespace DentalManagement.Web.Controllers
                 return BadRequest(ex.Message);
             }
         }
+        public async Task<IActionResult> Delete(int id = 0)
+        {
+            try
+            {
+              
+                var prescription = await _context.Prescriptions.SingleOrDefaultAsync(p=>p.PrescriptionId == id);
+                if (prescription == null)
+                {
+                    TempData["Message"] = "đơn thuốc không tồn tại.";
+                    return RedirectToAction("Index");
+                }
+                await _prescriptionRepo.DeleteAsync(id);
+                await _context.SaveChangesAsync();
+
+                TempData["Message"] = "đơn thuốc đã được xoá thành công.";
+                return RedirectToAction("Index");
+            }
+            catch (Exception ex)
+            {
+               
+                TempData["Message"] = "Có lỗi xảy ra khi xoá đơn thuốc: " + ex.Message;
+                return RedirectToAction("Details", new { id });
+            }
+        }
+        [Authorize(Roles = WebUserRoles.Patient)]
+        public async Task<IActionResult> PrescriptionHistory(int patientId)
+        {
+            var userData = User.GetUserData();
+
+            patientId = Int32.Parse(userData.UserId);
+            var history = await _prescriptionRepo.GetPrescriptionByPatientIdAsync(patientId);
+            var model = new PrescriptionHistoryViewModel
+            {
+                Prescriptions  = history.ToList(),
+            };
+            return View(model);
+        }
+        public async Task<IActionResult> PrintPrescription(int id)
+        {
+            try
+            {
+                // Lấy dữ liệu đơn thuốc với thông tin chi tiết thuốc
+                var presDetails = await _context.Prescriptions
+                    .Include(p => p.Patient)
+                    .Include(p => p.Dentist)
+                    .Include(p => p.PrescriptionDetails)
+                        .ThenInclude(pd => pd.Medicine)
+                    .FirstOrDefaultAsync(p => p.PrescriptionId == id);
+
+                if (presDetails == null)
+                {
+                    return NotFound("Đơn thuốc không tồn tại.");
+                }
+
+                // Tạo tài liệu PDF
+                var document = new iTextSharp.text.Document(PageSize.A4);
+                using (var ms = new MemoryStream())
+                {
+                    PdfWriter.GetInstance(document, ms);
+                    document.Open();
+
+                    // Nhúng font Times New Roman
+                    BaseFont baseFont = BaseFont.CreateFont("C:\\Windows\\Fonts\\times.ttf", BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
+                    var font = new Font(baseFont, 12);
+
+                    // Thêm tiêu đề và thông tin đơn thuốc
+                    document.Add(new Paragraph("ĐƠN THUỐC", font) );
+                    document.Add(new Paragraph("=================================", font));
+                    document.Add(new Paragraph($"Mã Đơn Thuốc: {presDetails.PrescriptionId}", font));
+                    document.Add(new Paragraph($"Ngày Lập: {presDetails.DateCreated:dd/MM/yyyy}", font));
+                    document.Add(new Paragraph($"Bác Sĩ: {presDetails.Dentist.DentistName}", font));
+                    document.Add(new Paragraph($"Bệnh Nhân: {presDetails.Patient.PatientName}", font));
+                    document.Add(new Paragraph(""));
+
+                
+                    // Thêm thông tin bổ sung
+                    document.Add(new Paragraph($"Chẩn Đoán: {presDetails.Diagnosis}", font));
+                    document.Add(new Paragraph($"Liều Lượng: {presDetails.Dosage}", font));
+                    document.Add(new Paragraph($"Tần Suất: {presDetails.Frequency}", font));
+                    document.Add(new Paragraph($"Thời Gian: {presDetails.Duration} ngày", font));
+                    document.Add(new Paragraph($"Ghi Chú: {presDetails.Notes}", font));
+
+                    document.Add(new Paragraph("\n"));
+
+
+                    // Thêm bảng thông tin thuốc
+                    var table = new PdfPTable(4) { WidthPercentage = 100 };
+                    table.SetWidths(new float[] { 3, 3, 2, 2 });
+
+                    table.AddCell(new PdfPCell(new Phrase("Tên Thuốc", new Font(baseFont, 12, Font.BOLD))) { HorizontalAlignment = Element.ALIGN_CENTER });
+                    table.AddCell(new PdfPCell(new Phrase("Số Lượng", new Font(baseFont, 12, Font.BOLD))) { HorizontalAlignment = Element.ALIGN_CENTER });
+                    table.AddCell(new PdfPCell(new Phrase("Đơn Giá", new Font(baseFont, 12, Font.BOLD))) { HorizontalAlignment = Element.ALIGN_CENTER });
+                    table.AddCell(new PdfPCell(new Phrase("Thành Tiền", new Font(baseFont, 12, Font.BOLD))) { HorizontalAlignment = Element.ALIGN_CENTER });
+
+                    // Duyệt qua danh sách thuốc và thêm vào bảng
+                    foreach (var detail in presDetails.PrescriptionDetails)
+                    {
+                        table.AddCell(new PdfPCell(new Phrase(detail.Medicine.MedicineName, font)) { HorizontalAlignment = Element.ALIGN_LEFT });
+                        table.AddCell(new PdfPCell(new Phrase(detail.Quantity.ToString(), font)) { HorizontalAlignment = Element.ALIGN_CENTER });
+                        table.AddCell(new PdfPCell(new Phrase(detail.SalePrice.ToString("C"), font)) { HorizontalAlignment = Element.ALIGN_RIGHT });
+                        table.AddCell(new PdfPCell(new Phrase(detail.TotalMedicine.ToString("C"), font)) { HorizontalAlignment = Element.ALIGN_RIGHT });
+                    }
+
+                    document.Add(table);
+                    document.Add(new Paragraph(""));
+
+                    // Đóng tài liệu
+                    document.Close();
+
+                    // Trả về file PDF
+                    var fileBytes = ms.ToArray();
+                    return File(fileBytes, "application/pdf", $"DonThuoc_{presDetails.PrescriptionId}_{presDetails.Patient.PatientName}.pdf");
+                }
+            }
+            catch (Exception ex)
+            {
+                // Xử lý lỗi
+                Console.WriteLine(ex.Message);
+                return BadRequest("Có lỗi xảy ra khi in đơn thuốc.");
+            }
+        }
+
+
 
     }
 }

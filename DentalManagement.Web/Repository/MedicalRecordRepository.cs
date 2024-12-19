@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DentalManagement.Web.Repository
 {
-    public class MedicalRecordRepository 
+    public class MedicalRecordRepository
     {
         private readonly DentalManagementDbContext _context;
 
@@ -17,7 +17,7 @@ namespace DentalManagement.Web.Repository
             return await _context.MedicalRecords
                 .Include(mr => mr.Patient)
                 .Include(mr => mr.Dentist)
-                .Include(mr => mr.Service)
+                //.Include(mr => mr.Service)
                 .FirstOrDefaultAsync(mr => mr.MedicalRecordId == id);
         }
         public int CountAsync()
@@ -94,12 +94,12 @@ namespace DentalManagement.Web.Repository
         }
         public async Task<bool> CancelMedicalRecord(int recordId)
         {
-            
+
             var record = await _context.MedicalRecords.FindAsync(recordId);
             if (record == null)
                 return false;
             if (record.Status != Constants_MedicalRecord.COMPLETE)
-            {   
+            {
                 record.Status = Constants_MedicalRecord.CANCELLED;
                 record.DateUpdated = DateTime.Now; // Cập nhật thời gian
                 await _context.SaveChangesAsync(); // Lưu cập nhật vào cơ sở dữ liệu
@@ -121,7 +121,7 @@ namespace DentalManagement.Web.Repository
                 return true;
             }
 
-            
+
             return false;
         }
         public async Task<bool> Failed(int recordId)
@@ -160,7 +160,7 @@ namespace DentalManagement.Web.Repository
             record.Status = Constants_MedicalRecord.COMPLETE;
 
             // Lưu thay đổi vào cơ sở dữ liệu
-             _context.MedicalRecords.Update(record);
+            _context.MedicalRecords.Update(record);
             await _context.SaveChangesAsync();
 
             return true;
@@ -190,6 +190,16 @@ namespace DentalManagement.Web.Repository
             await _context.SaveChangesAsync();
 
             return true; // Deletion was successful
+        }
+        public async Task<IEnumerable<MedicalRecord>> GetMedicalRecordByPatientIdAsync(int patientId)
+        {
+            return await _context.MedicalRecords
+               .Where(a => a.PatientId == patientId) // Lọc theo ID bệnh nhân
+               .Include(a => a.Patient)
+              // .Include(a => a.Service)
+               .Include(a => a.Dentist)
+               .OrderByDescending(a => a.DateCreated) // Sắp xếp theo ngày tạo giảm dần
+               .ToListAsync();
         }
     }
 }

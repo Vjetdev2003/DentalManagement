@@ -4,12 +4,15 @@ using DentalManagement.Web.Data;
 using DentalManagement.Web.Interfaces;
 using DentalManagement.Web.Models;
 using DentalManagement.Web.Repository;
+using DocumentFormat.OpenXml.InkML;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
 namespace DentalManagement.Web.Controllers
 {
+    [Authorize(Roles = $"{WebUserRoles.Administrator},{WebUserRoles.Dentist},{WebUserRoles.Employee}")]
     public class InvoiceController : Controller
     {
         private readonly DentalManagementDbContext _dentalManagementDbContext;
@@ -21,6 +24,8 @@ namespace DentalManagement.Web.Controllers
         private readonly IAppointmentRepository _appointmentRepository;
         private readonly IInvoiceDetails _invoiceDetailsRepository;
         private readonly IPayment _paymentRepository;
+        private readonly PrescriptionRepository _prescriptionRepository;
+        private readonly PrescriptionDetailsRepository _prescriptionDRepository;
         private const string APPOINTMENT_SEARCH = "appointment_search";
         private const string SEARCH_CONDITION = "invoice_search";
         private const string SERVICE_SEARCH_CONDITION = "service_search";
@@ -31,7 +36,7 @@ namespace DentalManagement.Web.Controllers
         public InvoiceController(DentalManagementDbContext dentalManagementDbContext, IInvoiceRepository invoiceRepository,
             IRepository<Patient> patientRepository, IRepository<Service> serviceRepository, IRepository<Dentist> dentistRepository,
             IRepository<Employee> employeeRepository, IAppointmentRepository appointmentRepository, IInvoiceDetails invoiceDetailsRepository
-            , IPayment paymentRepository)
+            , IPayment paymentRepository, PrescriptionRepository prescriptionRepository, PrescriptionDetailsRepository prescriptionDRepository)
         {
             _dentalManagementDbContext = dentalManagementDbContext;
             _invoiceRepository = invoiceRepository;
@@ -42,6 +47,9 @@ namespace DentalManagement.Web.Controllers
             _appointmentRepository = appointmentRepository;
             _invoiceDetailsRepository = invoiceDetailsRepository;
             _paymentRepository = paymentRepository;
+            _prescriptionDRepository = prescriptionDRepository;
+            _prescriptionRepository = prescriptionRepository;
+
         }
         public async Task<IActionResult> Index()
         {
@@ -91,6 +99,7 @@ namespace DentalManagement.Web.Controllers
                 int rowCount = data.Count();
 
                 data = data.Skip((input.Page - 1) * input.PageSize)
+                    .OrderByDescending(e => e.DateCreated)
                    .Take(input.PageSize).ToList();
 
 
@@ -133,18 +142,25 @@ namespace DentalManagement.Web.Controllers
         public async Task<IActionResult> Create()
         {
             var input = ApplicationContext.GetSessionData<ServiceSearchInput>(SERVICE_SEARCH_CONDITION);
-            ViewBag.PatientList = SelectListHelper.GetPatients(_patientRepository);
+
+            // Sử dụng phương thức bất đồng bộ để lấy danh sách bệnh nhân và đơn thuốc
+            ViewBag.PatientList =   SelectListHelper.GetPatients(_patientRepository);
+            ViewBag.Prescription =   await SelectListHelper.GetPrescriptions(_prescriptionRepository);
+
+            // Nếu `input` không tồn tại, khởi tạo giá trị mặc định
             if (input == null)
             {
-                input = new ServiceSearchInput()
+                input = new ServiceSearchInput
                 {
                     Page = 1,
                     PageSize = PAGE_SIZE,
                     SearchValue = "",
                 };
             }
+
             return View(input);
         }
+
         public IEnumerable<Service> listService(out int rowCount, string searchValue = "")
         {
             var data = _serviceRepository.ListAlll(searchValue ?? "").Result;
@@ -228,80 +244,7 @@ namespace DentalManagement.Web.Controllers
             ApplicationContext.SetSessionData(TREATMENT_VOUCHER, treatmentVoucher);
             return Json("");
         }
-        
 
-        //[HttpPost]
-        //public async Task<IActionResult> Save(InvoiceViewModel model)
-        //{
-        //    if (!ModelState.IsValid)
-        //    {
-        //        // Reload patient and service lists for the view
-        //        model.PatientList = SelectListHelper.GetPatients(_patientRepository);
-        //        model.ServiceList = SelectListHelper.GetServices(_serviceRepository);
-        //        model.DentistList = SelectListHelper.GetDentists(_dentistRepository);
-        //        return View("Edit", model); // Return the view with validation errors
-        //    }
-        //    var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-
-        //    // Check if the invoice already exists
-        //    Invoice invoice = model.InvoiceId == 0
-        //        ? new Invoice()
-        //        : await _invoiceRepository.GetByIdAsync(model.InvoiceId);
-
-        //    if (invoice == null)
-        //    {
-        //        return NotFound();
-        //    }
-        //    var userId = User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value;
-        //    // Fetch patient and service data to ensure they exist
-        //    var patient = await _patientRepository.GetByIdAsync(model.PatientId);
-        //   // var invoiceD = await _invoiceDetailsRepository.GetByIdAsync(invoice.Service.ServiceId);
-        //  //  var service = await _serviceRepository.GetByIdAsync(invoiceD.InvoiceId);
-        //    if (patient == null || service == null)
-        //    {
-        //        ModelState.AddModelError(string.Empty, "Có thông tin không tồn tại.");
-        //        return View(model);
-        //    }
-        //    var userData = User.GetUserData();
-        //    var employeeId = int.Parse(userData.UserId);
-        //    var employee = await _employeeRepository.GetByIdAsync(employeeId);
-
-
-        //    // Update the invoice properties
-        //    invoice.PatientId = model.PatientId;
-        //    invoice.PatientName = patient.PatientName; // Set the patient's name
-        //    invoice.PatientAddress = patient.Address;
-        //    invoice.PaymentMethod = model.PaymentMethod ?? Paymethod.CASH;
-        //    invoice.TotalPrice = model.TotalPrice;
-        //    invoice.UserIdCreate = userData.UserId;
-        //    invoice.EmployeeId = int.Parse(userData.UserId);
-        //    invoice.EmployeeName = employee.FullName;
-        //    invoice.Status = Constants_Invoice.INVOICE_UNPAID;
-        //    invoice.Discount = model.Discount;
-        //    invoice.DateUpdated = DateTime.Now;
-        //    invoice.UserIdUpdated = User?.Identity?.Name;
-
-
-        //    // If it's a new invoice, set the created date and creator
-        //    if (model.InvoiceId == 0)
-        //    {
-        //        invoice.DateCreated = DateTime.Now;
-        //        invoice.UserIdCreate = User?.Identity?.Name;
-        //        await _invoiceRepository.AddAsync(invoice); // Add new invoice
-        //    }
-        //    else
-        //    {
-        //        invoice.DateUpdated = DateTime.Now;
-        //        invoice.UserIdUpdated = User?.Identity?.Name;
-        //        await _invoiceRepository.UpdateAsync(invoice); // Update existing invoice
-        //    }
-
-        //    await _dentalManagementDbContext.SaveChangesAsync(); // Save changes to the database
-        //    TempData["Message"] = "Hóa đơn đã được cập nhật thành công!";
-
-        //    return RedirectToAction("Index");
-        //}
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
@@ -351,11 +294,12 @@ namespace DentalManagement.Web.Controllers
                 var invoice = await _invoiceRepository.GetByIdAsync(id);
 
                 var invoiceDetails = await _dentalManagementDbContext.Invoices
-                       .Include(i => i.Patient)
-                       .Include(i => i.Employee)
-                       .Include(i => i.InvoiceDetails)
-                       .ThenInclude(idetail => idetail.Service) // Nếu bạn cần thông tin dịch vụ
-                       .FirstOrDefaultAsync(i => i.InvoiceId == id);
+                    .Include(i => i.Patient)
+                    .Include(i => i.Employee)
+                    .Include(i => i.InvoiceDetails)
+                    .ThenInclude(idetail => idetail.Service) // Nếu bạn cần thông tin dịch vụ
+                    .FirstOrDefaultAsync(i => i.InvoiceId == id);
+
                 if (invoiceDetails == null)
                 {
                     return RedirectToAction("Index");
@@ -392,16 +336,17 @@ namespace DentalManagement.Web.Controllers
                 }
 
                 // Lấy danh sách chi tiết hóa đơn từ repository
-
                 var invoiceDetailViewModels = invoiceDetails.InvoiceDetails?.Select(d => new InvoiceDetailViewModel
                 {
                     ServiceName = d.ServiceName,
                     Quantity = d.Quantity,
                     SalePrice = d.SalePrice,
                     TotalPrice = d.TotalPrice,
-                     
+
                 }).ToList();
-               var payments = await _paymentRepository.GetPaymentsByInvoiceIdAsync(invoice.InvoiceId);
+
+                // Lấy thông tin thanh toán từ repository
+                var payments = await _paymentRepository.GetPaymentsByInvoiceIdAsync(invoice.InvoiceId);
                 var paymentViewModels = payments.Select(p => new PaymentViewModel
                 {
                     PaymentId = p.PaymentId,
@@ -411,12 +356,26 @@ namespace DentalManagement.Web.Controllers
                     DateCreated = p.DateCreated,
                     Notes = p.Notes
                 }).ToList();
+
+                // Lấy danh sách thông tin đơn thuốc (PrescriptionDetails)
+                var prescriptionDetails = await _dentalManagementDbContext.Prescriptions
+                    .Where(p => p.PatientId == invoiceDetails.PatientId) // Assuming there's a link to InvoiceId or PatientId
+                    .SelectMany(p => p.PrescriptionDetails) // Assuming PrescriptionDetails is a collection of medicine details
+                    .Select(pd => new PrescriptionCreateModel
+                    {
+                        MedicineName = pd.MedicineName,
+                        Quantity = pd.Quantity,
+                        SalePrice = pd.SalePrice,
+                        TotalPrice = pd.TotalMedicine
+                    }).ToListAsync();
+
                 // Khởi tạo model để truyền dữ liệu cho view
                 var model = new InvoiceDetailModel
                 {
                     Invoices = invoiceDetails,
                     Details = invoiceDetailViewModels,
                     Payments = paymentViewModels,
+                    PrescriptionDetails = prescriptionDetails  // Populate prescription details here
                 };
 
                 // Truyền thông báo (nếu có) từ TempData
@@ -434,6 +393,7 @@ namespace DentalManagement.Web.Controllers
                 return BadRequest(ex);
             }
         }
+
 
 
 
@@ -501,7 +461,7 @@ namespace DentalManagement.Web.Controllers
             }
         }
 
-        public async Task<IActionResult> Init(int patientId, IEnumerable<InvoiceCreateModel> details)
+        public async Task<IActionResult> Init(int patientId, IEnumerable<InvoiceCreateModel> details, int prescriptionId)
         {
             try
             {
@@ -521,58 +481,55 @@ namespace DentalManagement.Web.Controllers
 
                 if (employee == null || patient == null)
                     return NotFound("Nhân viên hoặc bệnh nhân không tồn tại.");
+                var pres = await _prescriptionRepository.GetByIdAsync(prescriptionId);
+                var presDetails = await _prescriptionDRepository.GetByPrescriptionIdAsync(pres.PrescriptionId);
 
-                // Tính tổng số tiền từ giỏ hàng (dựa trên `details`)
-                var totalAmount = treatmentVoucher.Sum(d => d.Quantity * d.SalePrice);
+                decimal totalPres = 0;
 
-                // Tính tổng số tiền đã thanh toán cho các dịch vụ trong giỏ hàng
-                decimal totalPaidAmount = 0;
-                foreach (var item in treatmentVoucher)
+                // Duyệt qua tất cả chi tiết đơn thuốc để tính tổng
+                foreach (var item in presDetails)  // presDetails là danh sách chi tiết đơn thuốc
                 {
-                    totalPaidAmount += item.SalePrice * item.Quantity;
+                    totalPres += item.SalePrice * item.Quantity;
                 }
+                decimal totalAmount = treatmentVoucher.Sum(d => d.Quantity * d.SalePrice);
 
-                // Kiểm tra tổng số tiền thanh toán đã thực hiện
+                
+                decimal totalPaidAmount = totalAmount + totalPres;
+
+                // Calculate discount  
                 decimal discountPercentage = 0;
-
-                // Nếu tổng tiền thanh toán >= 50 triệu, giảm 20%
                 if (totalPaidAmount >= 50000000)
                 {
-                    discountPercentage = 0.2m; // Giảm 20%
+                    discountPercentage = 0.2m;
                 }
-                // Nếu tổng tiền thanh toán >= 10 triệu nhưng < 50 triệu, giảm 10%
                 else if (totalPaidAmount >= 10000000)
                 {
-                    discountPercentage = 0.1m; // Giảm 10%
+                    discountPercentage = 0.1m;
                 }
 
-                // Tính số tiền giảm giá và số tiền cuối cùng sau khi giảm
-                var discountAmount = totalAmount * discountPercentage;
-                var finalTotalAmount = totalAmount - discountAmount;
+                var discountAmount = totalPaidAmount * discountPercentage;
+                var finalTotalAmount = totalPaidAmount - discountAmount;
 
-                // Tạo hóa đơn mới
                 var invoice = new Invoice
                 {
                     EmployeeId = employee.EmployeeId,
                     PatientId = patient.PatientId,
+                    PrescriptionId = prescriptionId, // Optional if prescription is null
                     PatientName = patient.PatientName,
                     EmployeeName = employee.FullName,
                     PatientAddress = patient.Address,
-                    TotalPrice = finalTotalAmount,  // Sử dụng số tiền sau giảm giá
+                    TotalPrice = finalTotalAmount,
                     Status = Constants_Invoice.INVOICE_UNPAID,
-                    PaymentMethod = Paymethod.CASH,  // Phương thức thanh toán mặc định
+                    PaymentMethod = Paymethod.CASH,
                     DateCreated = DateTime.Now,
-                    Discount = discountAmount  // Lưu giá trị giảm giá vào hóa đơn
+                    Discount = discountAmount
                 };
 
-                // Lưu hóa đơn vào database
                 await _dentalManagementDbContext.Invoices.AddAsync(invoice);
                 await _dentalManagementDbContext.SaveChangesAsync();
 
-                // Lấy ID của hóa đơn mới tạo
                 int invoiceId = invoice.InvoiceId;
 
-                // Thêm chi tiết hóa đơn vào bảng InvoiceDetails
                 foreach (var item in treatmentVoucher)
                 {
                     var invoiceDetail = new InvoiceDetails
@@ -582,18 +539,16 @@ namespace DentalManagement.Web.Controllers
                         ServiceName = item.ServiceName,
                         Quantity = item.Quantity,
                         SalePrice = item.SalePrice,
+                        PrescriptionId = item.PrescriptionId  // If prescription exists, set it
                     };
 
                     await _dentalManagementDbContext.InvoiceDetails.AddAsync(invoiceDetail);
-                    //await _dentalManagementDbContext.Payments.AddAsync(payment);
                 }
 
                 await _dentalManagementDbContext.SaveChangesAsync();
 
-                // Xóa giỏ hàng sau khi lập hóa đơn
                 ClearVoucher();
 
-                // Trả về view để hiển thị thông tin hóa đơn và chi tiết hóa đơn
                 return Json($"Details/{invoiceId}");
             }
             catch (Exception ex)
@@ -603,6 +558,24 @@ namespace DentalManagement.Web.Controllers
             }
         }
 
-        
+        //[HttpGet]
+        //public async Task<IActionResult> GetLatestPrescriptionByPatientId(int patientId)
+        //{
+        //    var latestPrescription = await _dentalManagementDbContext.Prescriptions
+        //        .Where(p => p.PatientId == patientId)
+        //        .OrderByDescending(p => p.DateCreated) // Sắp xếp theo ngày tạo mới nhất
+        //        .Select(p => new { p.PrescriptionId, p.DateCreated })
+        //        .FirstOrDefaultAsync();
+             
+        //    if (latestPrescription == null)
+        //    {
+        //        return Json(new { success = false, message = "Không tìm thấy đơn thuốc cho bệnh nhân này." });
+        //    }
+
+        //    return Json(new { success = true, data = latestPrescription });
+        //}
+
+
+
     }
 }

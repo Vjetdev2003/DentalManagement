@@ -1,4 +1,4 @@
-﻿using Dapper;
+﻿
 using DentalManagement.DomainModels;
 using DentalManagement.Web.Data;
 using DentalManagement.Web.Interfaces;
@@ -51,7 +51,7 @@ namespace DentalManagement.Web.Repository
             return await _context.Appointments
                 .Include(a => a.Patient)
                 .Include(a => a.Service)
-                .Include(a=>a.Dentist)
+                .Include(a => a.Dentist)
                 .Select(a => new Appointment
                 {
                     AppointmentId = a.AppointmentId, // Đảm bảo rằng bạn lấy AppointmentId
@@ -189,7 +189,8 @@ namespace DentalManagement.Web.Repository
             {
                 // Cập nhật trạng thái của lịch hẹn
                 appointment.Status = Constants.APPOINTMENT_FINISHED;
-                appointment.FinishedTime = DateTime.Now; // Cập nhật thời gian hoàn tất
+                appointment.FinishedTime = DateTime.Now;
+                appointment.DateUpdated = DateTime.Now;// Cập nhật thời gian hoàn tất
                 await _context.SaveChangesAsync(); // Lưu cập nhật vào cơ sở dữ liệu
                 return true;
             }

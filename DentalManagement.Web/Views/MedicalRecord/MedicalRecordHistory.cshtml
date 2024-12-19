@@ -1,0 +1,66 @@
+﻿@using DentalManagement.Web.History
+@model MedicalRecordHistoryViewModel
+@{
+    ViewBag.Title = "Lịch sử hồ sơ y tế";
+    Layout = "_Home";
+}
+
+<div class="container mt-4">
+    @if (Model.MedicalRecords != null && Model.MedicalRecords.Any())
+    {
+        <div class="custom-card shadow">
+            <div class="custom-card-header bg-primary text-white">
+                <h4>Lịch sử hồ sơ y tế</h4>
+            </div>
+            <div class="custom-card-body">
+                <table class="custom-table table table-striped align-middle">
+                    <thead class="table-dark">
+                        <tr>
+                            <th scope="col">Mã hồ sơ</th>
+                            <th scope="col">Tên bệnh nhân</th>
+                            <th scope="col">Nha sĩ phụ trách</th>
+                            <th scope="col">Ngày khám</th>
+                            <th scope="col">Chẩn đoán</th>
+                            <th scope="col">Điều trị</th>
+                            <th scope="col">Kết quả điều trị</th>
+                            <th scope="col">Ngày hẹn tiếp theo</th>
+                            <th scope="cpl">Chi tiết</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var medicalRecord in Model.MedicalRecords)
+                        {
+                            <tr>
+                                <td>@medicalRecord.MedicalRecordId</td>
+                                <td>@medicalRecord.Patient?.PatientName</td>
+                                <td>@medicalRecord.Dentist?.DentistName</td>
+                                <td>@medicalRecord.DateOfTreatment?.ToString("dd/MM/yyyy")</td>
+                                <td>@medicalRecord.Diagnosis</td>
+                                <td>@medicalRecord.Treatment</td>
+                                <td>@medicalRecord.TreatmentOutcome</td>
+                                <td>@medicalRecord.NextAppointmentDate?.ToString("dd/MM/yyyy")</td>
+                                <td>
+                                    <a href="@Url.Action("Details", "MedicalRecord", new { id = medicalRecord.MedicalRecordId })"
+                                       class="btn btn-info btn-sm">
+                                        <i class="fa fa-eye"></i> Xem
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-warning mt-4" role="alert">
+            <i class="fa fa-info-circle"></i> Không có hồ sơ y tế nào.
+        </div>
+    }
+    <div class="text-end mt-3">
+        <a class="btn" href="~/Home">
+            <i class="fa fa-arrow-left"></i> Trang chủ
+        </a>
+    </div>
+</div>

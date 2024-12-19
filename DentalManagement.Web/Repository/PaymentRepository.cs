@@ -43,7 +43,8 @@ namespace DentalManagement.Web.Repository
                     where invoice.PatientId == patientId
                     orderby payment.DateCreated
                     select payment
-                ).ToListAsync();
+                ).OrderByDescending(p=>p.DateUpdated)
+                .ToListAsync();
 
 
                 return payments;  // Trả về danh sách các khoản thanh toán

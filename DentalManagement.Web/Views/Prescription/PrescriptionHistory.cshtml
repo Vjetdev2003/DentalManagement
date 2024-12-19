@@ -1,0 +1,61 @@
+﻿@model DentalManagement.Web.History.PrescriptionHistoryViewModel
+@{
+    ViewBag.Title = "Lịch sử đơn thuốc";
+    Layout = "_Home";
+}
+
+<div class="container mt-4">
+    @if (Model.Prescriptions != null && Model.Prescriptions.Any())
+    {
+        <div class="custom-card shadow">
+            <div class="custom-card-header bg-primary text-white">
+                <h4>Lịch sử đơn thuốc</h4>
+            </div>
+            <div class="custom-card-body">
+                <table class="custom-table table table-striped align-middle">
+                    <thead class="table-dark">
+                        <tr>
+                            <th scope="col">Mã đơn thuốc</th>
+                            <th scope="col">Tên bệnh nhân</th>
+                            <th scope="col">Tên bác sĩ</th>
+                            <th scope="col">Chẩn đoán</th>
+                            <th scope="col">Tần suất</th>
+                            <th scope="col">Thời gian</th>
+                            <th scope="col">Ghi chú</th>
+                            <th scope="col"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var prescription in Model.Prescriptions)
+                        {
+                            <tr>
+                                <td>@prescription.PrescriptionId</td>
+                                <td>@prescription.Patient?.PatientName</td>
+                                <td>@prescription.Dentist?.DentistName</td>
+                                <td>@prescription.Diagnosis</td>
+                                <td>@prescription.Frequency</td>
+                                <td>@prescription.Duration</td>
+                                <td>@prescription.Notes</td>
+                                <td class="text-right">
+                                    <a class="btn btn-info btn-xs" href="~/Prescription/Details/@prescription.PrescriptionId">
+                                        <i class="fa fa-eye"></i>Xem
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-warning mt-4" role="alert">
+            <i class="fa fa-info-circle"></i> Không có đơn thuốc nào.
+        </div>
+    }<div class="text-end mt-3">
+        <a class="btn" href="~/Home">
+            <i class="fa fa-arrow-left"></i> Trang chủ
+        </a>
+    </div>
+</div>

@@ -2,131 +2,143 @@
 @model DentalManagement.Web.Models.MedicalRecordDetailsModel
 @{
     ViewBag.Title = "Chi tiết hồ sơ y tế";
+    var userData = User.GetUserData();
+    @if (userData.Roles.Contains("patient"))
+    {
+        Layout = "_Home";
+    }
+    else
+    {
+        
+    }
 }
-<div class="box box-primary">
-    <div class="box-header text-right">
-        <div class="btn-group">
-            @(ViewBag.IsEmployee)
-            
-                <div class="btn-group">
-                @if (!ViewBag.IsFinish)
+@if (!userData.Roles.Contains("patient"))
+{
+    <div class="box box-primary">
+        <div class="box-header text-right">
+            <div class="btn-group">
+                @if(ViewBag.IsDentist)
                 {
-                    <button type="button" class="btn btn-sm btn-primary dropdown-toggle" data-toggle="dropdown">
-                        Xử lý hồ sơ <span class="caret"></span>
-                    </button>
-                    <ul class="dropdown-menu" role="menu">
-                        @switch(Model.MedicalRecord.Status)
-                        {
-                            case Constants_MedicalRecord.UNPROCESS:
-                                <li>
-                                    <a href="~/MedicalRecord/Confirm/@Model.MedicalRecord.MedicalRecordId" onclick="return confirm('Xác nhận xử lý hồ sơ này?')">Xử lý hồ sơ </a>
-                                </li>
-                                <li class="divider"></li>
-                                <li>
-                                    <a href="~/MedicalRecord/Cancel/@Model.MedicalRecord.MedicalRecordId" onclick="return confirm('Huỷ hồ sơ')">Huỷ hồ sơ</a>
-                                </li>
-                                break;
-                            case Constants_MedicalRecord.PENDING:
-                                <li>
-                                    <a href="~/MedicalRecord/Report/@Model.MedicalRecord.MedicalRecordId" method="post" class="btn btn-modal">Báo cáo sau điều trị </a>
-                                </li>
-                                <li class="divider"></li>
-                                <li>
-                                    <a href="~/MedicalRecord/Cancel/@Model.MedicalRecord.MedicalRecordId" onclick="return confirm('Huỷ hồ sơ')">Huỷ hồ sơ</a>
-                                </li>
-                                break;
-                            case Constants_MedicalRecord.COMPLETE:
-                                <li>
-                                    <a href="~/MedicalRecord/Finish/@Model.MedicalRecord.MedicalRecordId" onclick="return confirm('Xác nhận hoàn tất hóa đơn này?')">Xác nhận hồ sơ</a>
-                                </li>
+                <div class="btn-group">
+                    @if (!ViewBag.IsFinish)
+                    {
+                        <button type="button" class="btn btn-sm btn-primary dropdown-toggle" data-toggle="dropdown">
+                            Xử lý hồ sơ <span class="caret"></span>
+                        </button>
+                        <ul class="dropdown-menu" role="menu">
+                            @switch (Model.MedicalRecord.Status)
+                            {
+                                case Constants_MedicalRecord.UNPROCESS:
+                                    <li>
+                                        <a href="~/MedicalRecord/Confirm/@Model.MedicalRecord.MedicalRecordId" onclick="return confirm('Xác nhận xử lý hồ sơ này?')">Xử lý hồ sơ </a>
+                                    </li>
+                                    <li class="divider"></li>
+                                    <li>
+                                        <a href="~/MedicalRecord/Cancel/@Model.MedicalRecord.MedicalRecordId" onclick="return confirm('Huỷ hồ sơ')">Huỷ hồ sơ</a>
+                                    </li>
+                                    break;
+                                case Constants_MedicalRecord.PENDING:
+                                    <li>
+                                        <a href="~/MedicalRecord/Report/@Model.MedicalRecord.MedicalRecordId" method="post" class="btn btn-modal">Báo cáo sau điều trị </a>
+                                    </li>
+                                    <li class="divider"></li>
+                                    <li>
+                                        <a href="~/MedicalRecord/Cancel/@Model.MedicalRecord.MedicalRecordId" onclick="return confirm('Huỷ hồ sơ')">Huỷ hồ sơ</a>
+                                    </li>
+                                    break;
+                                case Constants_MedicalRecord.COMPLETE:
+                                    <li>
+                                        <a href="~/MedicalRecord/Finish/@Model.MedicalRecord.MedicalRecordId" onclick="return confirm('Xác nhận hoàn tất hóa đơn này?')">Xác nhận hồ sơ</a>
+                                    </li>
 
-                                break;
+                                    break;
                             }
                         </ul>
-                      }
-                @if (ViewBag.IsDelete)
-                {
-                    <a href="~/MedicalRecord/Delete/@Model.MedicalRecord.MedicalRecordId" class="btn btn-sm btn-danger" onclick="return confirm('Có chắc chắn muốn xóa hồ sơ này không?')">
-                        <i class="fa fa-trash"></i> Xóa hồ sơ
-                    </a>
+                    }
+                    @if (ViewBag.IsDelete)
+                    {
+                        <a href="~/MedicalRecord/Delete/@Model.MedicalRecord.MedicalRecordId" class="btn btn-sm btn-danger" onclick="return confirm('Có chắc chắn muốn xóa hồ sơ này không?')">
+                            <i class="fa fa-trash"></i> Xóa hồ sơ
+                        </a>
+                    }
+                    <a href="~/MedicalRecord" class="btn btn-sm btn-info">Quay lại</a>
+                </div>
                 }
-                <a href="~/MedicalRecord" class="btn btn-sm btn-info">Quay lại</a>
+            </div>
+        </div>
+
+
+        <div class="box-body">
+            <div class="form-group">
+                <label class="col-sm-2">Mã hồ sơ</label>
+                <div class="col-sm-4">
+                    <p class="form-control">@Model.MedicalRecord.MedicalRecordId</p>
+                </div>
+                <label class="col-sm-2">Ngày tạo hồ sơ</label>
+                <div class="col-sm-4">
+                    <p class="form-control">@Model.MedicalRecord.DateCreated.ToString("dd/MM/yyyy")</p>
+                </div>
+                <label class="col-sm-2">Trạng thái hồ sơ</label>
+                <div class="col-sm-4">
+                    <p class="form-control">@Model.MedicalRecord.DescriptionStatus</p>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="col-sm-2">Bệnh nhân</label>
+                <div class="col-sm-4">
+                    <p class="form-control">@Model.MedicalRecord.Patient?.PatientName</p>
+                </div>
+                <label class="col-sm-2">Nha sĩ</label>
+                <div class="col-sm-4">
+                    <p class="form-control">@Model.MedicalRecord.Dentist?.DentistName</p>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="col-sm-2">Triệu chứng</label>
+                <div class="col-sm-4">
+                    <p class="form-control">@Model.MedicalRecord.Symptoms</p>
+                </div>
+                <label class="col-sm-2">Chẩn đoán</label>
+                <div class="col-sm-4">
+                    <p class="form-control">@Model.MedicalRecord.Diagnosis</p>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="col-sm-2">Ngày điều trị</label>
+                <div class="col-sm-4">
+                    <p class="form-control">@Model.MedicalRecord.DateOfTreatment?.ToString("dd/MM/yyyy")</p>
+                </div>
+                <label class="col-sm-2">Ngày hoàn tất điều trị</label>
+                <div class="col-sm-4">
+                    <p class="form-control">@Model.MedicalRecord.DateUpdated.ToString("dd/MM/yyyy")</p>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="col-sm-2">Kết quả điều trị</label>
+                <div class="col-sm-4">
+                    <p class="form-control">@Model.MedicalRecord.TreatmentOutcome</p>
+                </div>
+                <label class="col-sm-2">Ngày hẹn tiếp theo</label>
+                <div class="col-sm-4">
+                    <p class="form-control">@Model.MedicalRecord.NextAppointmentDate?.ToString("dd/MM/yyyy")</p>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="col-sm-2">Phương pháp điều trị</label>
+                <div class="col-sm-6">
+                    <textarea class="form-control" readonly>@Model.MedicalRecord.Treatment</textarea>
+                </div>
             </div>
         </div>
     </div>
-
-    <!-- Remaining HTML content like details of the medical record -->
-    <div class="box-body">
-        <div class="form-group">
-            <label class="col-sm-2">Mã hồ sơ</label>
-            <div class="col-sm-4">
-                <p class="form-control">@Model.MedicalRecord.MedicalRecordId</p>
-            </div>
-            <label class="col-sm-2">Ngày tạo hồ sơ</label>
-            <div class="col-sm-4">
-                <p class="form-control">@Model.MedicalRecord.DateCreated.ToString("dd/MM/yyyy")</p>
-            </div>
-            <label class="col-sm-2">Trạng thái hồ sơ</label>
-            <div class="col-sm-4">
-                <p class="form-control">@Model.MedicalRecord.DescriptionStatus</p>
-            </div>
-        </div>
-
-        <div class="form-group">
-            <label class="col-sm-2">Bệnh nhân</label>
-            <div class="col-sm-4">
-                <p class="form-control">@Model.MedicalRecord.Patient?.PatientName</p>
-            </div>
-            <label class="col-sm-2">Nha sĩ</label>
-            <div class="col-sm-4">
-                <p class="form-control">@Model.MedicalRecord.Dentist?.DentistName</p>
-            </div>
-        </div>
-
-        <div class="form-group">
-            <label class="col-sm-2">Dịch vụ</label>
-            <div class="col-sm-4">
-                <p class="form-control">@Model.MedicalRecord.Service?.ServiceName</p>
-            </div>
-            <label class="col-sm-2">Chẩn đoán</label>
-            <div class="col-sm-4">
-                <p class="form-control">@Model.MedicalRecord.Diagnosis</p>
-            </div>
-        </div>
-
-        <div class="form-group">
-            <label class="col-sm-2">Phương pháp điều trị</label>
-            <div class="col-sm-4">
-                <p class="form-control">@Model.MedicalRecord.Treatment</p>
-            </div>
-            <label class="col-sm-2">Kết quả điều trị</label>
-            <div class="col-sm-4">
-                <p class="form-control">@Model.MedicalRecord.TreatmentOutcome</p>
-            </div>
-        </div>
-
-        <div class="form-group">
-            <label class="col-sm-2">Ngày điều trị</label>
-            <div class="col-sm-4">
-                <p class="form-control">@Model.MedicalRecord.DateOfTreatment?.ToString("dd/MM/yyyy")</p>
-            </div>
-            <label class="col-sm-2">Ngày hẹn tiếp theo</label>
-            <div class="col-sm-4">
-                <p class="form-control">@Model.MedicalRecord.NextAppointmentDate?.ToString("dd/MM/yyyy")</p>
-            </div>
-        </div>
-
-        <div class="form-group">
-            <label class="col-sm-2">Triệu chứng</label>
-            <div class="col-sm-4">
-                <p class="form-control">@Model.MedicalRecord.Symptoms</p>
-            </div>
-        </div>
+    <div id="dialogModal" class="modal fade" role="dialog">
     </div>
-</div>
-<div id="dialogModal" class="modal fade" role="dialog">
-</div>
-@section scripts {
+    @section scripts {
     <script>
         $(document).ready(function () {
             $(".btn-modal").click(function (e) {
@@ -146,5 +158,99 @@
                 });
             });
         })
+    </script>
+    }
+}
+else
+{
+    <div class="container mt-4">
+        <div class="card-custom shadow-lg">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">Chi tiết Hồ sơ Y tế</h4>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold text-dark">Mã hồ sơ</label>
+                        <p class="form-control-plaintext bg-light p-2 rounded">@Model.MedicalRecord.MedicalRecordId</p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold text-dark">Ngày tạo hồ sơ</label>
+                        <p class="form-control-plaintext bg-light p-2 rounded">@Model.MedicalRecord.DateCreated.ToString("dd/MM/yyyy")</p>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold text-dark">Trạng thái hồ sơ</label>
+                        <p class="form-control-plaintext bg-light p-2 rounded">@Model.MedicalRecord.DescriptionStatus</p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold text-dark">Bệnh nhân</label>
+                        <p class="form-control-plaintext bg-light p-2 rounded">@Model.MedicalRecord.Patient?.PatientName</p>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold text-dark">Nha sĩ</label>
+                        <p class="form-control-plaintext bg-light p-2 rounded">@Model.MedicalRecord.Dentist?.DentistName</p>
+                    </div>
+                    @* <div class="col-md-6">
+                        <label class="form-label fw-bold text-dark">Dịch vụ</label>
+                        <p class="form-control-plaintext bg-light p-2 rounded">@Model.MedicalRecord.Service?.ServiceName</p>
+                    </div> *@
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold text-dark">Chẩn đoán</label>
+                        <p class="form-control-plaintext bg-light p-2 rounded">@Model.MedicalRecord.Diagnosis</p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold text-dark">Phương pháp điều trị</label>
+                        <p class="form-control-plaintext bg-light p-2 rounded">@Model.MedicalRecord.Treatment</p>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold text-dark">Kết quả điều trị</label>
+                        <p class="form-control-plaintext bg-light p-2 rounded">@Model.MedicalRecord.TreatmentOutcome</p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold text-dark">Ngày điều trị</label>
+                        <p class="form-control-plaintext bg-light p-2 rounded">@Model.MedicalRecord.DateOfTreatment?.ToString("dd/MM/yyyy")</p>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold text-dark">Ngày hẹn tiếp theo</label>
+                        <p class="form-control-plaintext bg-light p-2 rounded">@Model.MedicalRecord.NextAppointmentDate?.ToString("dd/MM/yyyy")</p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold text-dark">Triệu chứng</label>
+                        <p class="form-control-plaintext bg-light p-2 rounded">@Model.MedicalRecord.Symptoms</p>
+                    </div>
+                </div>
+
+                <!-- Thêm nút quay lại -->
+                <div class="text-end mt-3">
+                    <button class="btn btn-secondary" onclick="goBack()">
+                        <i class="fa fa-arrow-left"></i> Quay lại
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        function goBack() {
+            if (document.referrer) {
+                window.location.href = document.referrer;
+            } else {
+                window.location.href = '@Url.Action("Index", "Home")'; // Fallback to home page
+            }
+        }
     </script>
 }

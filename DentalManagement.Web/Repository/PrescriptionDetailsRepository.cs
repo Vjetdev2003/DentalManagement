@@ -1,5 +1,6 @@
 ﻿using DentalManagement.DomainModels;
 using DentalManagement.Web.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace DentalManagement.Web.Repository
 {
@@ -10,6 +11,21 @@ namespace DentalManagement.Web.Repository
         public PrescriptionDetailsRepository(DentalManagementDbContext context)
         {
             _context = context;
+        }
+        public async Task<IEnumerable<PrescriptionDetails >> GetAllAsync()
+        {
+            return await _context.PrescriptionDetails.ToListAsync();
+        }
+        public async Task<List<PrescriptionDetails>> GetByPrescriptionIdAsync(int prescriptionId)
+        {
+            return await _context.PrescriptionDetails
+                                                   .Where(pd => pd.PrescriptionId == prescriptionId)
+                                                   .ToListAsync();
+        }
+
+        public async Task<PrescriptionDetails> GetByIdAsync(int id)
+        {
+            return await _context.PrescriptionDetails.FirstOrDefaultAsync(p=>p.PrescriptionId == id);
         }
         public async Task AddAsync(PrescriptionDetails prescription)
         {

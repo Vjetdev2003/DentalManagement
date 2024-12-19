@@ -153,5 +153,10 @@ namespace DentalManagement.Web.Repository
             await _context.SaveChangesAsync(); // Lưu thay đổi vào cơ sở dữ liệu
             return true; // Đăng ký thành công
         }
+
+        public async Task<bool> CheckEmailExists(string email)
+        {
+            return await _context.Patients.AnyAsync(u => u.Email == email);
+        }
     }
 }

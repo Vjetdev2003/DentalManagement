@@ -3,17 +3,11 @@ using DentalManagement.Web.Data;
 using DentalManagement.Web.Interfaces;
 using DentalManagement.Web.Models;
 using DentalManagement.Web.Repository;
-using DocumentFormat.OpenXml.Office.CustomUI;
-using DocumentFormat.OpenXml.VariantTypes;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Net.payOS;
 using Net.payOS.Types;
-using Newtonsoft.Json;
-using QRCoder;
-using System.Drawing.Imaging;
-using System.Security.Cryptography;
-using System.Text;
 
 namespace DentalManagement.Web.Controllers
 {
@@ -24,17 +18,19 @@ namespace DentalManagement.Web.Controllers
         private readonly IRepository<Service> _serviceRepository;
         private readonly IInvoiceRepository _invoiceRepository;
         private readonly DentalManagementDbContext _context;
+        private readonly IRepository<Patient> _patientRepository;
         private readonly string clientId = "c3efd2c7-926e-4754-8eec-dd7f36642c23"; // Replace with your actual client ID
         private readonly string apiKey = "181f2996-525f-4fc4-aeca-9767b0152d11"; // Replace with your actual API key
         private readonly string checksumKey = "e2c88633b9cb46240d1300376bac12c6077566f54d848d84066909f7e7c2f7b9";
 
-        public PaymentController(PaymentRepository paymentRepository, InvoiceDetailsRepository invoiceDetailsRepository, IRepository<Service> serviceRepository, IInvoiceRepository invoiceRepository, DentalManagementDbContext context)
+        public PaymentController(PaymentRepository paymentRepository,IRepository<Patient> patientRepository, InvoiceDetailsRepository invoiceDetailsRepository, IRepository<Service> serviceRepository, IInvoiceRepository invoiceRepository, DentalManagementDbContext context)
         {
             _paymentRepository = paymentRepository;
             _invoiceDetailsRepository = invoiceDetailsRepository;
             _serviceRepository = serviceRepository;
             _invoiceRepository = invoiceRepository;
             _context = context;
+            _patientRepository = patientRepository;
         }
         public async Task<IActionResult> Index()
         {
@@ -42,19 +38,20 @@ namespace DentalManagement.Web.Controllers
             if (userData == null)
             {
                 return RedirectToAction("Login");
-            }  
+            }
 
             int patientId = Int32.Parse(userData.UserId);
 
             var unpaidInvoices = await _context.Invoices
                   .Include(i => i.InvoiceDetails)
                   .ThenInclude(d => d.Service)
-                  .Where(i => i.PatientId == patientId && i.Status == 1 )
+                  .Where(i => i.PatientId == patientId && i.Status == 1)
+                  .OrderByDescending(p=>p.DateCreated)
                   .ToListAsync();
             var invoiceViewModels = unpaidInvoices.Select(i => new InvoicePaymentViewModel
             {
                 InvoiceId = i.InvoiceId,
-                TotalAmount = i.InvoiceDetails.Sum(d => d.Service.Price * d.Quantity) - i.Discount,
+                TotalAmount = i.InvoiceDetails.Sum(d => d.TotalPrice) - i.Discount,
                 Discount = i.Discount,
                 PatientName = userData.DisplayName,
                 Status = i.Status,
@@ -62,6 +59,7 @@ namespace DentalManagement.Web.Controllers
             ViewBag.IsPatient = userData.Roles.Contains("patient");
             return View(invoiceViewModels);
         }
+        [Authorize(Roles = $"{WebUserRoles.Patient}")]
         [HttpGet, HttpPost]
         public async Task<IActionResult> AddPayment(int invoiceId)
         {
@@ -96,14 +94,14 @@ namespace DentalManagement.Web.Controllers
                 var payment = new Payment
                 {
                     InvoiceId = invoiceId,
-                    ServiceId = invoiceDetails.FirstOrDefault().ServiceId,  
-                    ServiceName = invoiceDetails.FirstOrDefault().ServiceName,  
+                    ServiceId = invoiceDetails.FirstOrDefault().ServiceId,
+                    ServiceName = invoiceDetails.FirstOrDefault().ServiceName,
                     PaymentMethod = Paymethod.CASH,  // Phương thức thanh toán
                     PaymentStatus = "Đang xử lý thanh toán tiền mặt",  // Trạng thái thanh toán
                     AmountPaid = invoiceDetails.Sum(i => i.TotalPrice) - invoiceDetails.Sum(i => i.Discount),  // Tổng tiền thanh toán
                     DateCreated = DateTime.Now,
                     DateUpdated = DateTime.Now,
-                    Notes="Thanh toán cho hoá đơn",
+                    Notes = "Thanh toán cho hoá đơn",
                 };
 
                 // Thêm thanh toán vào cơ sở dữ liệu
@@ -117,11 +115,11 @@ namespace DentalManagement.Web.Controllers
 
                 if (checkSuccess)
                 {
-                    return Json(new { success= true,messages = "Giao dịch đang được xử lý. Vui lòng vào hoá đơn để xem", redirectUrl = Url.Action("Index", "Payment") });
+                    return Json(new { success = true, messages = "Giao dịch đang được xử lý. Vui lòng vào hoá đơn để xem", redirectUrl = Url.Action("Index", "Payment") });
                 }
                 else
                 {
-                    return Json(new { success=false,messages = "Giao dịch không thành công, vui lòng thử lại sau!", redirectUrl = Url.Action("Index", "Payment") });
+                    return Json(new { success = false, messages = "Giao dịch không thành công, vui lòng thử lại sau!", redirectUrl = Url.Action("Index", "Payment") });
                 }
             }
             catch (Exception ex)
@@ -131,7 +129,7 @@ namespace DentalManagement.Web.Controllers
         }
 
 
-
+        [Authorize(Roles = $"{WebUserRoles.Administrator},{WebUserRoles.Employee}")]
         public async Task<IActionResult> ApprovePayment(int invoiceId)
         {
             try
@@ -139,8 +137,10 @@ namespace DentalManagement.Web.Controllers
                 // Lấy hóa đơn cần thanh toán
                 var invoice = await _context.Invoices
                     .Include(i => i.InvoiceDetails) // Bao gồm các chi tiết hóa đơn
-                    .FirstOrDefaultAsync(i => i.InvoiceId == invoiceId && i.Status == 2 );
-
+                    .FirstOrDefaultAsync(i => i.InvoiceId == invoiceId && i.Status == 2);
+                var patient = await _context.Patients.SingleOrDefaultAsync(p => p.PatientId == invoice.PatientId);
+                var patientId = await _patientRepository.GetByIdAsync(patient.PatientId);
+               
                 // Kiểm tra xem có hóa đơn chưa thanh toán không
                 if (invoice == null)
                 {
@@ -151,6 +151,7 @@ namespace DentalManagement.Web.Controllers
                 invoice.Status = 3; // Đánh dấu hóa đơn đã thanh toán
                 invoice.FinishTime = DateTime.Now;
                 invoice.DateUpdated = DateTime.Now;
+                var invoiceDetails = await _context.InvoiceDetails.SingleOrDefaultAsync(i => i.InvoiceId == invoice.InvoiceId);
 
                 // Cập nhật thông tin thanh toán, nếu có
                 var payment = await _context.Payments.FirstOrDefaultAsync(p => p.InvoiceId == invoiceId);
@@ -164,8 +165,14 @@ namespace DentalManagement.Web.Controllers
                     _context.Payments.Add(new Payment
                     {
                         InvoiceId = invoiceId,
-                        PaymentStatus = "Thanh toán thành công",
-                        DateCreated = DateTime.Now
+                        AmountPaid = invoice.TotalPrice,
+                        ServiceId = invoiceDetails.ServiceId,
+                        ServiceName = invoiceDetails.ServiceName,
+                        PaymentStatus = "Thanh toán tiền mặt thành công",
+                        DateCreated = DateTime.Now,
+                        DateUpdated = DateTime.Now,
+                        Notes = "Thanh toán cho hoá đơn",
+                        UserIdCreate = patient.PatientName.ToString()
                     });
                 }
 
@@ -184,7 +191,7 @@ namespace DentalManagement.Web.Controllers
                 return RedirectToAction("PendingPayments");
             }
         }
-
+        [Authorize(Roles = $"{WebUserRoles.Administrator},{WebUserRoles.Employee}")]
         public async Task<IActionResult> RejectPayment(int invoiceId)
         {
             try
@@ -192,8 +199,8 @@ namespace DentalManagement.Web.Controllers
                 // Lấy hóa đơn cần thanh toán
                 var invoice = await _context.Invoices
                     .Include(i => i.InvoiceDetails) // Bao gồm các chi tiết hóa đơn
-                    .FirstOrDefaultAsync(i => i.InvoiceId == invoiceId && i.Status == 2); 
-
+                    .FirstOrDefaultAsync(i => i.InvoiceId == invoiceId && i.Status == 2);
+                var patient = await _context.Patients.SingleOrDefaultAsync(p => p.PatientId == invoice.PatientId);
                 // Kiểm tra xem có hóa đơn chưa thanh toán không
                 if (invoice == null)
                 {
@@ -201,9 +208,11 @@ namespace DentalManagement.Web.Controllers
                 }
 
                 // Cập nhật trạng thái thanh toán của hóa đơn
-                invoice.Status = -1; // Đánh dấu hóa đơn bị từ chối hoặc trạng thái khác nếu cần
+                invoice.Status = -1;
                 invoice.DateUpdated = DateTime.Now;
-                // Cập nhật thông tin thanh toán, nếu có
+                var invoiceDetails = await _context.InvoiceDetails.SingleOrDefaultAsync(i => i.InvoiceId == invoice.InvoiceId);
+
+
                 var payment = await _context.Payments.FirstOrDefaultAsync(p => p.InvoiceId == invoiceId);
                 if (payment != null)
                 {
@@ -211,12 +220,18 @@ namespace DentalManagement.Web.Controllers
                 }
                 else
                 {
-                    // Nếu không tìm thấy bản ghi thanh toán, có thể cần tạo mới bản ghi Payment với trạng thái từ chối
+
                     _context.Payments.Add(new Payment
                     {
                         InvoiceId = invoiceId,
-                        PaymentStatus = "Thanh toán không thành công",
-                        DateCreated = DateTime.Now
+                        AmountPaid = invoice.TotalPrice,
+                        ServiceId = invoiceDetails.ServiceId,
+                        ServiceName = invoiceDetails.ServiceName,
+                        PaymentStatus = "Thanh toán tiền mặt thành công",
+                        DateCreated = DateTime.Now,
+                        DateUpdated = DateTime.Now,
+                        Notes = "Thanh toán cho hoá đơn",
+                        UserIdCreate = patient.PatientName.ToString()
                     });
                 }
 
@@ -235,7 +250,7 @@ namespace DentalManagement.Web.Controllers
                 return RedirectToAction("PendingPayments");
             }
         }
-
+        [Authorize(Roles = $"{WebUserRoles.Administrator},{WebUserRoles.Employee}")]
         public async Task<IActionResult> PendingPayments()
         {
             try
@@ -243,7 +258,8 @@ namespace DentalManagement.Web.Controllers
                 // Lấy tất cả các hóa đơn chưa thanh toán
                 var invoices = await _context.Invoices
                     .Include(i => i.InvoiceDetails) // Bao gồm chi tiết hóa đơn
-                    .Where(i => i.Status == 2 && i.PaymentMethod == "Tiền Mặt") // Chỉ lấy hóa đơn chưa thanh toán
+                    .Where(i => i.Status == 2 && i.PaymentMethod == "Tiền Mặt")
+                    .OrderByDescending(p=>p.DateUpdated)// Chỉ lấy hóa đơn chưa thanh toán
                     .ToListAsync();
 
                 // Kiểm tra có hóa đơn nào chưa thanh toán không
@@ -260,8 +276,10 @@ namespace DentalManagement.Web.Controllers
                         InvoiceId = i.InvoiceId,
                         TotalAmount = i.InvoiceDetails.Sum(d => d.Invoice.TotalPrice * d.Quantity) - i.Discount,
                         Discount = i.Discount,
-                        Status = i.Status
+                        Status = i.Status,
+                        DateUpdated = i.DateUpdated,
                     })
+                    .OrderByDescending(p=>p.DateUpdated)
                     .ToList();
 
                 // Kiểm tra sau khi lọc
@@ -314,7 +332,7 @@ namespace DentalManagement.Web.Controllers
                 }
 
                 var payment = await _context.Payments.Where(p => p.InvoiceId == invoiceId).FirstOrDefaultAsync();
-                var invoiceDetails = await _context.InvoiceDetails.Where(i=>i.InvoiceId == invoiceId).ToListAsync();
+                var invoiceDetails = await _context.InvoiceDetails.Where(i => i.InvoiceId == invoiceId).ToListAsync();
                 //payment.PaymentStatus = "Đang xử lý";
                 //invoice.Status = 2;
                 await _context.SaveChangesAsync();
@@ -325,9 +343,9 @@ namespace DentalManagement.Web.Controllers
 
                 // Chuẩn bị danh sách các item (ví dụ dịch vụ)
                 var items = new List<ItemData>();
-                     foreach (var invoiceDetail in invoiceDetails)
+                foreach (var invoiceDetail in invoiceDetails)
                 {
-                    decimal serviceAmount = invoiceDetail.Quantity * invoiceDetail.TotalPrice; 
+                    decimal serviceAmount = invoiceDetail.Quantity * invoiceDetail.TotalPrice;
                     items.Add(new ItemData(invoiceDetail.ServiceName, invoiceDetail.Quantity, (int)serviceAmount));
                 }
 
@@ -336,10 +354,10 @@ namespace DentalManagement.Web.Controllers
 
                 // Cấu hình dữ liệu thanh toán PayOS
                 var paymentData = new PaymentData(
-                    orderCode,        // Mã đơn hàng
-                    (int)amount,      // Số tiền thanh toán, ép kiểu sang int nếu cần
+                    orderCode,
+                    (int)amount,
                     "Thanh toán nha khoa", // Mô tả
-                    items,            // Danh sách các dịch vụ (chi tiết dịch vụ)
+                    items,
                     cancelUrl: "https://localhost:44392/Payment/cancel", // URL hủy
                     returnUrl: "https://localhost:44392/Payment/HandlePaymentReturn" // URL thành công
                 );
@@ -367,7 +385,7 @@ namespace DentalManagement.Web.Controllers
 
                 // Trả về thông tin mã QR và liên kết thanh toán dưới dạng JSON
                 ViewBag.qrCodeImageUrl = qrCodeUrl;
-                return Json(new { success = true, qrCodeImageUrl = qrCodeUrl,paymentLinkId = paymentLink});
+                return Json(new { success = true, qrCodeImageUrl = qrCodeUrl, paymentLinkId = paymentLink });
             }
             catch (Exception ex)
             {
@@ -418,7 +436,7 @@ namespace DentalManagement.Web.Controllers
                     }
                     var userData = User.GetUserData();
                     // Cập nhật trạng thái hóa đơn và thông tin thanh toán
-                    var invoiceDetails = await _context.InvoiceDetails.SingleOrDefaultAsync(i=>i.InvoiceId == invoice.InvoiceId);
+                    var invoiceDetails = await _context.InvoiceDetails.SingleOrDefaultAsync(i => i.InvoiceId == invoice.InvoiceId);
                     invoice.Status = 3; // Trạng thái "PAID"
                     invoice.PaymentMethod = Paymethod.BANKING;
                     var payment = new Payment
@@ -428,16 +446,16 @@ namespace DentalManagement.Web.Controllers
                         PaymentStatus = "Thanh toán thành công với PayOS",
                         ServiceId = invoiceDetails.ServiceId,
                         ServiceName = invoiceDetails.ServiceName,
-                        AmountPaid = invoiceDetails.TotalPrice * invoiceDetails.Quantity,
+                        AmountPaid = invoiceDetails.TotalPrice,
                         Notes = "Thanh toán cho hoá đơn",
                         DateCreated = DateTime.Now,
-                        DateUpdated = DateTime.Now,                 
+                        DateUpdated = DateTime.Now,
                     };
                     await _context.Payments.AddAsync(payment);
                     await _context.SaveChangesAsync();
 
-                    Json(new { success = true, message = "Thanh toán thành công." });
-                    return RedirectToAction("Index", "Payment");
+                    //return Json(new { success = true, message = "Thanh toán thành công." });
+                    return Redirect("/Payment/PaymentHistory");
                 }
 
                 return Json(new { success = false, message = "Trạng thái không hợp lệ." });
@@ -449,6 +467,7 @@ namespace DentalManagement.Web.Controllers
                 return StatusCode(500, new { success = false, message = "Đã xảy ra lỗi khi xử lý thông tin thanh toán." });
             }
         }
+        [Authorize(Roles = $"{WebUserRoles.Administrator},{WebUserRoles.Employee},{WebUserRoles.Patient}")]
         public async Task<IActionResult> PaymentHistory(int patientId, int invoiceId)
         {
             try
@@ -457,7 +476,7 @@ namespace DentalManagement.Web.Controllers
                 patientId = Int32.Parse(userData.UserId);
                 // Lấy tất cả các hóa đơn liên quan đến bệnh nhân
                 var payments = await _paymentRepository.GetPaymentsByPatientIdAsync(patientId);
-                var invoices = _context.Invoices.Where(i=> i.PatientId == patientId).ToList();
+                var invoices = _context.Invoices.Where(i => i.PatientId == patientId).ToList();
 
                 if (payments == null || payments.Count == 0)
                 {

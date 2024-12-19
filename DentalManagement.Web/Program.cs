@@ -43,6 +43,8 @@ builder.Services.AddScoped<StatisticsService>();
 builder.Services.AddScoped<MessageRepository>();
 builder.Services.AddScoped<MedicalRecordRepository>();
 builder.Services.AddScoped<PrescriptionRepository>();
+builder.Services.AddScoped<PrescriptionDetailsRepository>();
+
 builder.Services.AddMvc();
 builder.Services.AddSignalR();
 builder.Services.AddHttpClient();

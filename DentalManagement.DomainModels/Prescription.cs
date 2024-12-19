@@ -15,7 +15,6 @@ namespace DentalManagement.DomainModels
         public string Frequency { get; set; } = string.Empty;//tần suất
         public string Duration { get; set; } = string.Empty;//Trong vòng
         public string Notes { get; set; } = string.Empty;
-
         public virtual Patient Patient { get; set; }
         public virtual Dentist Dentist { get; set; }
         public virtual ICollection<PrescriptionDetails> PrescriptionDetails { get; set; }

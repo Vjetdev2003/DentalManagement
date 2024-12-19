@@ -4,7 +4,7 @@
 @using DentalManagement.Web.Repository
 
 @{
-    ViewBag.Title = "Lập đơn thuốc";
+    ViewBag.Title = "Kê đơn thuốc";
 }
 
 <div class="box">
@@ -12,7 +12,7 @@
 
         <!-- Service Search Form -->
         <div class="col-md-4">
-            <h4>Chọn thuốc để tạo đơn</h4>
+            <h4>Chọn thuốc để kê đơn</h4>
             <form id="formSearch" action="~/Prescription/SearchMedicine" method="get" data-container="#searchResult">
                 <input type="hidden" name="@nameof(Model.MedicineSearchInput.PageSize)" value="@Model.MedicineSearchInput.PageSize" />
                 <div class="input-group">
@@ -84,7 +84,7 @@
                 <div class="form-group">
                     <div class="col-md-12 text-right">
                         <button type="submit" class="btn btn-primary">
-                            <i class="fa fa-plus-circle"></i> Lập đơn thuốc
+                            <i class="fa fa-plus-circle"></i> Kê đơn thuốc
                         </button>
                     </div>
                 </div>

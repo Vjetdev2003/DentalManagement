@@ -8,6 +8,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using DocumentFormat.OpenXml.Presentation;
 using DentalManagement.Web.Interfaces;
+using Microsoft.AspNetCore.Authorization;
+using DentalManagement.Web.History;
 
 namespace DentalManagement.Web.Controllers
 {
@@ -15,18 +17,15 @@ namespace DentalManagement.Web.Controllers
     {
         private readonly DentalManagementDbContext _context;
         private readonly MedicalRecordRepository _repository;
-        private readonly IRepository<Service> _serviceRepository;
         private readonly IRepository<Patient> _patientRepository;
         private readonly IRepository<Dentist> _dentistRepository;
         private const string SEARCH_RECORD = "medicalrecord_search";
         private const int PAGE_SIZE = 10;
 
-        public MedicalRecordController(DentalManagementDbContext context, MedicalRecordRepository repository, 
-            IRepository<Service> serviceRepository, IRepository<Patient> patientRepository, IRepository<Dentist> dentistRepository)
+        public MedicalRecordController(DentalManagementDbContext context, MedicalRecordRepository repository, IRepository<Patient> patientRepository, IRepository<Dentist> dentistRepository)
         {
             _context = context;
             _repository = repository;
-            _serviceRepository = serviceRepository;
             _patientRepository = patientRepository;
             _dentistRepository = dentistRepository;
         }
@@ -56,8 +55,7 @@ namespace DentalManagement.Web.Controllers
 
                 var data = await _context.MedicalRecords
                     .Include(e => e.Patient) // Include các navigation properties nếu cần
-                    .Include(e => e.Service)
-                    .Include(e=>e.Dentist)
+                    .Include(e => e.Dentist)
                     .Where(e => string.IsNullOrEmpty(input.SearchValue) || e.Patient.PatientName.ToUpper().Contains(input.SearchValue.ToUpper()) || e.Dentist.DentistName.ToUpper().Contains(input.SearchValue.ToUpper()))
                     .Skip((input.Page - 1) * input.PageSize)
                     .Take(input.PageSize)
@@ -75,7 +73,8 @@ namespace DentalManagement.Web.Controllers
                 ApplicationContext.SetSessionData(SEARCH_RECORD, input);
 
                 return View(model);
-            }catch (Exception ex)
+            }
+            catch (Exception ex)
             {
                 return Json(ex);
             }
@@ -84,15 +83,15 @@ namespace DentalManagement.Web.Controllers
         public async Task<IActionResult> Create()
         {
             ViewBag.Title = "Bổ sung hồ sơ y tế";
-           
-           var service = SelectListHelper.GetServices(_serviceRepository);
-           var patient = SelectListHelper.GetPatients(_patientRepository);
+
+           // var service = SelectListHelper.GetServices(_serviceRepository);
+            var patient = SelectListHelper.GetPatients(_patientRepository);
             var dentist = SelectListHelper.GetDentists(_dentistRepository);
-            ViewBag.ServiceList = service;
+         //   ViewBag.ServiceList = service;
             ViewBag.DentistList = dentist;
             ViewBag.PatientList = patient;
             var model = new MedicalRecord();
-            return View("Edit",model);
+            return View("Edit", model);
         }
 
         public async Task<IActionResult> Edit(int id)
@@ -111,6 +110,7 @@ namespace DentalManagement.Web.Controllers
         {
             try
             {
+                ViewBag.Title = data.MedicalRecordId == 0 ? "Bổ sung hồ sơ y tế" : "Chỉnh sửa hồ sơ y tế";
                 if (string.IsNullOrEmpty(data.DescriptionStatus))
                     ModelState.AddModelError(nameof(data.DescriptionStatus), "Vui lòng nhập mô tả trạng thái");
                 if (string.IsNullOrEmpty(data.Treatment))
@@ -122,15 +122,15 @@ namespace DentalManagement.Web.Controllers
 
 
                 var userData = User.GetUserData();
+                var dentist = _dentistRepository.GetByIdAsync(Int32.Parse(userData.UserId)).Result;
                 // Xử lý thời gian tạo và cập nhật
                 if (data.MedicalRecordId == 0)
                 {
                     data.DateCreated = DateTime.Now;
-                    data.UserIdCreate = userData.Roles.ToString();
+                    data.UserIdCreate = dentist.DentistId + " " + dentist.DentistName;
                 }
                 data.Status = 1;
-                data.DateUpdated = DateTime.Now;
-                data.UserIdUpdated = User.Identity?.Name;
+                data.UserIdUpdated = dentist.DentistId + " " + dentist.DentistName;
                 data.TreatmentOutcome = " Chưa cập nhật";
                 if (data.MedicalRecordId == 0)
                 {
@@ -144,32 +144,33 @@ namespace DentalManagement.Web.Controllers
 
                 return RedirectToAction("Index");
             }
-            catch (Exception ex) { 
+            catch (Exception ex)
+            {
                 return Json(ex.Message);
             }
         }
-        public async Task<IActionResult>Details(int id = 0)
+        public async Task<IActionResult> Details(int id = 0)
         {
             var userData = User.GetUserData();
             ViewBag.IsFinish = false;
             ViewBag.IsDelete = false;
-            ViewBag.Dentist = false;
+            ViewBag.IsDentist = false;
             ViewBag.IsUpdate = false;
             ViewBag.IsUnProcess = false;
             // Lấy thông tin hóa đơn từ repository
             var record = await _repository.GetByIdAsync(id);
             var dentist = await _context.Dentists.SingleOrDefaultAsync(d => d.DentistId == record.DentistId);
             var patient = await _context.Patients.SingleOrDefaultAsync(d => d.PatientId == record.PatientId);
-            var service = await _context.Services.SingleOrDefaultAsync(d => d.ServiceId == record.ServiceId);
+       //     var service = await _context.Services.SingleOrDefaultAsync(d => d.ServiceId == record.ServiceId);
 
             var medicalRecord = await _context.MedicalRecords
              .Include(m => m.Patient)
              .Include(m => m.Dentist)
-             .Include(m => m.Service)
+            // .Include(m => m.Service)
              .FirstOrDefaultAsync(m => m.MedicalRecordId == id);
             if (userData.UserId.Equals(record.DentistId.ToString()))
             {
-                ViewBag.IsDentist = true;
+                ViewBag.IsDentist = false; // Đặt một ViewBag chung cho quyền truy cập
             }
             if (medicalRecord == null)
             {
@@ -184,9 +185,11 @@ namespace DentalManagement.Web.Controllers
                 case Constants_MedicalRecord.UNPROCESS:
                     ViewBag.IsDelete = true;
                     ViewBag.IsUnProcess = true;
+                    ViewBag.IsDentist = true;
                     break;
                 case Constants_MedicalRecord.PENDING:
                     ViewBag.IsUpdate = true;
+                    ViewBag.IsDentist = true;
                     break;
                 case Constants_MedicalRecord.COMPLETE:
                     ViewBag.IsFinish = true;
@@ -205,9 +208,9 @@ namespace DentalManagement.Web.Controllers
                 MedicalRecord = medicalRecord,
                 Dentist = dentist,
                 Patient = patient,
-                Service = service,
+               // Service = service,
             };
-        
+
 
             // Truyền thông báo (nếu có) từ TempData
             if (TempData["Message"] != null)
@@ -232,8 +235,8 @@ namespace DentalManagement.Web.Controllers
                 TempData["Message"] = "Không thể hoàn tất hồ sơ  này ";
             return RedirectToAction("Index", new { id });
         }
-        [HttpGet] 
-        public  IActionResult Report(int id=0)
+        [HttpGet]
+        public IActionResult Report(int id = 0)
         {
             var model = _context.MedicalRecords.FirstOrDefaultAsync(o => o.MedicalRecordId == id);
             return View(model.Result);
@@ -249,10 +252,10 @@ namespace DentalManagement.Web.Controllers
             // Kiểm tra nếu không chọn ngày hẹn tiếp theo
             if (!nextAppointmentDate.HasValue && nextAppointmentDate < record.DateOfTreatment)
                 return Json(new { success = false, message = "Vui lòng chọn ngày hẹn tiếp theo" });
-            
+
             // Lưu thông tin báo cáo vào cơ sở dữ liệu  
             bool result = await _repository.SaveTreatmentReport(id, treatmentOutcome, nextAppointmentDate.Value);
-            
+
             // Kiểm tra nếu không lưu thành công
             if (!result)
                 return Json(new { success = false, message = "Không thể lưu báo cáo cho hồ sơ này" });
@@ -299,6 +302,18 @@ namespace DentalManagement.Web.Controllers
                 TempData["Message"] = "Có lỗi xảy ra khi xoá hồ sơ: " + ex.Message;
                 return RedirectToAction("Details", new { id });
             }
+        }
+        public async Task<IActionResult> MedicalRecordHistory(int patientId)
+        {
+            var userData = User.GetUserData();
+
+            patientId = Int32.Parse(userData.UserId);
+            var history = await _repository.GetMedicalRecordByPatientIdAsync(patientId);
+            var model = new MedicalRecordHistoryViewModel
+            {
+                MedicalRecords = history.ToList(),
+            };
+            return View(model);
         }
     }
 }

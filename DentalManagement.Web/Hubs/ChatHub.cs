@@ -22,7 +22,7 @@ namespace DentalManagement.Web.Hubs
         public async Task JoinEmployeeGroup()
         {
             var userRoles = GetUserRoles(Context.User);
-            if (userRoles.Contains(WebUserRoles.Employee)) // Kiểm tra nếu người dùng là nhân viên
+            if (userRoles.Contains(WebUserRoles.Employee) || userRoles.Contains(WebUserRoles.Administrator)) // Kiểm tra nếu người dùng là nhân viên
             {
                 // Thêm kết nối vào nhóm "Employees"
                 await Groups.AddToGroupAsync(Context.ConnectionId, "Employees");

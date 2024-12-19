@@ -22,82 +22,87 @@ else
 {
     <div class="box box-primary">
         <!-- Bảng danh sách dịch vụ -->
-        <table class="table table-bordered table-striped">
-            <thead>
-                <tr>
-                    <th>Hoá đơn</th>
-                    <th>Tổng tiền</th>
-                    <th>Giảm giá</th>
-                    <th>Trạng thái thanh toán</th>
-                    <th>Thao tác</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var service in Model)
-                {
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped">
+                <thead class="table-dark">
                     <tr>
-                        <td>@service.InvoiceId</td>
-                        <td>@service.TotalAmount</td>
-                        <td>@service.Discount</td>
-                        <td>
-                            @if (service.Status == 3)
-                            {
-                                <span class="text-success">Đã thanh toán</span>
-                            }
-                            else
-                            {
-                                <span class="text-danger">Chưa thanh toán</span>
-                            }
-                        </td>
-                        <td>
-                            @if (service.Status != 3)
-                            {
-                                <div class="btn-group">
-                                    <button type="button" class="btn btn-sm btn-info dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-                                        <i class="fa fa-credit-card"></i> Thanh toán
-                                    </button>
-                                    <ul class="dropdown-menu">
-                                        <!-- Nút thanh toán thông thường -->
-                                        <li>
-                                            <a href="#" class="btn btn-sm btn-success pay-button"
-                                               data-url="@Url.Action("AddPayment", "Payment", new { invoiceId = service.InvoiceId })"
-                                               data-invoice-id="@service.InvoiceId">
-                                                <i class="fa fa-money"></i> Tiền Mặt
-                                            </a>
-                                        </li>
-                                        <!-- Nút thanh toán bằng QR -->
-                                        <li>
-                                            <a href="#" class="btn btn-sm btn-success qr-pay-button"
-                                               data-url="@Url.Action("GenerateQRCode", "Payment", new { invoiceId = service.InvoiceId })"
-                                               data-invoice-id="@service.InvoiceId">
-                                                <i class="fa fa-qrcode"></i> Banking QR
-                                            </a>
-                                        </li>
-                                    </ul>
-                                </div>
-                            }
-                            else
-                            {
-                                <span class="text-muted">Đã thanh toán</span>
-                            }
-                        </td>
+                        <th>Hoá đơn</th>
+                        <th>Tổng tiền</th>
+                        <th>Giảm giá</th>
+                        <th>Trạng thái thanh toán</th>
+                        <th>Thao tác</th>
                     </tr>
-                } @if (!Model.Any())
-                {
-                    <tr>
-                        <td colspan="5" class="text-center text-muted">
-                            <i class="fa fa-info-circle"></i> Không có hóa đơn nào cần thanh toán.
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    @foreach (var service in Model)
+                    {
+                        <tr>
+                            <td>@service.InvoiceId</td>
+                            <td>@service.TotalAmount.ToString("C0")</td>
+                            <td>@service.Discount.ToString("C0")</td>
+                            <td>
+                                @if (service.Status == 3)
+                                {
+                                    <span class="badge bg-success">Đã thanh toán</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger">Chưa thanh toán</span>
+                                }
+                            </td>
+                            <td>
+                                @if (service.Status != 3)
+                                {
+                                    <div class="btn-group">
+                                        <button type="button" class="btn btn-sm btn-info dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <i class="fa fa-credit-card"></i> Thanh toán
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <!-- Nút thanh toán thông thường -->
+                                            <li>
+                                                <a href="#" class="btn btn-sm btn-success pay-button"
+                                                   data-url="@Url.Action("AddPayment", "Payment", new { invoiceId = service.InvoiceId })"
+                                                   data-invoice-id="@service.InvoiceId">
+                                                    <i class="fa fa-money"></i> Tiền Mặt
+                                                </a>
+                                            </li>
+                                            <!-- Nút thanh toán bằng QR -->
+                                            <li>
+                                                <a href="#" class="btn btn-sm btn-success qr-pay-button"
+                                                   data-url="@Url.Action("GenerateQRCode", "Payment", new { invoiceId = service.InvoiceId })"
+                                                   data-invoice-id="@service.InvoiceId">
+                                                    <i class="fa fa-qrcode"></i> Banking QR
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">Đã thanh toán</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="5" class="text-center text-muted">
+                                <i class="fa fa-info-circle"></i> Không có hóa đơn nào cần thanh toán.
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
         <div class="text-end mt-3">
-            <a href="@Url.Action("PaymentHistory", "Payment")" class="btn">
+            <a href="@Url.Action("PaymentHistory", "Payment")" class="btn btn-outline-secondary">
                 <i class="fa fa-history"></i> Xem lịch sử thanh toán
             </a>
         </div>
     </div>
+
 }
 
 <!-- Modal hiển thị mã QR -->

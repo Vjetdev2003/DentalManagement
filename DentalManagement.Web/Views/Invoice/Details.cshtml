@@ -12,7 +12,7 @@
     decimal TotalPrice = Model.Invoices.TotalPrice + Model.Invoices.Discount;  // Total price after discount
     decimal discount = Model.Invoices.Discount;
     decimal TotalAmount = TotalPrice - discount;
-   
+
 }
 
 <div class="box box-primary">
@@ -58,11 +58,11 @@
                                 case Constants_Invoice.INVOICE_PAID:
                                     <li>
                                         <a href="~/Invoice/Print/@Model.Invoices.InvoiceId" class="btn btn-modal">In hóa đơn</a>
-                                    </li> 
-                                        <li>
-                                            <a href="~/Invoice/Finish/@Model.Invoices.InvoiceId" onclick="return confirm('Xác nhận hoàn tất hóa đơn này?')">Hoàn tất hóa đơn</a>
-                                        </li>
-                                    
+                                    </li>
+                                    <li>
+                                        <a href="~/Invoice/Finish/@Model.Invoices.InvoiceId" onclick="return confirm('Xác nhận hoàn tất hóa đơn này?')">Hoàn tất hóa đơn</a>
+                                    </li>
+
                                     break;
                             }
                         </ul>
@@ -124,122 +124,131 @@
                             <th class="text-center">Giá</th>
                             <th class="text-center">Số lượng</th>
                             <th class="text-center">Thành tiền</th>
-                            <th class="text-center">Trạng thái</th>
                         </tr>
                     </thead>
                     <tbody>
-
                         @foreach (var item in Model.Details)
                         {
-
-                            decimal totalService = item.TotalPrice;
-                            if (item.TotalPrice >= 10000000 && item.TotalPrice < 50000000)
-                            {
-                                decimal discountSV = totalService * 0.1m;
-                                totalService = totalService - discountSV;
-                            }
-                            else if (item.TotalPrice >= 50000000)
-                            {
-                                decimal discountSV = totalService * 0.2m;
-                                totalService = totalService - discountSV;
-                            }
-                            else
-                            {
-                            }
                             <tr>
                                 <td class="text-center">@(++i)</td> <!-- Increment counter properly -->
                                 <td class="text-center">@item.ServiceName</td>
                                 <td class="text-right">@item.SalePrice.ToString("N0")</td>
                                 <td class="text-right">@item.Quantity.ToString("N0")</td>
-                                <td class="text-right">@totalService.ToString("N0")</td>
-                               
+                                <td class="text-right">@item.TotalPrice.ToString("N0")</td>
 
-                                <!-- Check ServiceStatus for each item and apply different styling based on the status -->
-                                @if (Model.Invoices.Status == 3)
+                            </tr>
+                        }
+
+                    </tbody>
+                </table>
+            </div>
+            @if(Model.Invoices.PrescriptionId == 0)
+            {
+                
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped table-hover">
+                        <caption><h4>Danh sách thuốc của hoá đơn</h4></caption>
+                        <thead>
+                            <tr class="bg-primary">
+                                <th class="text-center">STT</th>
+                                <th class="text-center">Tên thuốc</th>
+                                <th class="text-center">Giá</th>
+                                <th class="text-center">Số lượng</th>
+                                <th class="text-center">Thành tiền</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+
+                            @foreach (var item in Model.PrescriptionDetails)
+                            {
+                                var j = 0;
+                                <tr>
+                                    <td class="text-center">@(++j)</td> <!-- Increment counter properly -->
+                                    <td class="text-center">@item.MedicineName</td>
+                                    <td class="text-right">@item.SalePrice.ToString("N0")</td>
+                                    <td class="text-right">@item.Quantity.ToString("N0")</td>
+                                    <td class="text-right">@item.TotalPrice.ToString("N0")</td>
+
+                                </tr>
+                            }
+
+                        </tbody>
+                    </table>
+                </div>
+            }
+            <tfoot>
+                <tr>
+                    <th class="text-left" colspan="6">
+                        <div>
+                            @if (Model.Invoices.Status == 1 || Model.Invoices.Status == 2)
+                            {
+                                @if (TotalPrice >= 1000000 && TotalPrice < 5000000)
                                 {
-                                    <td class="text-center text-success">Đã thanh toán</td>
+                                    <div><strong>Tổng:</strong> @TotalPrice.ToString("N0")</div>
+                                    <div><strong>Giảm giá:</strong> @discount.ToString("N0")</div>
+                                    <div><strong>Tổng tiền cần thanh toán  (Đã bao gồm Discount 10%):</strong> @TotalAmount.ToString("N0")</div>
                                 }
-                                else if (Model.Invoices.Status == 2)
+                                else if (TotalPrice >= 5000000)
                                 {
-                                    <td class="text-center text-warning">Đang xử lý </td>
+                                    <div><strong>Tổng:</strong> @TotalPrice.ToString("N0")</div>
+                                    <div><strong>Giảm giá:</strong> @discount.ToString("N0")</div>
+                                    <div><strong>Tổng tiền cần thanh toán (Đã bao gồm Discount 20%):</strong> @TotalAmount.ToString("N0")</div>
                                 }
                                 else
                                 {
-                                    <td class="text-center text-danger">Đang chờ thanh toán</td> <!-- Default status if not paid or unpaid -->
+                                    <div><strong>Tổng:</strong> @TotalPrice.ToString("N0")</div>
+                                    <div><strong>Giảm giá:</strong> @discount.ToString("N0")</div>
+                                    <div><strong>Tổng tiền cần thanh toán :</strong> @TotalAmount.ToString("N0")</div>
                                 }
-                            </tr>
-                        }
-                    </tbody>
-                    <tfoot>
-                        <tr>
-                            <th class="text-right" colspan="6">
-                                <div>
-                                    @if (Model.Invoices.Status == 1 || Model.Invoices.Status == 2)
-                                    {
-                                        @if (TotalPrice >= 1000000 && TotalPrice < 5000000)
-                                        {
-                                            <div><strong>Tổng:</strong> @TotalPrice.ToString("N0")</div>
-                                            <div><strong>Giảm giá:</strong> @discount.ToString("N0")</div>
-                                            <div><strong>Tổng tiền cần thanh toán  (Đã bao gồm Discount 10%):</strong> @TotalAmount.ToString("N0")</div>
-                                        }
-                                        else if (TotalPrice >= 5000000)
-                                        {
-                                            <div><strong>Tổng:</strong> @TotalPrice.ToString("N0")</div>
-                                            <div><strong>Giảm giá:</strong> @discount.ToString("N0")</div>
-                                            <div><strong>Tổng tiền cần thanh toán (Đã bao gồm Discount 20%):</strong> @TotalAmount.ToString("N0")</div>
-                                        }
-                                        else
-                                        {
-                                            <div><strong>Tổng:</strong> @TotalPrice.ToString("N0")</div>
-                                            <div><strong>Giảm giá:</strong> @discount.ToString("N0")</div>
-                                            <div><strong>Tổng tiền cần thanh toán :</strong> @TotalAmount.ToString("N0")</div>
-                                        }
-                                    }
-                                    else if(Model.Invoices.Status == 3)
-                                    {
-                                        @if (TotalPrice >= 1000000 && TotalPrice < 5000000)
-                                        {
-                                            <div><strong>Tổng:</strong> @TotalPrice.ToString("N0")</div>
-                                            <div><strong>Giảm giá:</strong> @discount.ToString("N0")</div>
-                                            <div><strong>Tổng tiền đã thanh toán  (Đã bao gồm Discount 10%):</strong> @TotalAmount.ToString("N0")</div>
-                                        }
-                                        else if (TotalPrice >= 5000000)
-                                        {
-                                            <div><strong>Tổng:</strong> @TotalPrice.ToString("N0")</div>
-                                            <div><strong>Giảm giá:</strong> @discount.ToString("N0")</div>
-                                            <div><strong>Tổng tiền đã thanh toán (Đã bao gồm Discount 20%):</strong> @TotalAmount.ToString("N0")</div>
-                                        }
-                                        else
-                                        {
-                                            <div><strong>Tổng:</strong> @TotalPrice.ToString("N0")</div>
-                                            <div><strong>Giảm giá:</strong> @discount.ToString("N0")</div>
-                                            <div><strong>Tổng tiền đã thanh toán :</strong> @TotalAmount.ToString("N0")</div>
-                                        }
-                                    }else
+                            }
+                            else if (Model.Invoices.Status == 3)
+                            {
+                                @if (TotalPrice >= 1000000 && TotalPrice < 5000000)
+                                {
+                                    <div><strong>Tổng:</strong> @TotalPrice.ToString("N0")</div>
+                                    <div><strong>Giảm giá:</strong> @discount.ToString("N0")</div>
+                                    <div><strong>Tổng tiền đã thanh toán  (Đã bao gồm Discount 10%):</strong> @TotalAmount.ToString("N0")</div>
+                                }
+                                else if (TotalPrice >= 5000000)
+                                {
+                                    <div><strong>Tổng:</strong> @TotalPrice.ToString("N0")</div>
+                                    <div><strong>Giảm giá:</strong> @discount.ToString("N0")</div>
+                                    <div><strong>Tổng tiền đã thanh toán (Đã bao gồm Discount 20%):</strong> @TotalAmount.ToString("N0")</div>
+                                }
+                                else
+                                {
+                                    <div><strong>Tổng:</strong> @TotalPrice.ToString("N0")</div>
+                                    <div><strong>Giảm giá:</strong> @discount.ToString("N0")</div>
+                                    <div><strong>Tổng tiền đã thanh toán :</strong> @TotalAmount.ToString("N0")</div>
+                                }
+                            }
+                            else
 
-                                    {
-                                        <div>Hoá đơn không còn nữa</div>
-                                    }
+                            {
+                                <div>Hoá đơn không còn nữa</div>
+                            }
 
-                                </div>
-                            </th>
-                        </tr>
-                    </tfoot>
-                </table>
-            </div>
+                        </div>
+                    </th>
+                </tr>
+            </tfoot>
         </div>
     </section>
-   
 
-@if (ViewBag.Message != null)
-{
-    <div class="alert alert-info">  
-        @ViewBag.Message
-    </div>
-}
+    @if (ViewBag.Message != null)
+    {
+        <div class="alert alert-info">
+            @ViewBag.Message
+        </div>
+    }
 
-@section scripts {
-    <script>
-        // Custom scripts for handling actions can go here
-    </script>
-}
+    @section scripts {
+        <script>
+            // Custom scripts for handling actions can go here
+        </script>
+    }
+
+

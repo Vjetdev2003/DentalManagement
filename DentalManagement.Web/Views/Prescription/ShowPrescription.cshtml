@@ -20,13 +20,14 @@
         {
             @foreach (var item in Model)
             {
+                item.TotalMedicine = item.Quantity * item.SalePrice;
                 sumOfPrice += item.TotalMedicine;
                 <tr>
                     <td class="text-center">@(++stt)</td>
                     <td class="text-center">@item.MedicineName</td>
                     <td class="text-center">@item.Quantity</td>
-                    <td class="text-center">@item.MedicinePrice</td>
-                    <td class="text-right">@item.TotalMedicine.ToString("N0")</td>
+                    <td class="text-center">@item.SalePrice</td>
+                    <td class="text-right">@item.TotalMedicine</td>
                     <td class="text-right">
                         <a href="~/Prescription/RemoveFromPrescription/@item.MedicineId"
                            class="btn btn-xs btn-danger ajax-link"

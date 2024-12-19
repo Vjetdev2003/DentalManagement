@@ -4,23 +4,23 @@
     Layout = "_Home";
 }
 
-<div class="container mt-5">
+<div class="container-custom mt-4">
     <div class="row justify-content-center">
-        <div class="col-md-8">
+        <div class="col-md-6">
             <!-- Tiêu đề -->
-            <div class="text-center mb-4">
+            <div class="text-center mb-3">
                 <h1 class="page-title">Thông Tin Cá Nhân</h1>
             </div>
 
             <!-- Thông tin bệnh nhân -->
-            <div class="card shadow-lg p-4">
+            <div class="card-custom shadow-sm p-4">
                 <div class="text-center">
                     <!-- Ảnh bệnh nhân -->
                     <img class="profile-img"
                          alt="no-photo"
                          src="~/images/accounts/@(string.IsNullOrWhiteSpace(Model.Photo) ? "patient.png" : Model.Photo)">
                 </div>
-                <table class="custom-table mt-4">
+                <table class="custom-table mt-3">
                     <tbody>
                         <tr>
                             <th>Tên Bệnh Nhân:</th>
@@ -56,9 +56,12 @@
                 </table>
 
                 <!-- Nút chỉnh sửa -->
-                <div class="text-center mt-4">
-                    <a asp-action="Edit" asp-route-id="@Model.PatientId" class="btn btn-success btn-lg px-4">
+                <div class="form-group text-center mt-3">
+                    <a href="~/Patient/Edit/@Model.PatientId" class="btn btn-primary me-2">
                         <i class="fa fa-edit"></i> Chỉnh sửa
+                    </a>
+                    <a href="~/Account/ChangePassword" class="btn btn-primary">
+                        <i class="fa fa-lock"></i> Đổi mật khẩu
                     </a>
                 </div>
             </div>
@@ -70,57 +73,64 @@
 <style>
     body {
         font-family: 'Roboto', sans-serif;
+        background-color: #f4f8fb;
     }
 
     .page-title {
-        font-size: 2.5rem;
+        font-size: 2rem; /* Giảm kích thước tiêu đề */
         font-weight: bold;
         color: #007bff;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
     }
 
-    .card {
+    .card-custom {
         border: none;
         border-radius: 10px;
         background: #ffffff;
     }
 
     .profile-img {
-        width: 150px;
-        height: 150px;
+        width: 120px; /* Giảm kích thước ảnh */
+        height: 120px;
         border-radius: 50%;
         object-fit: cover;
         border: 3px solid #007bff;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 3px 15px rgba(0, 0, 0, 0.1);
+        margin-bottom: 15px;
     }
 
     .custom-table {
         width: 100%;
-        margin-top: 20px;
-        border-collapse: collapse;
+        margin-top: 20px; /* Giảm khoảng cách */
+        border-collapse: separate;
+        border-spacing: 0 8px;
     }
 
-        .custom-table th, .custom-table td {
-            padding: 12px 15px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-            font-size: 16px;
-        }
-
-        .custom-table th {
-            background-color: #f8f9fa;
-            font-weight: bold;
-            color: #333;
-        }
-
-    .btn-success {
-        background-color: #28a745;
-        border-color: #28a745;
-        font-size: 18px;
-        transition: 0.3s;
+    .custom-table th,
+    .custom-table td {
+        padding: 10px 15px; /* Giảm padding */
+        text-align: left;
+        background: #ffffff;
+        border: none;
+        font-size: 14px; /* Giảm kích thước chữ */
     }
 
-        .btn-success:hover {
-            background-color: #218838;
-            border-color: #1e7e34;
-        }
+    .custom-table th {
+        font-weight: bold;
+        color: #555;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .custom-table td {
+        background: #f8f9fa;
+        border-radius: 6px; /* Giảm bo góc */
+        color: #333;
+    }
+
+    .btn {
+        padding: 6px 12px; /* Giảm kích thước nút */
+        font-size: 14px;
+    }
 </style>
+

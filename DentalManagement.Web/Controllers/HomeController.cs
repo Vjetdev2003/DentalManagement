@@ -26,6 +26,10 @@ namespace DentalManagement.Web.Controllers
 
         public async Task<IActionResult> Index()
         {
+            if (!User.Identity.IsAuthenticated)
+            {
+                return RedirectToAction("Login", "Account"); // Chuyển hướng đến trang đăng nhập
+            }
             var userData = User.GetUserData();
             var services = await _context.Services.ToListAsync();
             ViewBag.ServiceList = SelectListHelper.GetServices(_serviceRepo);

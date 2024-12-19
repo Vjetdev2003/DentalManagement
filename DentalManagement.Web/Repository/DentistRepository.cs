@@ -26,7 +26,8 @@ namespace DentalManagement.Web.Repository
         public async Task DeleteAsync(int id)
         {
             var dentist = await _context.Dentists.FindAsync(id);
-            if (dentist != null) { 
+            if (dentist != null)
+            {
                 _context.Dentists.Remove(dentist);
                 await _context.SaveChangesAsync();
             }
@@ -56,7 +57,7 @@ namespace DentalManagement.Web.Repository
             return dentists;
         }
 
-       
+
 
         public async Task<Dentist> GetByIdAsync(int id)
         {
@@ -73,7 +74,7 @@ namespace DentalManagement.Web.Repository
 
         public bool InUse(int id)
         {
-            bool inUseDentist= _context.Set<Dentist>().Any(o => o.DentistId == id);
+            bool inUseDentist = _context.Set<Dentist>().Any(o => o.DentistId == id);
 
             // Có thể kiểm tra thêm các bảng khác tùy thuộc vào yêu cầu
             return inUseDentist;

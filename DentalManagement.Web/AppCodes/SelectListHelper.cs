@@ -46,7 +46,7 @@ namespace DentalManagement.Web
             new SelectListItem { Value = Constants.APPOINTMENT_INIT.ToString(),
                 Text = "Lịch hẹn đã đặt. Đang chờ xác nhận." },
             new SelectListItem { Value = Constants.APPOINTMENT_CONFIRMED.ToString(),
-                Text = "Lịch hẹn đã xác nhận. Đang chờ đến ngày hẹn." },
+                Text = "Lịch hẹn đã xác nhận" },
             new SelectListItem { Value = Constants.APPOINTMENT_IN_PROGRESS.ToString(),
                 Text = "Lịch hẹn đang diễn ra." },
             new SelectListItem { Value = Constants.APPOINTMENT_FINISHED.ToString(),
@@ -160,6 +160,29 @@ namespace DentalManagement.Web
 
             return list;
         }
+        public static async Task<List<SelectListItem>> GetPrescriptions(PrescriptionRepository prescription)
+        {
+            List<SelectListItem> list = new List<SelectListItem>();
+
+            var prescriptions = await prescription.GetAllAsync();
+            if (prescriptions == null || !prescriptions.Any())
+            {
+                throw new InvalidOperationException("No prescriptions found.");
+            }
+            foreach (var item in prescriptions)
+            {
+                list.Add(new SelectListItem()
+                {
+                    Value = item.PrescriptionId.ToString(),
+                    Text = item.PrescriptionId.ToString() + "(" +item.Patient.PatientName +")"
+                });
+            }
+
+            return list;
+        }
+
+
+
         public static List<SelectListItem> GetServices(IRepository<Service> serviceRepository)
         {
             List<SelectListItem> list = new List<SelectListItem>

@@ -1,0 +1,144 @@
+﻿@model DentalManagement.DomainModels.Appointment
+@{
+    Layout = null;
+}
+
+<div class="modal-dialog">
+    <div class="modal-content">
+        @if (Model != null)
+        {
+            <form id="formEditDentist" action="~/Appointment/SaveDentist" method="post" class="form-horizontal">
+                <input type="hidden" name="id" value="@Model.AppointmentId" />
+
+                <div class="modal-header bg-primary">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">Thay đổi thông tin nha sĩ</h4>
+                </div>
+
+                <div class="modal-body">
+                    <!-- Field to input dentist's name -->
+                    <div class="form-group">
+                        <label class="control-label col-sm-3">Nhập tên nha sĩ:</label>
+                        <div class="col-sm-9">
+                            <input type="text" id="dentistName" class="form-control" name="DentistName" placeholder="Nhập tên bác sĩ" />
+                        </div>
+                    </div>
+
+                    <!-- Display matched dentists dynamically -->
+                    <div class="form-group" id="matchedDentistsContainer" style="display:none;">
+                        <label class="control-label col-sm-3">Kết quả tìm kiếm:</label>
+                        <div class="col-sm-9">
+                            <select id="matchedDentists" class="form-control" name="DentistId">
+                                <option value="">-- Chọn nha sĩ phù hợp --</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Error message -->
+                    <div class="form-group">
+                        <div class="col-sm-12">
+                            <span id="errorEditDentist" style="color: #f00"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="submit" id="btnSaveDentist" class="btn btn-primary" disabled>
+                        <i class="fa fa-floppy-o"></i> Lưu thay đổi
+                    </button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">
+                        Bỏ qua
+                    </button>
+                </div>
+            </form>
+        }
+        else
+        {
+            <div class="modal-header bg-warning">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Thông báo</h4>
+            </div>
+            <div class="modal-body">
+                <p class="text-warning text-center">Yêu cầu không hợp lệ!</p>
+            </div>
+        }
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        let debounceTimer;
+
+        // Xử lý tìm kiếm nha sĩ với debounce
+        $("#dentistName").on("input", function () {
+            clearTimeout(debounceTimer);
+
+            const dentistName = $(this).val().trim();
+            if (dentistName === "") {
+                $("#matchedDentistsContainer").hide();
+                $("#errorEditDentist").text("");
+                $("#btnSaveDentist").prop("disabled", true);
+                return;
+            }
+
+            debounceTimer = setTimeout(() => {
+                $.ajax({
+                    url: '@Url.Action("SearchDentists", "Appointment")',
+                    type: "GET",
+                    data: { name: dentistName },
+                    success: function (response) {
+                        if (response.success && response.dentists.length > 0) {
+                            const dentistDropdown = $("#matchedDentists");
+                            dentistDropdown.empty();
+                            dentistDropdown.append('<option value="">-- Chọn nha sĩ phù hợp --</option>');
+                            response.dentists.forEach(dentist => {
+                                dentistDropdown.append(`<option value="${dentist.id}">${dentist.name} (${dentist.appointmentsCount} lịch hẹn)</option>`);
+                            });
+                            $("#matchedDentistsContainer").show();
+                            $("#errorEditDentist").text("");
+                            $("#btnSaveDentist").prop("disabled", false);
+                        } else {
+                            $("#matchedDentistsContainer").hide();
+                            $("#errorEditDentist").text(response.message || "Không tìm thấy nha sĩ phù hợp.");
+                            $("#btnSaveDentist").prop("disabled", true);
+                        }
+                    },
+                    error: function () {
+                        $("#errorEditDentist").text("Đã xảy ra lỗi khi tìm kiếm nha sĩ.");
+                    }
+                });
+            }, 500);
+        });
+
+        // Xử lý submit form
+        $("#formEditDentist").submit(function (e) {
+            e.preventDefault();
+
+            const selectedDentist = $("#matchedDentists").val();
+            if (!selectedDentist) {
+                $("#errorEditDentist").text("Vui lòng chọn nha sĩ từ danh sách.");
+                return;
+            }
+
+            const postData = $(this).serializeArray();
+
+            $.ajax({
+                url: $(this).attr("action"),
+                type: "POST",
+                data: postData,
+                success: function (response) {
+                    if (response.success) {
+                        alert("Thay đổi thông tin nha sĩ thành công!");
+                        window.location.href = response.redirectUrl;
+                    } else {
+                        $("#errorEditDentist").text(response.message || "Không thể lưu thay đổi.");
+                    }
+                },
+                error: function () {
+                    alert("Đã xảy ra lỗi. Vui lòng thử lại.");
+                }
+            });
+        });
+    });
+
+</script>
