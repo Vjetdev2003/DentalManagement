@@ -45,7 +45,7 @@ namespace DentalManagement.DomainModels
 
             }
         }
-
+        public virtual Prescription Prescription { get; set; }
         public virtual Patient Patient { get; set; }
         public virtual Employee Employee { get; set; }
         public DateTime DateCreated { get; set; }

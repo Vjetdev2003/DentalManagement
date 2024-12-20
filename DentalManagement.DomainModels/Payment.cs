@@ -13,6 +13,7 @@ namespace DentalManagement.DomainModels
         public int PaymentId {  get; set; }
         public int InvoiceId { get; set; }
         public int ServiceId {  get; set; }
+       // public int PatientId {  get; set; }
         public string ServiceName {  get; set; }
         public string PaymentStatus { get; set; }
         public string PaymentMethod {  get; set; } = string.Empty;
@@ -23,5 +24,6 @@ namespace DentalManagement.DomainModels
         public string? UserIdCreate { get ; set; }
         public string? UserIdUpdated { get; set; }
         public Invoice Invoice { get; set; }
+       // public Patient Patient { get; set; }
     }
 }

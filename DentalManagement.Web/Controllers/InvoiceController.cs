@@ -5,6 +5,8 @@ using DentalManagement.Web.Interfaces;
 using DentalManagement.Web.Models;
 using DentalManagement.Web.Repository;
 using DocumentFormat.OpenXml.InkML;
+using iTextSharp.text.pdf;
+using iTextSharp.text;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -144,8 +146,8 @@ namespace DentalManagement.Web.Controllers
             var input = ApplicationContext.GetSessionData<ServiceSearchInput>(SERVICE_SEARCH_CONDITION);
 
             // Sử dụng phương thức bất đồng bộ để lấy danh sách bệnh nhân và đơn thuốc
-            ViewBag.PatientList =   SelectListHelper.GetPatients(_patientRepository);
-            ViewBag.Prescription =   await SelectListHelper.GetPrescriptions(_prescriptionRepository);
+            ViewBag.PatientList = SelectListHelper.GetPatients(_patientRepository);
+            ViewBag.Prescription = await SelectListHelper.GetPrescriptions(_prescriptionRepository);
 
             // Nếu `input` không tồn tại, khởi tạo giá trị mặc định
             if (input == null)
@@ -297,7 +299,8 @@ namespace DentalManagement.Web.Controllers
                     .Include(i => i.Patient)
                     .Include(i => i.Employee)
                     .Include(i => i.InvoiceDetails)
-                    .ThenInclude(idetail => idetail.Service) // Nếu bạn cần thông tin dịch vụ
+                    .ThenInclude(idetail => idetail.Service)
+                    // Nếu bạn cần thông tin dịch vụ
                     .FirstOrDefaultAsync(i => i.InvoiceId == id);
 
                 if (invoiceDetails == null)
@@ -359,10 +362,13 @@ namespace DentalManagement.Web.Controllers
 
                 // Lấy danh sách thông tin đơn thuốc (PrescriptionDetails)
                 var prescriptionDetails = await _dentalManagementDbContext.Prescriptions
-                    .Where(p => p.PatientId == invoiceDetails.PatientId) // Assuming there's a link to InvoiceId or PatientId
-                    .SelectMany(p => p.PrescriptionDetails) // Assuming PrescriptionDetails is a collection of medicine details
+                    .Where(p => p.PrescriptionId == invoice.PrescriptionId) // Assuming there's a link to InvoiceId or PatientId
+                    .SelectMany(p => p.PrescriptionDetails)
+                    // .FirstOrDefaultAsync(p => p.PrescriptionId == invoice.PrescriptionId)
+                    // Assuming PrescriptionDetails is a collection of medicine details
                     .Select(pd => new PrescriptionCreateModel
                     {
+                        PrescriptionId = pd.PrescriptionId,
                         MedicineName = pd.MedicineName,
                         Quantity = pd.Quantity,
                         SalePrice = pd.SalePrice,
@@ -481,19 +487,25 @@ namespace DentalManagement.Web.Controllers
 
                 if (employee == null || patient == null)
                     return NotFound("Nhân viên hoặc bệnh nhân không tồn tại.");
-                var pres = await _prescriptionRepository.GetByIdAsync(prescriptionId);
-                var presDetails = await _prescriptionDRepository.GetByPrescriptionIdAsync(pres.PrescriptionId);
 
                 decimal totalPres = 0;
-
-                // Duyệt qua tất cả chi tiết đơn thuốc để tính tổng
-                foreach (var item in presDetails)  // presDetails là danh sách chi tiết đơn thuốc
+                if (prescriptionId > 0) // Chỉ xử lý đơn thuốc nếu PrescriptionId hợp lệ
                 {
-                    totalPres += item.SalePrice * item.Quantity;
+                    var pres = await _prescriptionRepository.GetByIdAsync(prescriptionId);
+                    if (pres == null)
+                        return NotFound("Đơn thuốc không tồn tại.");
+
+                    var presDetails = await _prescriptionDRepository.GetByPrescriptionIdAsync(pres.PrescriptionId);
+
+                    // Duyệt qua tất cả chi tiết đơn thuốc để tính tổng
+                    foreach (var item in presDetails)
+                    {
+                        totalPres += item.SalePrice * item.Quantity;
+                    }
                 }
                 decimal totalAmount = treatmentVoucher.Sum(d => d.Quantity * d.SalePrice);
 
-                
+
                 decimal totalPaidAmount = totalAmount + totalPres;
 
                 // Calculate discount  
@@ -514,7 +526,7 @@ namespace DentalManagement.Web.Controllers
                 {
                     EmployeeId = employee.EmployeeId,
                     PatientId = patient.PatientId,
-                    PrescriptionId = prescriptionId, // Optional if prescription is null
+                    PrescriptionId = prescriptionId > 0 ? prescriptionId : 0, // Optional if prescription is null
                     PatientName = patient.PatientName,
                     EmployeeName = employee.FullName,
                     PatientAddress = patient.Address,
@@ -538,6 +550,7 @@ namespace DentalManagement.Web.Controllers
                         ServiceId = item.ServiceId,
                         ServiceName = item.ServiceName,
                         Quantity = item.Quantity,
+                        PricePrescription = totalPres,
                         SalePrice = item.SalePrice,
                         PrescriptionId = item.PrescriptionId  // If prescription exists, set it
                     };
@@ -558,24 +571,223 @@ namespace DentalManagement.Web.Controllers
             }
         }
 
-        //[HttpGet]
-        //public async Task<IActionResult> GetLatestPrescriptionByPatientId(int patientId)
-        //{
-        //    var latestPrescription = await _dentalManagementDbContext.Prescriptions
-        //        .Where(p => p.PatientId == patientId)
-        //        .OrderByDescending(p => p.DateCreated) // Sắp xếp theo ngày tạo mới nhất
-        //        .Select(p => new { p.PrescriptionId, p.DateCreated })
-        //        .FirstOrDefaultAsync();
-             
-        //    if (latestPrescription == null)
-        //    {
-        //        return Json(new { success = false, message = "Không tìm thấy đơn thuốc cho bệnh nhân này." });
-        //    }
+        public async Task<IActionResult> PrintInvoice(int id)
+        {
+            var invoices = await _invoiceRepository.GetByIdAsync(id);
+            var invoiceDetails= await _dentalManagementDbContext.InvoiceDetails.SingleOrDefaultAsync(i=>i.InvoiceId == invoices.InvoiceId);
+            invoiceDetails.PrescriptionId = invoices.PrescriptionId;
+            if (invoiceDetails.PrescriptionId != 0)
+            {
+                var invoice = await _dentalManagementDbContext.Invoices
+                .Include(i => i.Patient)
+                .Include(i => i.InvoiceDetails)
+                    .ThenInclude(d => d.Service)
+                .Include(i => i.Prescription)
+                    .ThenInclude(p => p.PrescriptionDetails)
+                        .ThenInclude(pd => pd.Medicine)
+                .FirstOrDefaultAsync(i => i.InvoiceId == id);
 
-        //    return Json(new { success = true, data = latestPrescription });
-        //}
+                if (invoice == null)
+                {
+                    return NotFound("Hóa đơn không tồn tại.");
+                }
 
+                // Tổng tiền dịch vụ
+                decimal totalService = invoice.InvoiceDetails.Sum(d => d.TotalPrice);
 
+                // Tổng tiền thuốc nếu có đơn thuốc
+                decimal totalMedicinePrice = 0;
+                if (invoice.Prescription != null)
+                {
+                    totalMedicinePrice = invoice.Prescription.PrescriptionDetails.Sum(pd => pd.TotalMedicine);
+                }
+
+                // Tạo tài liệu PDF
+                var document = new iTextSharp.text.Document(PageSize.A4);
+                using (var ms = new MemoryStream())
+                {
+                    PdfWriter.GetInstance(document, ms);
+                    document.Open();
+
+                    // Nhúng font Times New Roman
+                    BaseFont baseFont = BaseFont.CreateFont("C:\\Windows\\Fonts\\times.ttf", BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
+                    var font = new Font(baseFont, 12);
+                    var boldFont = new Font(baseFont, 12, Font.BOLD);
+
+                    // Thông tin phòng khám
+                    document.Add(new Paragraph("PHÒNG KHÁM NHA KHOA VietClinic", boldFont));
+                    document.Add(new Paragraph("Địa chỉ: 26 Lương Văn Can, An Cựu, TP-Huế", font));
+                    document.Add(new Paragraph("Số điện thoại: 0879345947", font));
+                    document.Add(new Paragraph("Email: nhakhoa.vietclinic@gmail.com", font));
+                    document.Add(new Paragraph("\n"));
+
+                    // Tiêu đề hóa đơn
+                    document.Add(new Paragraph("HÓA ĐƠN THANH TOÁN", boldFont));
+                    document.Add(new Paragraph("=================================", font));
+
+                    // Thông tin hóa đơn
+                    document.Add(new Paragraph($"Mã hóa đơn: {invoice.InvoiceId}", font));
+                    document.Add(new Paragraph($"Ngày lập: {invoice.DateCreated:dd/MM/yyyy}", font));
+                    document.Add(new Paragraph($"Người lập: {invoice.EmployeeName}", font));
+
+                    // Thông tin bệnh nhân
+                    document.Add(new Paragraph($"Bệnh nhân: {invoice.Patient.PatientName}", font));
+                    document.Add(new Paragraph($"Địa chỉ: {invoice.Patient.Address}", font));
+                    document.Add(new Paragraph($"Số điện thoại: {invoice.Patient.Phone}", font));
+                    document.Add(new Paragraph("\n"));
+
+                    // Thông tin dịch vụ
+                    document.Add(new Paragraph("DANH SÁCH DỊCH VỤ", boldFont));
+                    document.Add(new Paragraph("\n"));
+                    var serviceTable = new PdfPTable(4) { WidthPercentage = 100 };
+                    serviceTable.SetWidths(new float[] { 4, 2, 2, 2 });
+
+                    serviceTable.AddCell(new PdfPCell(new Phrase("Tên dịch vụ", boldFont)) { HorizontalAlignment = Element.ALIGN_CENTER });
+                    serviceTable.AddCell(new PdfPCell(new Phrase("Số lượng", boldFont)) { HorizontalAlignment = Element.ALIGN_CENTER });
+                    serviceTable.AddCell(new PdfPCell(new Phrase("Đơn giá", boldFont)) { HorizontalAlignment = Element.ALIGN_CENTER });
+                    serviceTable.AddCell(new PdfPCell(new Phrase("Thành tiền", boldFont)) { HorizontalAlignment = Element.ALIGN_CENTER });
+
+                    foreach (var detail in invoice.InvoiceDetails)
+                    {
+                        serviceTable.AddCell(new PdfPCell(new Phrase(detail.Service.ServiceName, font)) { HorizontalAlignment = Element.ALIGN_LEFT });
+                        serviceTable.AddCell(new PdfPCell(new Phrase(detail.Quantity.ToString(), font)) { HorizontalAlignment = Element.ALIGN_CENTER });
+                        serviceTable.AddCell(new PdfPCell(new Phrase(detail.SalePrice.ToString("C"), font)) { HorizontalAlignment = Element.ALIGN_RIGHT });
+                        serviceTable.AddCell(new PdfPCell(new Phrase(detail.TotalPrice.ToString("C"), font)) { HorizontalAlignment = Element.ALIGN_RIGHT });
+                    }
+
+                    document.Add(serviceTable);
+                    document.Add(new Paragraph("\n"));
+
+                    // Thông tin đơn thuốc nếu có
+                    if (invoice.Prescription != null)
+                    {
+                        document.Add(new Paragraph("CHI TIẾT ĐƠN THUỐC", boldFont));
+                        document.Add(new Paragraph("\n"));
+
+                        var prescriptionTable = new PdfPTable(4) { WidthPercentage = 100 };
+                        prescriptionTable.SetWidths(new float[] { 4, 2, 2, 2 });
+
+                        prescriptionTable.AddCell(new PdfPCell(new Phrase("Tên thuốc", boldFont)) { HorizontalAlignment = Element.ALIGN_CENTER });
+                        prescriptionTable.AddCell(new PdfPCell(new Phrase("Số lượng", boldFont)) { HorizontalAlignment = Element.ALIGN_CENTER });
+                        prescriptionTable.AddCell(new PdfPCell(new Phrase("Đơn giá", boldFont)) { HorizontalAlignment = Element.ALIGN_CENTER });
+                        prescriptionTable.AddCell(new PdfPCell(new Phrase("Thành tiền", boldFont)) { HorizontalAlignment = Element.ALIGN_CENTER });
+
+                        foreach (var detail in invoice.Prescription.PrescriptionDetails)
+                        {
+                            prescriptionTable.AddCell(new PdfPCell(new Phrase(detail.Medicine.MedicineName, font)) { HorizontalAlignment = Element.ALIGN_LEFT });
+                            prescriptionTable.AddCell(new PdfPCell(new Phrase(detail.Quantity.ToString(), font)) { HorizontalAlignment = Element.ALIGN_CENTER });
+                            prescriptionTable.AddCell(new PdfPCell(new Phrase(detail.SalePrice.ToString("C"), font)) { HorizontalAlignment = Element.ALIGN_RIGHT });
+                            prescriptionTable.AddCell(new PdfPCell(new Phrase(detail.TotalMedicine.ToString("C"), font)) { HorizontalAlignment = Element.ALIGN_RIGHT });
+                        }
+
+                        document.Add(prescriptionTable);
+                        document.Add(new Paragraph("\n"));
+                    }
+
+                    // Tổng kết hóa đơn
+                    // decimal totalPayment = totalService + totalMedicinePrice;
+                    document.Add(new Paragraph("TỔNG KẾT", boldFont));
+                    document.Add(new Paragraph($"Tổng tiền dịch vụ: {totalService:C}", font));
+                    document.Add(new Paragraph($"Tổng tiền thuốc: {totalMedicinePrice:C}", font));
+                    document.Add(new Paragraph($"Tổng thanh toán: {invoice.TotalPrice:C}", font));
+                    document.Add(new Paragraph($"Hình thức thanh toán: {invoice.PaymentMethod}", font));
+
+                    // Lời cảm ơn
+                    document.Add(new Paragraph("\n"));
+                    document.Add(new Paragraph("Cảm ơn quý khách đã sử dụng dịch vụ của chúng tôi!", font));
+                    document.Add(new Paragraph("Mọi thắc mắc xin vui lòng liên hệ với phòng khám.", font));
+
+                    // Đóng tài liệu
+                    document.Close();
+
+                    // Trả về file PDF
+                    var fileBytes = ms.ToArray();
+                    return File(fileBytes, "application/pdf", $"HoaDon_{invoice.InvoiceId}_{invoice.Patient.PatientName}.pdf");
+                }
+            }
+            else if (invoiceDetails.PrescriptionId == 0)
+            {
+                var invoice = await _dentalManagementDbContext.Invoices
+      .Include(i => i.Patient)
+      .Include(i => i.InvoiceDetails)
+          .ThenInclude(d => d.Service)
+      .FirstOrDefaultAsync(i => i.InvoiceId == id);
+
+                if (invoice == null)
+                {
+                    return NotFound("Hóa đơn không tồn tại.");
+                }
+
+                // Tạo tài liệu PDF
+                var document = new iTextSharp.text.Document(PageSize.A4);
+                using (var ms = new MemoryStream())
+                {
+                    PdfWriter.GetInstance(document, ms);
+                    document.Open();
+
+                    // Nhúng font Times New Roman
+                    BaseFont baseFont = BaseFont.CreateFont("C:\\Windows\\Fonts\\times.ttf", BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
+                    var font = new Font(baseFont, 12);
+                    var boldFont = new Font(baseFont, 12, Font.BOLD);
+
+                    // Thông tin phòng khám
+                    document.Add(new Paragraph("PHÒNG KHÁM NHA KHOA VietClinic", boldFont));
+                    document.Add(new Paragraph("Địa chỉ: 26 Lương Văn Can, An Cựu, TP-Huế", font));
+                    document.Add(new Paragraph("Số điện thoại: 0879345947", font));
+                    document.Add(new Paragraph("Email: nhakhoa.vietclinic@gmail.com", font));
+                    document.Add(new Paragraph("\n"));
+
+                    // Tiêu đề hóa đơn
+                    document.Add(new Paragraph("HÓA ĐƠN THANH TOÁN", boldFont));
+                    document.Add(new Paragraph("=================================", font));
+
+                    // Thông tin hóa đơn
+                    document.Add(new Paragraph($"Mã Hóa Đơn: {invoice.InvoiceId}", font));
+                    document.Add(new Paragraph($"Ngày Lập: {invoice.DateCreated:dd/MM/yyyy}", font));
+                    document.Add(new Paragraph($"Bệnh Nhân: {invoice.Patient.PatientName}", font));
+                    document.Add(new Paragraph($"Tổng Tiền: {invoice.TotalPrice:C}", font));
+                    document.Add(new Paragraph($"Hình thức thanh toán: {invoice.PaymentMethod}", font));
+                    document.Add(new Paragraph("\n"));
+
+                    // Thêm bảng chi tiết hóa đơn
+                    var table = new PdfPTable(4) { WidthPercentage = 100 };
+                    table.SetWidths(new float[] { 3, 2, 2, 2 });
+
+                    table.AddCell(new PdfPCell(new Phrase("Dịch Vụ", boldFont)) { HorizontalAlignment = Element.ALIGN_CENTER });
+                    table.AddCell(new PdfPCell(new Phrase("Số Lượng", boldFont)) { HorizontalAlignment = Element.ALIGN_CENTER });
+                    table.AddCell(new PdfPCell(new Phrase("Đơn Giá", boldFont)) { HorizontalAlignment = Element.ALIGN_CENTER });
+                    table.AddCell(new PdfPCell(new Phrase("Thành Tiền", boldFont)) { HorizontalAlignment = Element.ALIGN_CENTER });
+
+                    // Duyệt qua danh sách chi tiết hóa đơn và thêm vào bảng
+                    foreach (var detail in invoice.InvoiceDetails)
+                    {
+                        table.AddCell(new PdfPCell(new Phrase(detail.Service.ServiceName, font)) { HorizontalAlignment = Element.ALIGN_LEFT });
+                        table.AddCell(new PdfPCell(new Phrase(detail.Quantity.ToString(), font)) { HorizontalAlignment = Element.ALIGN_CENTER });
+                        table.AddCell(new PdfPCell(new Phrase(detail.SalePrice.ToString("C"), font)) { HorizontalAlignment = Element.ALIGN_RIGHT });
+                        table.AddCell(new PdfPCell(new Phrase(detail.TotalPrice.ToString("C"), font)) { HorizontalAlignment = Element.ALIGN_RIGHT });
+                    }
+
+                    document.Add(table);
+
+                    // Lời cảm ơn
+                    document.Add(new Paragraph("\n"));
+                    document.Add(new Paragraph("Cảm ơn quý khách đã sử dụng dịch vụ của chúng tôi!", font));
+                    document.Add(new Paragraph("Mọi thắc mắc xin vui lòng liên hệ với phòng khám.", font));
+
+                    // Đóng tài liệu
+                    document.Close();
+
+                    // Trả về file PDF
+                    var fileBytes = ms.ToArray();
+                    return File(fileBytes, "application/pdf", $"HoaDon_{invoice.InvoiceId}_{invoice.Patient.PatientName}.pdf");
+                }
+        }
+            else
+            {
+                return BadRequest("Không thể In hóa đơn.");
+            }
+        }
 
     }
+
 }

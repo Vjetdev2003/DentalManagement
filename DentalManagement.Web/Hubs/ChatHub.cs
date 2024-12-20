@@ -20,9 +20,9 @@ namespace DentalManagement.Web.Hubs
         }
         // Tham gia nhóm nhân viên khi kết nối
         public async Task JoinEmployeeGroup()
-        {
+            {
             var userRoles = GetUserRoles(Context.User);
-            if (userRoles.Contains(WebUserRoles.Employee) || userRoles.Contains(WebUserRoles.Administrator)) // Kiểm tra nếu người dùng là nhân viên
+            if (userRoles.Contains(WebUserRoles.Employee) || userRoles.Contains(WebUserRoles.Administrator)) 
             {
                 // Thêm kết nối vào nhóm "Employees"
                 await Groups.AddToGroupAsync(Context.ConnectionId, "Employees");
@@ -30,17 +30,17 @@ namespace DentalManagement.Web.Hubs
             }
         }
 
-        // Rời nhóm nhân viên
-        public async Task LeaveEmployeeGroup()
-        {
-            var userRoles = GetUserRoles(Context.User);
-            if (userRoles.Contains(WebUserRoles.Employee)) // Kiểm tra nếu người dùng là nhân viên
-            {
-                // Xóa kết nối khỏi nhóm "Employees"
-                await Groups.RemoveFromGroupAsync(Context.ConnectionId, "Employees");
-                Console.WriteLine($"Employee {Context.User.Identity.Name} left the employee group.");
-            }
-        }
+        //// Rời nhóm nhân viên
+        //public async Task LeaveEmployeeGroup()
+        //{
+        //    var userRoles = GetUserRoles(Context.User);
+        //    if (userRoles.Contains(WebUserRoles.Employee)) // Kiểm tra nếu người dùng là nhân viên
+        //    {
+        //        // Xóa kết nối khỏi nhóm "Employees"
+        //        await Groups.RemoveFromGroupAsync(Context.ConnectionId, "Employees");
+        //        Console.WriteLine($"Employee {Context.User.Identity.Name} left the employee group.");
+        //    }
+        //}
 
         // Gửi tin nhắn tới nhân viên
         public async Task SendMessageToEmployees(string name, string phone, string message)

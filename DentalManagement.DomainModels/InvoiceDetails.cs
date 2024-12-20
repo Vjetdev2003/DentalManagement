@@ -15,12 +15,12 @@ namespace DentalManagement.DomainModels
         public string ServiceName {  get; set; }
         public int Quantity {  get; set; }
         public decimal SalePrice { get; set; } = 0;
-        public decimal Discount {  get; set; } = 0; 
+        public decimal PricePrescription { get; set; } = 0;
         public decimal TotalPrice
         {
             get
             {
-                return Quantity * SalePrice;
+                return Quantity * SalePrice ;
             }
         }
         //public string PaymentStatus { get; set; } = string.Empty;

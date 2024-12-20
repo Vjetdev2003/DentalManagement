@@ -1,7 +1,7 @@
 ﻿@using DentalManagement.DomainModels
 @model List<InvoicePaymentViewModel>
 @{
-    ViewBag.Title = "Danh sách dịch vụ cần thanh toán";
+    ViewBag.Title = "Danh sách hoá đơn cần thanh toán";
     var userData = User.GetUserData();
     if (userData.Roles.Contains("patient"))
     {
@@ -22,6 +22,7 @@ else
 {
     <div class="box box-primary">
         <!-- Bảng danh sách dịch vụ -->
+        <h4>Danh sách hoá đơn cần thanh toán</h4>
         <div class="table-responsive">
             <table class="table table-bordered table-striped">
                 <thead class="table-dark">

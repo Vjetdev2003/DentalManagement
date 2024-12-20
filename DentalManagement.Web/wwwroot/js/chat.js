@@ -104,8 +104,8 @@
         // Tạo cấu trúc HTML cho tin nhắn
         listItem.innerHTML = `
     <div>
-        Bệnh nhân <strong>${name}</strong> với số Điện thoại <strong>${phone}</strong> với tin nhắn: 
-        <em>${message}</em> cần tư vấn và hỗ trợ. 
+        Bệnh nhân <strong>${name}</strong> với Số điện thoại <strong>${phone}</strong> với tin nhắn: 
+       " <strong>${message}</strong> "cần tư vấn và hỗ trợ. 
         <small>(${new Date(timestamp).toLocaleString()})</small>
     </div>`;
 

@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using DentalManagement.Web.AppCodes;
 using DentalManagement.Web.Repository;
 using DentalManagement.DomainModels;
 
@@ -14,22 +13,24 @@ namespace DentalManagement.Web.Controllers
             _statisticsService = statisticsService;
         }
 
-        public IActionResult Index()
+        public IActionResult Index(DateTime? startDate, DateTime? endDate)
         {
-            var stats = _statisticsService.GetDashboardStatistics();
+            // Set default values for startDate and endDate if not provided
+            startDate ??= DateTime.Now.AddMonths(-1); // Default to one month ago
+            endDate ??= DateTime.Now; // Default to current date
+
+            // Validate that startDate is not later than endDate
+            if (startDate > endDate)
+            {
+                ModelState.AddModelError(string.Empty, "Start date cannot be later than end date.");
+                return View(); // Return the view with an error message
+            }
+
+            // Get the statistics from the service
+            var stats = _statisticsService.GetDashboardStatistics(startDate.Value, endDate.Value);
+
+            // Pass the statistics to the view
             return View(stats);
-            //var model = new DashboardStatistics
-            //{
-            //    TotalPatients = 100,
-            //    TotalAppointments = 200,
-            //    TotalRevenue = 50000m,
-            //    CashPayments = 120,
-            //    CardPayments = 60,
-            //    BankingPayments = 20,
-            //    CompletedAppointments = 150,
-            //    CanceledAppointments = 50
-            //};
-            //return View(model);
         }
     }
 }

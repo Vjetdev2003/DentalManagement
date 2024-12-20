@@ -19,11 +19,15 @@ namespace DentalManagement.Web.Controllers
         private readonly IInvoiceRepository _invoiceRepository;
         private readonly DentalManagementDbContext _context;
         private readonly IRepository<Patient> _patientRepository;
+        private readonly PrescriptionRepository _prescriptionRepository;
+        private readonly PrescriptionDetailsRepository _prescriptionDRepository;
         private readonly string clientId = "c3efd2c7-926e-4754-8eec-dd7f36642c23"; // Replace with your actual client ID
         private readonly string apiKey = "181f2996-525f-4fc4-aeca-9767b0152d11"; // Replace with your actual API key
         private readonly string checksumKey = "e2c88633b9cb46240d1300376bac12c6077566f54d848d84066909f7e7c2f7b9";
 
-        public PaymentController(PaymentRepository paymentRepository,IRepository<Patient> patientRepository, InvoiceDetailsRepository invoiceDetailsRepository, IRepository<Service> serviceRepository, IInvoiceRepository invoiceRepository, DentalManagementDbContext context)
+        public PaymentController(PaymentRepository paymentRepository,IRepository<Patient> patientRepository, 
+            InvoiceDetailsRepository invoiceDetailsRepository, IRepository<Service> serviceRepository, 
+            IInvoiceRepository invoiceRepository, DentalManagementDbContext context, PrescriptionRepository prescriptionRepository, PrescriptionDetailsRepository prescriptionDRepository)
         {
             _paymentRepository = paymentRepository;
             _invoiceDetailsRepository = invoiceDetailsRepository;
@@ -31,6 +35,8 @@ namespace DentalManagement.Web.Controllers
             _invoiceRepository = invoiceRepository;
             _context = context;
             _patientRepository = patientRepository;
+            _prescriptionRepository = prescriptionRepository;
+            _prescriptionDRepository = prescriptionDRepository;
         }
         public async Task<IActionResult> Index()
         {
@@ -41,7 +47,6 @@ namespace DentalManagement.Web.Controllers
             }
 
             int patientId = Int32.Parse(userData.UserId);
-
             var unpaidInvoices = await _context.Invoices
                   .Include(i => i.InvoiceDetails)
                   .ThenInclude(d => d.Service)
@@ -51,7 +56,7 @@ namespace DentalManagement.Web.Controllers
             var invoiceViewModels = unpaidInvoices.Select(i => new InvoicePaymentViewModel
             {
                 InvoiceId = i.InvoiceId,
-                TotalAmount = i.InvoiceDetails.Sum(d => d.TotalPrice) - i.Discount,
+                TotalAmount = i.InvoiceDetails.Sum(d => d.TotalPrice + d.PricePrescription) - i.Discount,
                 Discount = i.Discount,
                 PatientName = userData.DisplayName,
                 Status = i.Status,
@@ -98,7 +103,7 @@ namespace DentalManagement.Web.Controllers
                     ServiceName = invoiceDetails.FirstOrDefault().ServiceName,
                     PaymentMethod = Paymethod.CASH,  // Phương thức thanh toán
                     PaymentStatus = "Đang xử lý thanh toán tiền mặt",  // Trạng thái thanh toán
-                    AmountPaid = invoiceDetails.Sum(i => i.TotalPrice) - invoiceDetails.Sum(i => i.Discount),  // Tổng tiền thanh toán
+                    AmountPaid = invoiceDetails.Sum(i => i.TotalPrice) - invoice.Discount,  // Tổng tiền thanh toán
                     DateCreated = DateTime.Now,
                     DateUpdated = DateTime.Now,
                     Notes = "Thanh toán cho hoá đơn",
@@ -335,18 +340,19 @@ namespace DentalManagement.Web.Controllers
                 var invoiceDetails = await _context.InvoiceDetails.Where(i => i.InvoiceId == invoiceId).ToListAsync();
                 //payment.PaymentStatus = "Đang xử lý";
                 //invoice.Status = 2;
+                //invoice.Status = -1;
                 await _context.SaveChangesAsync();
-
-                // Tính toán số tiền thanh toán
-                decimal amount = invoice.TotalPrice - invoice.Discount;
+               
+                decimal amount = invoice.TotalPrice;
 
 
                 // Chuẩn bị danh sách các item (ví dụ dịch vụ)
                 var items = new List<ItemData>();
                 foreach (var invoiceDetail in invoiceDetails)
                 {
-                    decimal serviceAmount = invoiceDetail.Quantity * invoiceDetail.TotalPrice;
-                    items.Add(new ItemData(invoiceDetail.ServiceName, invoiceDetail.Quantity, (int)serviceAmount));
+                    decimal serviceAmount = amount;
+                    items.Add(new ItemData(invoiceDetail.ServiceName, invoiceDetail.Quantity, (int)serviceAmount) 
+                        );
                 }
 
                 // Tạo mã đơn hàng duy nhất cho việc thanh toán
@@ -358,7 +364,7 @@ namespace DentalManagement.Web.Controllers
                     (int)amount,
                     "Thanh toán nha khoa", // Mô tả
                     items,
-                    cancelUrl: "https://localhost:44392/Payment/cancel", // URL hủy
+                    cancelUrl: "https://localhost:44392/Payment/Index", // URL hủy
                     returnUrl: "https://localhost:44392/Payment/HandlePaymentReturn" // URL thành công
                 );
 
@@ -434,11 +440,28 @@ namespace DentalManagement.Web.Controllers
                     {
                         return NotFound(new { success = false, message = "Hóa đơn không tồn tại." });
                     }
+                    var pres = await _prescriptionRepository.GetByIdAsync(invoice.PrescriptionId);
+                    var presD = await _prescriptionDRepository.GetByPrescriptionIdAsync(pres.PrescriptionId);
+                    decimal totalPres = 0;
+                    if (pres.PrescriptionId > 0) // Chỉ xử lý đơn thuốc nếu PrescriptionId hợp lệ
+                    {
+                        if (pres == null)
+                            return NotFound("Đơn thuốc không tồn tại.");
+
+                        var presDetails = await _prescriptionDRepository.GetByPrescriptionIdAsync(pres.PrescriptionId);
+
+                        // Duyệt qua tất cả chi tiết đơn thuốc để tính tổng
+                        foreach (var item in presDetails)
+                        {
+                            totalPres += item.SalePrice * item.Quantity;
+                        }
+                    }
                     var userData = User.GetUserData();
                     // Cập nhật trạng thái hóa đơn và thông tin thanh toán
                     var invoiceDetails = await _context.InvoiceDetails.SingleOrDefaultAsync(i => i.InvoiceId == invoice.InvoiceId);
                     invoice.Status = 3; // Trạng thái "PAID"
                     invoice.PaymentMethod = Paymethod.BANKING;
+                    invoice.FinishTime = DateTime.Now;
                     var payment = new Payment
                     {
                         InvoiceId = invoice.InvoiceId,
@@ -446,7 +469,7 @@ namespace DentalManagement.Web.Controllers
                         PaymentStatus = "Thanh toán thành công với PayOS",
                         ServiceId = invoiceDetails.ServiceId,
                         ServiceName = invoiceDetails.ServiceName,
-                        AmountPaid = invoiceDetails.TotalPrice,
+                        AmountPaid = invoiceDetails.TotalPrice + totalPres ,
                         Notes = "Thanh toán cho hoá đơn",
                         DateCreated = DateTime.Now,
                         DateUpdated = DateTime.Now,
@@ -455,7 +478,7 @@ namespace DentalManagement.Web.Controllers
                     await _context.SaveChangesAsync();
 
                     //return Json(new { success = true, message = "Thanh toán thành công." });
-                    return Redirect("/Payment/PaymentHistory");
+                    return Redirect("/Payment/");
                 }
 
                 return Json(new { success = false, message = "Trạng thái không hợp lệ." });

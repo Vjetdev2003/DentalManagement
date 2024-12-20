@@ -48,7 +48,7 @@
                     <label class="control-label col-sm-2 ">Mã đơn thuốc:</label>
                     <div class="col-sm-6">
                         <select id="prescriptionSelect" name="PrescriptionId" class="form-control select2" optional>
-                            <option value="0">Chọn mã đơn thuốc</option>
+                            <option value="0">Không có đơn thuốc</option>
                             @foreach (var pres in ViewBag.Prescription as List<SelectListItem>)
                             {
                                 <option value="@pres.Value">@pres.Text</option>
