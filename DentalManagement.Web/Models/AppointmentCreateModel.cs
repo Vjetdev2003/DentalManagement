@@ -15,5 +15,6 @@ namespace DentalManagement.Web.Models
         public string TimeSlot { get; set; } =string.Empty;
 
         public List<Service> Services { get; set; }
+        public List<Dentist>Dentists { get; set; }
     }
 }

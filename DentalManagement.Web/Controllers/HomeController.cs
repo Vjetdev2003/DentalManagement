@@ -32,12 +32,15 @@ namespace DentalManagement.Web.Controllers
             }
             var userData = User.GetUserData();
             var services = await _context.Services.ToListAsync();
+            var dentists = await _context.Dentists.ToListAsync();
             ViewBag.ServiceList = SelectListHelper.GetServices(_serviceRepo);
+
            // ViewBag.DentistList = SelectListHelper.GetDentists(_dentistRepo);
          //   ViewBag.IsPatient = userData.Roles.Contains("patient");
             var model = new AppointmentCreateModel
             {
                 Services = services,
+                Dentists = dentists
 
             };
             return View(model);

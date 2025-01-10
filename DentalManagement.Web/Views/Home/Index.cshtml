@@ -35,29 +35,85 @@
                     </div>
                 </div>
             </div>
-            <div id="service" class="list-service">
-                <div class="text-center pt-3 fs-1 pb-3">
-                    <h1><strong>Dịch Vụ Của Chúng Tôi</strong></h1>
-                </div>
-                <div class="row row-cols-1 row-cols-md-3 g-4 fb-3" id="service-list">
-                    @foreach (var service in Model.Services)
-                {
-                        <div class="col service-card">
-                            <div class="card h-100">
-                                <img src="~/images/accounts/@service.Photo" class="card-img-top" alt="@service.ServiceName">
-                                <div class="card-body">
-                                    <h5 class="card-title">@service.ServiceName</h5>
-                                    <p class="card-text">@service.Description</p>
-                                </div>
+        <div id="dentist" class="list-dentist">
+            <div class="text-center pt-3 fs-1 pb-3">
+                <h1><strong>Đội ngũ nha sĩ</strong></h1>
+            </div>
+            <div id="dentist-carousel" class="carousel slide" data-bs-ride="carousel">
+                <div class="carousel-inner">
+                    @for (int i = 0; i < Model.Dentists.Count; i += 3)
+                    {
+                        var dentistsToDisplay = Model.Dentists.Skip(i).Take(3).ToList();
+                        <div class="carousel-item @(i == 0 ? "active" : "")">
+                            <div class="row g-4 justify-content-center">
+                                @foreach (var dentist in dentistsToDisplay)
+                                {
+                                    <div class="col-12 col-md-4">
+                                        <div class="card" style="max-width: 380px; height: 500px; border-radius: 15px;">
+                                            <img src="~/images/accounts/@dentist.Avatar" class="card-img-top" alt="@dentist.DentistName" style="height: 250px; object-fit: cover;">
+                                            <div class="card-body" style="flex-grow: 1;">
+                                                <h5 class="card-title" style="font-size: 1.25rem;">@dentist.DentistName</h5>
+                                                <p class="card-text" style="font-size: 1rem;">@dentist.Specialization</p>
+                                                <p class="card-text" style="font-size: 0.9rem;">@dentist.Address</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
                             </div>
                         </div>
-                }
+                    }
                 </div>
-                <div class="text-center pt-3 ">
-                    <button id="next-button" class="btn btn-secondary" onclick="showNextServices()">Xem Thêm</button>
-                <button id="collapse-button" class="btn btn-secondary" onclick="toggleCollapse()">Thu Gọn</button>
-                </div>
+                <!-- Controls -->
+                <button class="carousel-control-prev" type="button" data-bs-target="#dentist-carousel" data-bs-slide="prev">
+                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Previous</span>
+                </button>
+                <button class="carousel-control-next" type="button" data-bs-target="#dentist-carousel" data-bs-slide="next">
+                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Next</span>
+                </button>
             </div>
+        </div>
+
+       <div id="service" class="list-service">
+    <div class="text-center pt-3 fs-1 pb-3">
+        <h1><strong>Dịch Vụ Của Chúng Tôi</strong></h1>
+    </div>
+    <div id="service-carousel" class="carousel slide" data-bs-ride="carousel">
+        <div class="carousel-inner">
+            @for (int i = 0; i < Model.Services.Count; i += 3)
+            {
+                var servicesToDisplay = Model.Services.Skip(i).Take(3).ToList();
+                <div class="carousel-item @(i == 0 ? "active" : "")">
+                    <div class="row g-4">
+                        @foreach (var service in servicesToDisplay)
+                        {
+                            <div class="col-12 col-md-4">
+                                <div class="card h-100">
+                                    <img src="~/images/accounts/@service.Photo" class="card-img-top" alt="@service.ServiceName">
+                                    <div class="card-body">
+                                        <h5 class="card-title">@service.ServiceName</h5>
+                                        <p class="card-text">@service.Description</p>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+        <!-- Controls -->
+        <button class="carousel-control-prev" type="button" data-bs-target="#service-carousel" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Previous</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#service-carousel" data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Next</span>
+        </button>
+    </div>
+</div>
+
     @if (userData.Roles.Contains("patient") || userData.Roles.Contains(""))
         {
             <div class="container mt-5">
@@ -306,6 +362,9 @@
         @TempData["SuccessMessage"]
     </div>
 }
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+
 
 <script>
     $("#submitAppointment").on("click", function () {
