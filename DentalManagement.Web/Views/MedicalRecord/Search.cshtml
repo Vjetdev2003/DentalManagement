@@ -2,6 +2,8 @@
 @{
     Layout = null;
 }
+<p style="margin: 10px 0 10px 0">Có <strong>@Model.RowCount</strong> hoá đơn trong tổng số <strong>@Model.PageCount</strong> trang.</p>
+<div>
 <table class="table table-bordered">
     <thead>
         <tr class="bg-primary">
@@ -29,6 +31,7 @@
                     <td>@record.TreatmentOutcome</td>
                     <td>@record.NextAppointmentDate?.ToString("dd/MM/yyyy")</td>
                     <td class="text-right">
+                        <a class="btn btn-info btn-xs" href="~/MedicalRecord/Edit/@record.MedicalRecordId"><i class="fa fa-edit"></i></a>    
                         <a class="btn btn-info btn-xs" href="~/MedicalRecord/Details/@record.MedicalRecordId">
                             <i class="glyphicon glyphicon-list"></i>
                         </a>
@@ -44,4 +47,22 @@
         }
     </tbody>
 </table>
+@if (Model.PageCount > 1)
+{
+    <div class="text-center">
+        <ul class="pagination">
+            @for (int p = 1; p <= Model.PageCount; p++)
+            {
+                if (Model.Page == p)
+                {
+                    <li class="active"><a href="#">@p</a></li>
+                }
+                else
+                {
+                    <li><a onclick="paginationSearch('#formSearch',@p)">@p</a></li>
+                }
+            }
+        </ul>
+    </div>
+}
 </div>

@@ -34,7 +34,7 @@
                         </td>
                         <td>@item.StartTime?.ToString(@"hh\:mm") - @item.EndTime?.ToString(@"hh\:mm") </td>
                         <td>@item.Notes</td>
-                        <td>@item.FinishedTime</td>
+                        <td>@item.FinishedTime?.ToString("dd/MM/yyyy HH:mm:ss tt")</td>
                         <td>@item.StatusDescription</td>
                         <td class="text-right">
                             <a class="btn btn-info btn-xs" href="~/Appointment/Details/@item.AppointmentId">

@@ -59,6 +59,7 @@ namespace DentalManagement.Web.Controllers
                     .Where(e => string.IsNullOrEmpty(input.SearchValue) || e.Patient.PatientName.ToUpper().Contains(input.SearchValue.ToUpper()) || e.Dentist.DentistName.ToUpper().Contains(input.SearchValue.ToUpper()))
                     .Skip((input.Page - 1) * input.PageSize)
                     .Take(input.PageSize)
+                    .OrderByDescending(e => e.DateCreated)
                     .ToListAsync();
 
                 var model = new MedicalRecordSearchResult()

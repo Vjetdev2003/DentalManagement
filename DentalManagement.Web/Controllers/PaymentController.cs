@@ -43,7 +43,7 @@ namespace DentalManagement.Web.Controllers
             var userData = User.GetUserData();
             if (userData == null)
             {
-                return RedirectToAction("Login");
+                return RedirectToAction("Index");
             }
 
             int patientId = Int32.Parse(userData.UserId);
@@ -440,11 +440,41 @@ namespace DentalManagement.Web.Controllers
                     {
                         return NotFound(new { success = false, message = "Hóa đơn không tồn tại." });
                     }
+                    
                     var pres = await _prescriptionRepository.GetByIdAsync(invoice.PrescriptionId);
-                    var presD = await _prescriptionDRepository.GetByPrescriptionIdAsync(pres.PrescriptionId);
-                    decimal totalPres = 0;
-                    if (pres.PrescriptionId > 0) // Chỉ xử lý đơn thuốc nếu PrescriptionId hợp lệ
+                    if(pres == null)
                     {
+
+                        // Cập nhật trạng thái hóa đơn và thông tin thanh toán
+                        var invoiceDetailss = await _context.InvoiceDetails.SingleOrDefaultAsync(i => i.InvoiceId == invoice.InvoiceId);
+                        invoice.Status = 3; // Trạng thái "PAID"
+                        invoice.PaymentMethod = Paymethod.BANKING;
+                        invoice.FinishTime = DateTime.Now;
+                        var paymentNoPres = new Payment
+                        {
+                            InvoiceId = invoice.InvoiceId,
+                            PaymentMethod = Paymethod.BANKING, // Hoặc phương thức thanh toán tương ứng
+                            PaymentStatus = "Thanh toán thành công với PayOS",
+                            ServiceId = invoiceDetailss.ServiceId,
+                            ServiceName = invoiceDetailss.ServiceName,
+                            AmountPaid = invoiceDetailss.TotalPrice,
+                            Notes = "Thanh toán cho hoá đơn không có đơn thuốc",
+                            DateCreated = DateTime.Now,
+                            DateUpdated = DateTime.Now,
+                        };
+                        var existingPaymentNoPres = await _context.Payments.FirstOrDefaultAsync(p => p.InvoiceId == invoice.InvoiceId && p.PaymentMethod == Paymethod.BANKING);
+                        if (existingPaymentNoPres == null)
+                        {
+                            await _context.Payments.AddAsync(paymentNoPres);
+                            await _context.SaveChangesAsync();
+                        }
+                        //return Json(new { success = true, message = "Thanh toán thành công." });
+                        return Redirect("/Payment/");
+                    }
+                    decimal totalPres = 0;
+                    if (pres.PrescriptionId > 0 && pres != null) // Chỉ xử lý đơn thuốc nếu PrescriptionId hợp lệ
+                    {
+                        var presD = await _prescriptionDRepository.GetByPrescriptionIdAsync(pres.PrescriptionId);
                         if (pres == null)
                             return NotFound("Đơn thuốc không tồn tại.");
 
@@ -470,13 +500,16 @@ namespace DentalManagement.Web.Controllers
                         ServiceId = invoiceDetails.ServiceId,
                         ServiceName = invoiceDetails.ServiceName,
                         AmountPaid = invoiceDetails.TotalPrice + totalPres ,
-                        Notes = "Thanh toán cho hoá đơn",
+                        Notes = "Thanh toán cho hoá đơn có đơn thuốc",
                         DateCreated = DateTime.Now,
                         DateUpdated = DateTime.Now,
                     };
-                    await _context.Payments.AddAsync(payment);
-                    await _context.SaveChangesAsync();
-
+                    var existingPayment = await _context.Payments.FirstOrDefaultAsync(p => p.InvoiceId == invoice.InvoiceId && p.PaymentMethod == Paymethod.BANKING);
+                    if (existingPayment == null)
+                    {
+                        await _context.Payments.AddAsync(payment);
+                        await _context.SaveChangesAsync();
+                    }
                     //return Json(new { success = true, message = "Thanh toán thành công." });
                     return Redirect("/Payment/");
                 }

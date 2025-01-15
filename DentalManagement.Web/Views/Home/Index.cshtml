@@ -65,11 +65,11 @@
                 </div>
                 <!-- Controls -->
                 <button class="carousel-control-prev" type="button" data-bs-target="#dentist-carousel" data-bs-slide="prev">
-                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                    <span class="carousel-control-prev-icon" aria-hidden="true" style="filter: invert(0) brightness(0); left:-30px;"></span>
                     <span class="visually-hidden">Previous</span>
                 </button>
                 <button class="carousel-control-next" type="button" data-bs-target="#dentist-carousel" data-bs-slide="next">
-                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                    <span class="carousel-control-next-icon" aria-hidden="true" style="filter: invert(0) brightness(0);"></span>
                     <span class="visually-hidden">Next</span>
                 </button>
             </div>
@@ -104,11 +104,11 @@
         </div>
         <!-- Controls -->
         <button class="carousel-control-prev" type="button" data-bs-target="#service-carousel" data-bs-slide="prev">
-            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="carousel-control-prev-icon" aria-hidden="true" style="filter:invert(0) brightness(0);"></span>
             <span class="visually-hidden">Previous</span>
         </button>
-        <button class="carousel-control-next" type="button" data-bs-target="#service-carousel" data-bs-slide="next">
-            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <button class="carousel-control-next" type="button" data-bs-target="#service-carousel" data-bs-slide="next" >
+            <span class="carousel-control-next-icon" aria-hidden="true" style="filter:invert(0) brightness(0);"></span>
             <span class="visually-hidden">Next</span>
         </button>
     </div>
@@ -193,6 +193,7 @@
                                         <option value="">-- Chọn khung giờ --</option>
                                         <option value="8-10">08:00 - 10:00</option>
                                         <option value="10-12">10:00 - 12:00</option>
+                                        <option value="12-14">12:00 - 14:00</option>
                                         <option value="14-16">14:00 - 16:00</option>
                                         <option value="16-18">16:00 - 18:00</option>
                                     </select>
@@ -232,67 +233,35 @@
 
                 <script>
                     $('#appointmentForm').submit(function (e) {
-                        e.preventDefault(); // Ngừng hành động mặc định (gửi form)
+                        e.preventDefault(); // Prevent default form submission
 
-                        var formData = $(this).serialize(); // Lấy dữ liệu của form
+                        var formData = $(this).serialize(); // Serialize form data
                         var submitButton = $(this).find('button[type="submit"]');
-                        submitButton.prop('disabled', true); // Disable the submit button
-                        submitButton.text('Đang gửi...'); // Change button text to "Đang gửi..."
+                        submitButton.prop('disabled', true).text('Đang gửi...'); // Disable the button and change text
 
                         $.ajax({
-                            url: '/Appointment/Submit', // URL của action trong Controller
-                            type: 'POST', // Phương thức gửi (POST)
-                            data: formData, // Dữ liệu gửi đi
+                            url: '/Appointment/Submit',
+                            type: 'POST',
+                            data: formData,
                             success: function (response) {
                                 if (response.success) {
-                                    // Hiển thị thông báo thành công
-                                    $('#appointmentMessage').css('display', 'block');
-                                    $('#appointmentMessage').html('Lịch hẹn đã được đặt thành công!');
-                                    $('#appointmentMessage').removeClass('text-danger').addClass('text-success');
+                                    $('#appointmentMessage').show().removeClass('text-danger').addClass('text-success').html('Lịch hẹn đã được đặt thành công!');
                                     $('#appointmentForm')[0].reset();
-                                } else if (response.message) {
-                                    // Hiển thị thông báo nếu kín lịch
-                                    $('#appointmentMessage').css('display', 'block');
-                                    $('#appointmentMessage').html(response.message);
-                                    $('#appointmentMessage').removeClass('text-success').addClass('text-danger');
-
-                                    // Nếu response trả về mảng availableSlots (khung giờ còn trống)
-                                    if (response.availableSlots && response.availableSlots.length > 0) {
-                                        var slotSuggestions = '<ul>';
-
-                                        // Lọc ra những khung giờ đã kín
-                                        var bookedSlots = allSlots.filter(function (slot) {
-                                            return !response.availableSlots.includes(slot);
-                                        });
-
-                                        // Hiển thị khung giờ đã kín
-                                        bookedSlots.forEach(function (slot) {
-                                            slotSuggestions += `<li>Khung giờ đã kín: ${slot}</li>`;
-                                        });
-
-                                        slotSuggestions += '</ul>';
-                                        $('#appointmentMessage').append(slotSuggestions);
-                                    }
-
-                                    $('#appointmentMessage').append(`<p>${response.suggestion}</p>`);
                                 } else {
-                                    // Nếu có lỗi không phải trùng lịch
-                                    $('#appointmentMessage').html(response.error);
-                                    $('#appointmentMessage').removeClass('text-success').addClass('text-danger');
+                                    $('#appointmentMessage').show().removeClass('text-success').addClass('text-danger').html(response.message || 'Có lỗi xảy ra.');
+                                    if (response.availableSlots) {
+                                        $('#appointmentMessage').append('<p>Khung giờ có sẵn:</p><ul>' + response.availableSlots.map(slot => `<li>${slot}</li>`).join('') + '</ul>');
+                                    }
                                 }
+                                submitButton.prop('disabled', false).text('Gửi Lịch Hẹn');
                             },
-                            error: function (xhr, status, error) {
-                                // Xử lý lỗi nếu có lỗi trong quá trình gửi AJAX
-                                $('#appointmentMessage').html('Có lỗi xảy ra khi gửi lịch hẹn: ' + error);
-                                $('#appointmentMessage').removeClass('text-success').addClass('text-danger');
-                            },
-                            complete: function () {
-                                // Kích hoạt lại nút gửi sau khi gửi yêu cầu xong (kể cả thành công hay lỗi)
-                                submitButton.prop('disabled', false); // Kích hoạt lại nút gửi
-                                submitButton.text('Gửi Lịch Hẹn'); // Khôi phục lại chữ trên nút
+                            error: function () {
+                                $('#appointmentMessage').show().removeClass('text-success').addClass('text-danger').html('Đã xảy ra lỗi. Vui lòng thử lại.');
+                                submitButton.prop('disabled', false).text('Gửi Lịch Hẹn');
                             }
                         });
                     });
+
 
                 </script>
                 </div>

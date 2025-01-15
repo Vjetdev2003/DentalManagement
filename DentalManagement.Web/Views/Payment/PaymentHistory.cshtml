@@ -22,6 +22,8 @@
                             <th scope="col">Phương thức thanh toán</th>
                             <th scope="col">Trạng thái thanh toán</th>
                             <th scope="col">Ngày thanh toán</th>
+                            <th scope="col">In hoá đơn</th>
+
                         </tr>
                     </thead>
                     <tbody>
@@ -49,18 +51,17 @@
                                     {
                                         <span class="text-success"><i class="fa fa-check-circle"></i> Đã thanh toán với chuyển khoản</span>
                                     }
-                                    else if(payment.PaymentStatus == "Đang xử lý thanh toán tiền mặt")
+                                     else if(payment.PaymentStatus == "Đang xử lý thanh toán tiền mặt")
                                     {
                                         <span class="text-warning"><i class="fa fa-spinner fa-spin"></i> Đang xử lý thanh toán</span>
                                     }
-                                    else 
+                                   else 
                                     {
                                         <span class="text-danger"><i class="fa fa-times-circle"></i> Thanh toán không thành công</span>
                                     }
                                 </td>
                                 <td>@payment.DateCreated.ToString("dd/MM/yyyy HH:mm")</td>
-                            </tr>
-                        }
+                        <td> <a href="~/Invoice/PrintInvoice/@payment.InvoiceId" class="btn btn-sm btn-success"><i class="fa fa-download"></i> Tải về</a></td>                    </tr>                       }
                     </tbody>
                 </table>
             </div>

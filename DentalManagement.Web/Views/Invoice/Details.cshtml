@@ -70,12 +70,14 @@
                         <a href="~/Invoice/Delete/@Model.Invoices.InvoiceId" class="btn btn-sm btn-danger" onclick="return confirm('Có chắc chắn muốn xóa hóa đơn này không?')">
                             <i class="fa fa-trash"></i> Xóa hóa đơn
                         </a>
+                        <a href="~/Invoice" class="btn btn-sm btn-info">Quay lại</a>
+
                     }
                 </div>
             }
             @if(Model.Invoices.Status == 3)
             {
-                <a href="~/Invoice/PrintInvoice/@Model.Invoices.InvoiceId" class="btn btn-sm btn-success">In hóa đơn</a>
+                <a href="~/Invoice/PrintInvoice/@Model.Invoices.InvoiceId" class="btn btn-sm btn-success"><i class="fa fa-download"></i> In hóa đơn</a>
                 <a href="~/Invoice" class="btn btn-sm btn-info">Quay lại</a>
             }
            

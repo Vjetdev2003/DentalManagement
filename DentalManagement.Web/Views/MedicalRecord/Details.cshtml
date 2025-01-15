@@ -20,7 +20,7 @@
                 @if(ViewBag.IsDentist)
                 {
                 <div class="btn-group">
-                    @if (!ViewBag.IsFinish)
+                    @if (!ViewBag.IsFinish || Constants_MedicalRecord.CANCELLED)
                     {
                         <button type="button" class="btn btn-sm btn-primary dropdown-toggle" data-toggle="dropdown">
                             Xử lý hồ sơ <span class="caret"></span>
@@ -52,16 +52,19 @@
                                     </li>
 
                                     break;
-                            }
+
+                               
+                                }
                         </ul>
                     }
-                    @if (ViewBag.IsDelete)
+                    @if (ViewBag.IsDelete || Model.MedicalRecord.Status == -1)
                     {
                         <a href="~/MedicalRecord/Delete/@Model.MedicalRecord.MedicalRecordId" class="btn btn-sm btn-danger" onclick="return confirm('Có chắc chắn muốn xóa hồ sơ này không?')">
                             <i class="fa fa-trash"></i> Xóa hồ sơ
                         </a>
                     }
                     <a href="~/MedicalRecord" class="btn btn-sm btn-info">Quay lại</a>
+                  
                 </div>
                 }
             </div>

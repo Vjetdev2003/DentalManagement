@@ -110,7 +110,7 @@ public class AppointmentController : Controller
             {
                 query = query.Where(a => a.AppointmentDate <= input.ToTime && a.AppointmentDate >= input.FromTime);
             }
-
+            query = query.OrderByDescending(a => a.DateCreated);
             // Áp dụng tìm kiếm theo từ khóa
             if (!string.IsNullOrEmpty(input.SearchValue))
             {
@@ -210,7 +210,7 @@ public class AppointmentController : Controller
             ServiceName = appointment.Service?.ServiceName,
             AppointmentDate = appointment.AppointmentDate ?? DateTime.Now,
             Status = appointment.Status,
-            Notes = appointment.Notes,
+            Notes = appointment.Notes ?? "",
             StatusDescription = appointment.StatusDescription,
             PatientList = new SelectList(await _patientRepository.GetAllAsync(), "PatientId", "PatientName"),
             DentistList = new SelectList(await _dentistRepository.GetAllAsync(), "DentistId", "DentistName"),
@@ -257,7 +257,7 @@ public class AppointmentController : Controller
             appointment.ServiceID = model.ServiceId;
             appointment.AppointmentDate = model.AppointmentDate;
             appointment.Status = Constants.APPOINTMENT_INIT;
-            appointment.Notes = model.Notes;
+            appointment.Notes = model.Notes ?? "";
             appointment.DateUpdated = DateTime.Now;
             appointment.UserIdUpdated = User?.Identity?.Name;
             var selectedPatient = await _patientRepository.GetByIdAsync(model.PatientId);
@@ -510,7 +510,7 @@ public class AppointmentController : Controller
             AppointmentDate = model.AppointmentDate,
             StartTime = startTime,
             EndTime = endTime,
-            Notes = model.Notes,
+            Notes = model.Notes ?? "",
             Status = Constants.APPOINTMENT_INIT,
             DateCreated = DateTime.Now,
             DateUpdated = DateTime.Now,

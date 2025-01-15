@@ -14,7 +14,7 @@ using System.Security.Claims;
 
 namespace DentalManagement.Web.Controllers
 {
-    [Authorize(Roles = $"{WebUserRoles.Administrator},{WebUserRoles.Dentist},{WebUserRoles.Employee}")]
+   
     public class InvoiceController : Controller
     {
         private readonly DentalManagementDbContext _dentalManagementDbContext;
@@ -82,31 +82,39 @@ namespace DentalManagement.Web.Controllers
         {
             try
             {
+                // Start with the base query
+                var query = _dentalManagementDbContext.Invoices.AsQueryable();
 
-                var data = await _dentalManagementDbContext.Invoices.ToListAsync();
+                // Apply status filter if specified
                 if (input.Status != 0)
                 {
-                    data = data.Where(e => e.Status == input.Status).ToList();
-
-
+                    query = query.Where(e => e.Status == input.Status);
                 }
+
+                // Apply date range filter if specified
                 if (!string.IsNullOrEmpty(input.DateRange))
                 {
-                    data = data.Where(e => e.DateCreated <= input.ToTime && e.DateCreated >= input.FromTime).ToList();
+                    query = query.Where(e => e.DateCreated <= input.ToTime && e.DateCreated >= input.FromTime);
                 }
+
+                // Apply search value filter if specified
                 if (!string.IsNullOrEmpty(input.SearchValue))
                 {
-                    data = data.Where(e => e.PatientName.ToUpper().Contains(input.SearchValue.ToUpper())).ToList();
+                    var searchValueUpper = input.SearchValue.ToUpper();
+                    query = query.Where(e => e.PatientName.ToUpper().Contains(searchValueUpper));
                 }
-                int rowCount = data.Count();
 
-                data = data.Skip((input.Page - 1) * input.PageSize)
-                    .OrderByDescending(e => e.DateCreated)
-                   .Take(input.PageSize).ToList();
+                // Get the total row count before pagination
+                int rowCount = await query.CountAsync();
 
+                // Apply pagination
+                var data = await query
+                    .OrderByDescending(e => e.DateCreated) // Apply ordering before pagination
+                    .Skip((input.Page - 1) * input.PageSize)
+                    .Take(input.PageSize)
+                    .ToListAsync();
 
-
-
+                // Prepare the result model
                 var model = new InvoiceSearchResult()
                 {
                     Page = input.Page,
@@ -115,18 +123,23 @@ namespace DentalManagement.Web.Controllers
                     RowCount = rowCount,
                     Invoices = data
                 };
+
+                // Save search condition in session (if needed)
                 ApplicationContext.SetSessionData(SEARCH_CONDITION, input);
+
+                // Return the view with the result model
                 return View(model);
             }
             catch (Exception ex)
             {
-                // Ghi log lỗi hoặc hiển thị thông báo lỗi
-                Console.WriteLine($"Error while searching appointments: {ex.Message}");
+                // Log the exception
+                Console.WriteLine($"Error while searching invoices: {ex.Message}");
 
-                // Bạn có thể trả về một trang lỗi hoặc xử lý lỗi tùy ý
+                // Redirect to an error page or handle error appropriately
                 return RedirectToAction("Error", new { message = "There was an issue processing your request." });
             }
         }
+
         [HttpGet]
         public async Task<JsonResult> GetServicePrice(int serviceId)
         {
@@ -570,7 +583,7 @@ namespace DentalManagement.Web.Controllers
                 return BadRequest(ex.ToString());
             }
         }
-
+        [Authorize(Roles = $"{WebUserRoles.Administrator},{WebUserRoles.Patient},{WebUserRoles.Employee}")]
         public async Task<IActionResult> PrintInvoice(int id)
         {
             var invoices = await _invoiceRepository.GetByIdAsync(id);
